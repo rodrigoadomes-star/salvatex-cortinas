@@ -234,30 +234,20 @@ function bindCards(groupId, key) {
 function atualizarCores() {
 
   const container =
-    document.getElementById(
-      "cores-choice"
-    );
-
+    document.getElementById("cores-choice");
 
   if (!container) {
-
     return;
-
   }
-
 
   const cores =
     CONFIG.cores?.[state.tecido] || [];
 
 
-  // Se a cor atual não estiver disponível
-  // para o novo tecido, escolhe a primeira.
+  // Se trocar de tecido e a cor atual
+  // não existir, escolhe a primeira.
 
-  if (
-    !cores.includes(
-      state.cor
-    )
-  ) {
+  if (!cores.includes(state.cor)) {
 
     state.cor =
       cores.length
@@ -267,35 +257,81 @@ function atualizarCores() {
   }
 
 
-  container.innerHTML =
-    "";
+  container.innerHTML = "";
 
 
   cores.forEach((cor) => {
 
     const card =
-      document.createElement(
-        "div"
-      );
+      document.createElement("div");
 
 
     card.className =
-      "card" +
-      (
-        state.cor === cor
-          ? " selected"
-          : ""
-      );
+      "card card-cor" +
+      (state.cor === cor
+        ? " selected"
+        : "");
 
 
     card.dataset.value =
       cor;
 
 
-    const strong =
-      document.createElement(
-        "strong"
+    // ========================================================
+    // FOTO DA COR
+    // Usa a PRIMEIRA foto cadastrada na galeria daquela cor
+    // ========================================================
+
+    const fotos =
+      GALERIAS_CORES?.[state.tecido]?.[cor] || [];
+
+
+    if (fotos.length) {
+
+      const imagem =
+        document.createElement("img");
+
+
+      imagem.className =
+        "card-cor-img";
+
+
+      imagem.src =
+        fotos[0].src;
+
+
+      imagem.alt =
+        `${state.tecido} ${cor}`;
+
+
+      imagem.loading =
+        "lazy";
+
+
+      imagem.addEventListener(
+        "error",
+        () => {
+
+          imagem.style.display =
+            "none";
+
+        }
       );
+
+
+      card.appendChild(
+        imagem
+      );
+
+    }
+
+
+    // ========================================================
+    // NOME DA COR
+    // ========================================================
+
+    const strong =
+      document.createElement("strong");
 
 
     strong.textContent =
@@ -307,21 +343,19 @@ function atualizarCores() {
     );
 
 
+    // ========================================================
+    // CLIQUE NA COR
+    // ========================================================
+
     card.addEventListener(
       "click",
       () => {
 
         container
-          .querySelectorAll(
-            ".card"
-          )
-          .forEach((c) => {
-
-            c.classList.remove(
-              "selected"
-            );
-
-          });
+          .querySelectorAll(".card")
+          .forEach((c) =>
+            c.classList.remove("selected")
+          );
 
 
         card.classList.add(
