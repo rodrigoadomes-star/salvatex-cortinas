@@ -205,6 +205,7 @@ function atualizarOrcamento() {
 
   const dados =
     dadosAtuais();
+    atualizarPreview();
 
   const altura =
     Number(dados.altura) || 0;
@@ -231,7 +232,23 @@ function atualizarOrcamento() {
     dados,
     resultado
   );
+function atualizarPreview() {
 
+    const img = document.getElementById("preview-img");
+
+    if (!img) return;
+
+    if (state.tecido === "Linho Damasco") {
+
+        img.src = "imagens/damascooffmicro.jpeg";
+
+    } else {
+
+        img.src = "imagens/gazenatural100bck.jpeg";
+
+    }
+
+},
 
   preco.classList.remove(
     "sob-consulta"
