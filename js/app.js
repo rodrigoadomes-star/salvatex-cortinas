@@ -276,24 +276,13 @@ function atualizarCores() {
     },
 
 
-    "Linho Damasco": {
-
-      "Natural":
-        "imagens/damasco-natural-1.jpeg",
-
-      "Branco":
-        "imagens/damasco-branco-1.jpeg",
-
-      "Bege":
-        "imagens/damascobege.jpeg",
-
-      "Off White":
-        "imagens/damasco-offwhite-1.jpeg",
-
-      "Grafite":
-        "imagens/damasco-grafite-1.jpeg"
-
-    }
+   "Linho Damasco": {
+  "Natural": "imagens/capas/damasco-natural-capa.jpeg",
+  "Branco": "imagens/capas/damasco-branco-capa.jpeg",
+  "Bege": "imagens/capas/damasco-bege-capa.jpeg",
+  "Off White": "imagens/capas/damasco-offwhite-capa.jpeg",
+  "Grafite": "imagens/capas/damasco-grafite-capa.jpeg"
+}
 
   };
 
