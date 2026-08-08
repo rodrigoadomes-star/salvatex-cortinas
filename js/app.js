@@ -90,8 +90,13 @@ const FOTOS_CARROSSEL = {
 };
 
 
+let previewIndex = 0;
+
+
 // ============================================================
 // GALERIAS DAS CORES
+// Fotos usadas nos cards das cores e no botão
+// "Conhecer este tecido"
 // ============================================================
 
 const GALERIAS_CORES = {
@@ -393,14 +398,14 @@ function atualizarCores() {
         card.classList.add("selected");
 
 
-state.cor =
-  cor;
+        state.cor =
+          cor;
 
-// Volta para a primeira foto
-// da nova cor selecionada
-previewIndex = 0;
 
-atualizarOrcamento();
+        previewIndex = 0;
+
+
+        atualizarOrcamento();
 
       }
     );
@@ -434,12 +439,46 @@ function atualizarPreview() {
   }
 
 
- const fotos =
-  FOTOS_CARROSSEL?.[state.tecido]?.[state.cor] || [];
+  const fotos =
+    FOTOS_CARROSSEL?.[state.tecido]?.[state.cor] || [];
 
+
+  // Se ainda não houver fotos para esta cor,
+  // usa a capa da cor como fallback.
 
   if (!fotos.length) {
+
+    const capa =
+      GALERIAS_CORES?.[state.tecido]?.[state.cor]?.[0]?.src;
+
+
+    if (capa) {
+
+      img.src =
+        capa;
+
+      img.alt =
+        `${state.tecido} ${state.cor}`;
+
+    }
+
+
+    if (dots) {
+      dots.innerHTML = "";
+    }
+
+
+    if (carousel) {
+
+      carousel.classList.add(
+        "single-image"
+      );
+
+    }
+
+
     return;
+
   }
 
 
@@ -447,7 +486,9 @@ function atualizarPreview() {
     previewIndex < 0 ||
     previewIndex >= fotos.length
   ) {
+
     previewIndex = 0;
+
   }
 
 
@@ -456,7 +497,7 @@ function atualizarPreview() {
 
 
   img.alt =
-    `${state.tecido} - foto ${previewIndex + 1}`;
+    `${state.tecido} ${state.cor} - foto ${previewIndex + 1}`;
 
 
   if (carousel) {
@@ -526,7 +567,7 @@ function atualizarPreview() {
 function mudarPreview(direcao) {
 
   const fotos =
-  FOTOS_CARROSSEL?.[state.tecido]?.[state.cor] || [];
+    FOTOS_CARROSSEL?.[state.tecido]?.[state.cor] || [];
 
 
   if (!fotos.length) {
@@ -534,7 +575,8 @@ function mudarPreview(direcao) {
   }
 
 
-  previewIndex += direcao;
+  previewIndex +=
+    direcao;
 
 
   if (previewIndex < 0) {
@@ -547,7 +589,8 @@ function mudarPreview(direcao) {
 
   if (previewIndex >= fotos.length) {
 
-    previewIndex = 0;
+    previewIndex =
+      0;
 
   }
 
