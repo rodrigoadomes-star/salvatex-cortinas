@@ -34,7 +34,10 @@
 
   <div class="shell nav">
 
-    <a class="logo" href="#">
+    <a
+      class="logo"
+      href="#"
+    >
       SALVATEX
 
       <small>
@@ -602,7 +605,7 @@
 
 
     <!-- =====================================================
-         RESUMO
+         RESUMO / LADO DIREITO
          ===================================================== -->
 
     <aside class="summary">
@@ -614,61 +617,64 @@
 
 
       <!-- ===================================================
-           FOTO / CARROSSEL
+           CARROSSEL PEQUENO
            =================================================== -->
 
-     <div
-  class="preview-carousel"
-  id="preview-carousel"
-  aria-label="Galeria do tecido"
->
-
-  <div class="preview">
-
-    <img
-      id="preview-img"
-      src="imagens/capas/gaze-natural-capa.png"
-      alt="Cortina Gaze de Linho"
-    >
-
-    <button
-      type="button"
-      class="preview-zoom"
-      id="preview-zoom"
-      aria-label="Ampliar foto"
-    >
-      ⤢
-    </button>
-
-  </div>
+      <div
+        class="preview-carousel"
+        id="preview-carousel"
+        aria-label="Galeria do tecido"
+      >
 
 
-  <button
-    class="preview-nav preview-prev"
-    id="preview-prev"
-    type="button"
-    aria-label="Foto anterior"
-  >
-    ‹
-  </button>
+        <div class="preview">
+
+          <img
+            id="preview-img"
+            src="imagens/capas/gaze-natural-capa.png"
+            alt="Cortina Gaze de Linho"
+          >
 
 
-  <button
-    class="preview-nav preview-next"
-    id="preview-next"
-    type="button"
-    aria-label="Próxima foto"
-  >
-    ›
-  </button>
+          <button
+            type="button"
+            class="preview-zoom"
+            id="preview-zoom"
+            aria-label="Ampliar foto"
+          >
+            ⤢
+          </button>
+
+        </div>
 
 
-  <div
-    class="preview-dots"
-    id="preview-dots"
-  ></div>
+        <button
+          class="preview-nav preview-prev"
+          id="preview-prev"
+          type="button"
+          aria-label="Foto anterior"
+        >
+          ‹
+        </button>
 
-</div>
+
+        <button
+          class="preview-nav preview-next"
+          id="preview-next"
+          type="button"
+          aria-label="Próxima foto"
+        >
+          ›
+        </button>
+
+
+        <div
+          class="preview-dots"
+          id="preview-dots"
+        ></div>
+
+
+      </div>
 
 
       <!-- ===================================================
@@ -676,66 +682,106 @@
            =================================================== -->
 
       <div class="item">
-        <b>Modelo</b>
+
+        <b>
+          Modelo
+        </b>
+
         <span id="sum-modelo">
           Wave
         </span>
+
       </div>
 
 
       <div class="item">
-        <b>Tecido</b>
+
+        <b>
+          Tecido
+        </b>
+
         <span id="sum-tecido">
           Gaze de Linho
         </span>
+
       </div>
 
 
       <div class="item">
-        <b>Cor</b>
+
+        <b>
+          Cor
+        </b>
+
         <span id="sum-cor">
           Branco
         </span>
+
       </div>
 
 
       <div class="item">
-        <b>Forro</b>
+
+        <b>
+          Forro
+        </b>
+
         <span id="sum-forro">
           Forro leve
         </span>
+
       </div>
 
 
       <div class="item">
-        <b>Medidas</b>
+
+        <b>
+          Medidas
+        </b>
+
         <span id="sum-medidas">
           2,50 × 2,70 m
         </span>
+
       </div>
 
 
       <div class="item">
-        <b>Franzimento</b>
+
+        <b>
+          Franzimento
+        </b>
+
         <span id="sum-franz">
           2,5x
         </span>
+
       </div>
 
 
       <div class="item">
-        <b>Trilho</b>
+
+        <b>
+          Trilho
+        </b>
+
         <span id="sum-trilho">
           Trilho simples
         </span>
+
       </div>
 
 
       <div class="item">
-        <b>Barra</b>
+
+        <b>
+          Barra
+        </b>
+
         <span id="sum-barra">
           15 cm
         </span>
+
       </div>
 
 
@@ -993,20 +1039,14 @@
 >
 
 
-  <!-- Fundo clicável -->
-
   <div
     class="modal-cor-fundo"
     id="modal-cor-fundo"
   ></div>
 
 
-  <!-- Conteúdo -->
-
   <div class="modal-cor-conteudo">
 
-
-    <!-- Fechar -->
 
     <button
       type="button"
@@ -1017,8 +1057,6 @@
       ×
     </button>
 
-
-    <!-- Cabeçalho -->
 
     <div class="modal-cor-cabecalho">
 
@@ -1039,12 +1077,52 @@
     </div>
 
 
-    <!-- Fotos -->
-
     <div
       class="modal-cor-galeria"
       id="modal-cor-galeria"
     ></div>
+
+
+  </div>
+
+</div>
+
+
+<!-- =========================================================
+     MODAL — ZOOM DA FOTO PRINCIPAL
+     ========================================================= -->
+
+<div
+  class="zoom-foto"
+  id="zoom-foto"
+  aria-hidden="true"
+>
+
+
+  <div
+    class="zoom-foto-fundo"
+    id="zoom-foto-fundo"
+  ></div>
+
+
+  <div class="zoom-foto-conteudo">
+
+
+    <button
+      type="button"
+      class="zoom-foto-fechar"
+      id="zoom-foto-fechar"
+      aria-label="Fechar imagem ampliada"
+    >
+      ×
+    </button>
+
+
+    <img
+      id="zoom-foto-img"
+      src=""
+      alt=""
+    >
 
 
   </div>
@@ -1086,6 +1164,7 @@
 
 <!-- =========================================================
      JAVASCRIPT
+     DEIXAR SEMPRE POR ÚLTIMO
      ========================================================= -->
 
 <script src="js/config.js"></script>
@@ -1094,37 +1173,7 @@
 
 <script src="js/app.js"></script>
 
-<div
-  class="zoom-foto"
-  id="zoom-foto"
-  aria-hidden="true"
->
 
-  <div
-    class="zoom-foto-fundo"
-    id="zoom-foto-fundo"
-  ></div>
-
-  <div class="zoom-foto-conteudo">
-
-    <button
-      type="button"
-      class="zoom-foto-fechar"
-      id="zoom-foto-fechar"
-    >
-      ×
-    </button>
-
-    <img
-      id="zoom-foto-img"
-      src=""
-      alt=""
-    >
-
-  </div>
-
-</div>
-  
 </body>
 
 </html>
