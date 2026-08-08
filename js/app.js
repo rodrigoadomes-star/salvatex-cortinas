@@ -1380,6 +1380,62 @@ document.addEventListener(
   }
 );
 
+// ============================================================
+// CARROSSEL DE CORES DA PÁGINA
+// ============================================================
+
+const carrosselCores =
+  document.getElementById("cores-carrossel");
+
+const coresAnterior =
+  document.getElementById("cores-anterior");
+
+const coresProximo =
+  document.getElementById("cores-proximo");
+
+
+function moverCarrosselCores(direcao) {
+
+  if (!carrosselCores) {
+    return;
+  }
+
+  const primeiroSlide =
+    carrosselCores.querySelector(".cor-slide");
+
+  if (!primeiroSlide) {
+    return;
+  }
+
+  const larguraSlide =
+    primeiroSlide.getBoundingClientRect().width;
+
+  carrosselCores.scrollBy({
+    left: direcao * (larguraSlide + 14),
+    behavior: "smooth"
+  });
+
+}
+
+
+if (coresAnterior) {
+
+  coresAnterior.addEventListener(
+    "click",
+    () => moverCarrosselCores(-1)
+  );
+
+}
+
+
+if (coresProximo) {
+
+  coresProximo.addEventListener(
+    "click",
+    () => moverCarrosselCores(1)
+  );
+
+}
 
 // ============================================================
 // PRIMEIRO CÁLCULO
