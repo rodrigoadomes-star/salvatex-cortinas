@@ -256,32 +256,21 @@ function atualizarCores() {
   // Fotos usadas como miniatura de cada cor
   const MINIATURAS_CORES = {
 
-    "Gaze de Linho": {
-
-      "Branco":
-        "imagens/gaze-branco-1.jpeg",
-
-      "Bege":
-        "imagens/gaze-bege-1.jpeg",
-
-      "Cinza":
-        "imagens/gaze-cinza-1.jpeg",
-
-      "Off White":
-        "imagens/gaze-offwhite-1.jpeg",
-
-      "Natural":
-        "imagens/gazenatural100bck.jpeg"
-
-    },
+   "Gaze de Linho": {
+  "Natural": "imagens/capas/gaze-natural-capa.png",
+"Branco": "imagens/capas/gaze-branco-capa.png",
+"Bege": "imagens/capas/gaze-bege-capa.png",
+"Off White": "imagens/capas/gaze-offwhite-capa.png",
+"Grafite": "imagens/capas/gaze-cinza-capa.png"
+}
 
 
    "Linho Damasco": {
-  "Natural": "imagens/capas/damasco-natural-capa.jpeg",
-  "Branco": "imagens/capas/damasco-branco-capa.jpeg",
-  "Bege": "imagens/capas/damasco-bege-capa.jpeg",
-  "Off White": "imagens/capas/damasco-offwhite-capa.jpeg",
-  "Grafite": "imagens/capas/damasco-grafite-capa.jpeg"
+  "Natural": "imagens/capas/damasco-natural-capa.png",
+"Branco": "imagens/capas/damasco-branco-capa.png",
+"Bege": "imagens/capas/damasco-bege-capa.png",
+"Off White": "imagens/capas/damasco-offwhite-capa.png",
+"Grafite": "imagens/capas/damasco-grafite-capa.png"
 }
 
   };
