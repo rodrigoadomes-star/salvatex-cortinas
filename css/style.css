@@ -890,6 +890,71 @@ h1{
     height:260px;
   }
 }
+
+/* ==========================================================
+   CARDS DAS CORES COM FOTO
+   ========================================================== */
+
+#cores-choice{
+  grid-template-columns:repeat(5,1fr);
+}
+
+.card-cor{
+  padding:7px;
+  min-height:0;
+  text-align:center;
+  overflow:hidden;
+}
+
+.card-cor-img{
+  width:100%;
+  height:85px;
+  object-fit:cover;
+  display:block;
+
+  border-radius:9px;
+
+  margin-bottom:8px;
+}
+
+.card-cor strong{
+  font-size:11px;
+  margin:0;
+}
+
+
+/* Cor selecionada */
+
+.card-cor.selected{
+  border:2px solid var(--accent);
+}
+
+
+/* Tablet */
+
+@media(max-width:900px){
+
+  #cores-choice{
+    grid-template-columns:repeat(3,1fr);
+  }
+
+}
+
+
+/* Celular */
+
+@media(max-width:600px){
+
+  #cores-choice{
+    grid-template-columns:repeat(2,1fr);
+  }
+
+  .card-cor-img{
+    height:110px;
+  }
+
+}
+
 /* ==========================================================
    BOTÃO CONHECER COR
    ========================================================== */
