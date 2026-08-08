@@ -11,84 +11,152 @@ const CONFIG = {
   // Parcelamento exibido no site
   parcelas: 10,
 
-  // Limite máximo para cálculo online
+
+  // ==========================================================
+  // ALTURA
+  // ==========================================================
+
   altura: {
+
     calculoMaximo: 3.20,
+
     inicioAcrescimo: 2.80,
+
     acrescimoApos280: 0.25
+
   },
+
 
   // ==========================================================
   // REGRAS AUTOMÁTICAS DE BARRA
-  // Até 2,80 m: mantém o valor tabelado e varia apenas a barra.
-  // De 2,81 m até 3,20 m: barra de 20 cm + acréscimo de 25%.
   // ==========================================================
+
   barra: {
+
     faixasSemAcrescimo: [
-      { ate: 2.60, tamanho: 20 },
-      { ate: 2.70, tamanho: 15 },
-      { ate: 2.75, tamanho: 10 },
-      { ate: 2.80, tamanho: 5 }
+
+      {
+        ate: 2.60,
+        tamanho: 20
+      },
+
+      {
+        ate: 2.70,
+        tamanho: 15
+      },
+
+      {
+        ate: 2.75,
+        tamanho: 10
+      },
+
+      {
+        ate: 2.80,
+        tamanho: 5
+      }
+
     ],
 
     acimaDe280: 20
+
   },
+
 
   // ==========================================================
   // TRILHOS
   // ==========================================================
+
   instalacao: {
 
     "Trilho simples": {
+
       valorMetro: 75,
+
       minimo: 85
+
     },
 
+
     "Trilho duplo": {
+
       valorMetro: 111,
+
       minimo: 125
+
     }
 
   },
 
+
+  // ==========================================================
+  // CORES DISPONÍVEIS
+  // ==========================================================
+
+  cores: {
+
+    "Gaze de Linho": [
+
+      "Branco",
+
+      "Bege",
+
+      "Cinza",
+
+      "Off White",
+
+      "Natural"
+
+    ],
+
+
+    "Linho Damasco": [
+
+      "Natural",
+
+      "Branco",
+
+      "Bege",
+
+      "Off White",
+
+      "Grafite"
+
+    ]
+
+  },
+
+
   // ==========================================================
   // PREÇOS DAS CORTINAS
   // ==========================================================
+
   precos: {
 
     "Gaze de Linho": {
+
       "Sem forro": 121,
+
       "Forro leve": 142,
+
       "Blackout 70%": 173,
+
       "Blackout 100%": 189
+
     },
 
+
     "Linho Damasco": {
+
       "Sem forro": 158,
+
       "Forro leve": 179,
+
       "Blackout 70%": 226,
+
       "Blackout 100%": 247
+
     }
 
   }
 
 };
-cores:{
-
-    "Gaze de Linho":[
-        "Branco",
-        "Bege",
-        "Cinza",
-        "Off White",
-        "Natural"
-    ],
-
-    "Linho Damasco":[
-        "Natural",
-        "Branco",
-        "Bege",
-        "Off White",
-        "Grafite"
-    ]
-
-},
