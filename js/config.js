@@ -32,11 +32,17 @@ const CONFIG = {
     acimaDe280: 20
   },
 
-  // Trilho
-  trilho: {
-    precoPorMetro: 74,
-    valorMinimo: 95
+  instalacao: {
+  "Trilho simples": {
+    valorMetro: 74,
+    minimo: 85
   },
+
+  "Trilho duplo": {
+    valorMetro: 110,
+    minimo: 125
+  }
+}
 
   // Ajuste demonstrativo do modelo Ilhós
   ilhos: {
