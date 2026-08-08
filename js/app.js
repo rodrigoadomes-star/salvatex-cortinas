@@ -4,10 +4,17 @@
 // ============================================================
 
 const state = {
-  modelo: "Wave",
-  tecido: "Gaze de Linho",
-  forro: "Forro leve",
-  trilho: "Trilho simples"
+
+    modelo:"Wave",
+
+    tecido:"Gaze de Linho",
+
+    cor:"Branco",
+
+    forro:"Forro leve",
+
+    trilho:"Trilho simples"
+
 };
 
 
