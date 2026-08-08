@@ -393,11 +393,14 @@ function atualizarCores() {
         card.classList.add("selected");
 
 
-        state.cor =
-          cor;
+state.cor =
+  cor;
 
+// Volta para a primeira foto
+// da nova cor selecionada
+previewIndex = 0;
 
-        atualizarOrcamento();
+atualizarOrcamento();
 
       }
     );
@@ -431,8 +434,8 @@ function atualizarPreview() {
   }
 
 
-  const fotos =
-    FOTOS_TECIDOS[state.tecido] || [];
+ const fotos =
+  FOTOS_CARROSSEL?.[state.tecido]?.[state.cor] || [];
 
 
   if (!fotos.length) {
@@ -523,7 +526,7 @@ function atualizarPreview() {
 function mudarPreview(direcao) {
 
   const fotos =
-    FOTOS_TECIDOS[state.tecido] || [];
+  FOTOS_CARROSSEL?.[state.tecido]?.[state.cor] || [];
 
 
   if (!fotos.length) {
