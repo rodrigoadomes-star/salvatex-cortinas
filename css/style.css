@@ -897,7 +897,7 @@ h1{
 
 #cores-choice{
   display:grid;
-  grid-template-columns:repeat(5, minmax(120px, 1fr));
+  grid-template-columns:repeat(5, minmax(150px, 1fr));
   gap:12px;
 }
 
@@ -928,7 +928,7 @@ h1{
 
 #cores-choice .card-cor-img{
   width:150%;
-  height:150px;
+  height:100px;
 
   object-fit:cover;
   object-position:center;
