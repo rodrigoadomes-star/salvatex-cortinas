@@ -40,12 +40,12 @@ const CONFIG = {
   instalacao: {
 
     "Trilho simples": {
-      valorMetro: 74,
+      valorMetro: 75,
       minimo: 85
     },
 
     "Trilho duplo": {
-      valorMetro: 110,
+      valorMetro: 111,
       minimo: 125
     }
 
