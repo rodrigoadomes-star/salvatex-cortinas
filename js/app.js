@@ -55,7 +55,7 @@ function atualizarInfoBarra(altura) {
   const regra = obterRegraBarra(altura);
 
   if (regra.acrescimo) {
-    info.textContent = `Para ${altura.toFixed(2).replace('.', ',')} m de altura, a cortina será produzida com barra larga de 20 cm e acréscimo de 25%.`;
+    info.textContent = `Para ${altura.toFixed(2).replace('.', ',')} m de altura, a cortina será produzida com barra larga de 20 cm.`;
   } else {
     info.textContent = `Para ${altura.toFixed(2).replace('.', ',')} m de altura, a cortina será produzida com barra de ${regra.tamanho} cm, mantendo o valor tabelado.`;
   }
@@ -81,7 +81,7 @@ function atualizarResumoBasico(dados, resultado) {
   if (resultado && !resultado.sobConsulta && resultado.barra) {
     document.getElementById("sum-barra").textContent = resultado.barra + " cm";
     barraResumo.textContent = resultado.acrescimoAltura
-      ? "Barra larga de 20 cm obrigatória para esta altura. Acréscimo de 25% aplicado ao valor da cortina."
+      ? "Barra larga de 20 cm obrigatória para esta altura."
       : "Barra definida automaticamente pela altura, sem alteração do valor tabelado.";
   } else {
     document.getElementById("sum-barra").textContent = "Sob consulta";
