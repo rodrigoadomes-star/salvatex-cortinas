@@ -29,35 +29,35 @@ const GALERIAS_CORES = {
 
     "Branco": [
       {
-        src: "imagens/gaze-branco-1.jpeg",
+        src: "imagens/capas/gaze-branco-capa.png",
         legenda: "Visão geral"
       }
     ],
 
     "Bege": [
       {
-        src: "imagens/gaze-bege-1.jpeg",
+        src: "imagens/capas/gaze-bege-capa.png",
         legenda: "Gaze de Linho Bege"
       }
     ],
 
     "Cinza": [
       {
-        src: "imagens/gaze-cinza-1.jpeg",
+        src: "imagens/capas/gaze-cinza-capa.png",
         legenda: "Gaze de Linho Cinza"
       }
     ],
 
     "Off White": [
       {
-        src: "imagens/gaze-offwhite-1.jpeg",
+        src: "imagens/capas/gaze-offwhite-capa.png",
         legenda: "Gaze de Linho Off White"
       }
     ],
 
     "Natural": [
       {
-        src: "imagens/gazenatural100bck.jpeg",
+        src: "imagens/capas/gaze-natural-capa.png",
         legenda: "Gaze de Linho Natural"
       }
     ]
@@ -69,35 +69,35 @@ const GALERIAS_CORES = {
 
     "Natural": [
       {
-        src: "imagens/damasco-natural-1.jpeg",
+        src: "imagens/capas/damasco-natural-capa.png",
         legenda: "Linho Damasco Natural"
       }
     ],
 
     "Branco": [
       {
-        src: "imagens/damasco-branco-1.jpeg",
+        src: "imagens/capas/damasco-branco-capa.png",
         legenda: "Linho Damasco Branco"
       }
     ],
 
     "Bege": [
       {
-        src: "imagens/damascobege.jpeg",
+        src: "imagens/capas/damasco-bege-capa.png",
         legenda: "Linho Damasco Bege"
       }
     ],
 
     "Off White": [
       {
-        src: "imagens/damasco-offwhite-1.jpeg",
+        src: "imagens/capas/damasco-offwhite-capa.png",
         legenda: "Linho Damasco Off White"
       }
     ],
 
     "Grafite": [
       {
-        src: "imagens/damasco-grafite-1.jpeg",
+        src: "imagens/capas/damasco-grafite-capa.png",
         legenda: "Linho Damasco Grafite"
       }
     ]
@@ -234,105 +234,73 @@ function bindCards(groupId, key) {
 function atualizarCores() {
 
   const container =
-    document.getElementById("cores-choice");
+    document.getElementById(
+      "cores-choice"
+    );
+
 
   if (!container) {
+
     return;
+
   }
+
 
   const cores =
     CONFIG.cores?.[state.tecido] || [];
 
-  if (!cores.includes(state.cor)) {
+
+  // Se a cor atual não estiver disponível
+  // para o novo tecido, escolhe a primeira.
+
+  if (
+    !cores.includes(
+      state.cor
+    )
+  ) {
+
     state.cor =
       cores.length
         ? cores[0]
         : "";
+
   }
 
-  container.innerHTML = "";
 
-
-  // Fotos usadas como miniatura de cada cor
-  const MINIATURAS_CORES = {
-
-   "Gaze de Linho": {
-  "Natural": "imagens/capas/gaze-natural-capa.png",
-"Branco": "imagens/capas/gaze-branco-capa.png",
-"Bege": "imagens/capas/gaze-bege-capa.png",
-"Off White": "imagens/capas/gaze-offwhite-capa.png",
-"Grafite": "imagens/capas/gaze-cinza-capa.png"
-}
-
-
-   "Linho Damasco": {
-  "Natural": "imagens/capas/damasco-natural-capa.png",
-"Branco": "imagens/capas/damasco-branco-capa.png",
-"Bege": "imagens/capas/damasco-bege-capa.png",
-"Off White": "imagens/capas/damasco-offwhite-capa.png",
-"Grafite": "imagens/capas/damasco-grafite-capa.png"
-}
-
-  };
+  container.innerHTML =
+    "";
 
 
   cores.forEach((cor) => {
 
     const card =
-      document.createElement("div");
+      document.createElement(
+        "div"
+      );
+
 
     card.className =
-      "card card-cor" +
-      (state.cor === cor
-        ? " selected"
-        : "");
+      "card" +
+      (
+        state.cor === cor
+          ? " selected"
+          : ""
+      );
+
 
     card.dataset.value =
       cor;
 
 
-    // IMAGEM
-
-    const imagem =
-      document.createElement("img");
-
-    imagem.className =
-      "card-cor-img";
-
-    imagem.src =
-      MINIATURAS_CORES?.[state.tecido]?.[cor] || "";
-
-    imagem.alt =
-      `${state.tecido} ${cor}`;
-
-    imagem.loading =
-      "lazy";
-
-
-    // Caso a foto ainda não exista,
-    // esconde somente a imagem
-
-    imagem.addEventListener(
-      "error",
-      () => {
-        imagem.style.display =
-          "none";
-      }
-    );
-
-
-    // NOME DA COR
-
     const strong =
-      document.createElement("strong");
+      document.createElement(
+        "strong"
+      );
+
 
     strong.textContent =
       cor;
 
-
-    card.appendChild(
-      imagem
-    );
 
     card.appendChild(
       strong
@@ -344,17 +312,26 @@ function atualizarCores() {
       () => {
 
         container
-          .querySelectorAll(".card")
-          .forEach((c) =>
-            c.classList.remove("selected")
-          );
+          .querySelectorAll(
+            ".card"
+          )
+          .forEach((c) => {
+
+            c.classList.remove(
+              "selected"
+            );
+
+          });
+
 
         card.classList.add(
           "selected"
         );
 
+
         state.cor =
           cor;
+
 
         atualizarOrcamento();
 
@@ -369,6 +346,7 @@ function atualizarCores() {
   });
 
 }
+
 
 // ============================================================
 // ABRIR GALERIA DA COR
