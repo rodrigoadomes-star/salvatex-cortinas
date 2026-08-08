@@ -408,27 +408,152 @@ h1{
 }
 
 
-/* FOTO DA CORTINA */
+/* ==========================================================
+   GALERIA / CARROSSEL DA CORTINA
+   ========================================================== */
+
+.preview-carousel{
+  position:relative;
+  width:100%;
+  margin-bottom:24px;
+}
+
+/* Foto */
 
 .preview{
-    width:100%;
-    height:420px;
-    border-radius:20px;
-    overflow:hidden;
-    margin-bottom:24px;
-    background:#fff;
-    box-shadow:0 10px 25px rgba(0,0,0,.08);
+  width:100%;
+  height:420px;
+  border-radius:20px;
+  overflow:hidden;
+  background:#eee8e1;
+  box-shadow:0 10px 28px rgba(33,29,24,.10);
 }
 
 .preview img{
-    width:100%;
-    height:100%;
-    object-fit:cover;
-    object-position:center;
-    display:block;
-    transition:.35s;
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  object-position:center;
+  display:block;
+  transition:
+    opacity .25s ease,
+    transform .4s ease;
 }
 
+/* Zoom suave */
+
+.preview:hover img{
+  transform:scale(1.035);
+}
+
+/* Setas */
+
+.preview-nav{
+  position:absolute;
+  top:50%;
+  transform:translateY(-50%);
+
+  width:42px;
+  height:42px;
+
+  border:0;
+  border-radius:50%;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  background:rgba(255,255,255,.92);
+  color:#211d18;
+
+  font-size:28px;
+  line-height:1;
+
+  cursor:pointer;
+  z-index:10;
+
+  box-shadow:0 6px 20px rgba(0,0,0,.16);
+
+  transition:
+    background .2s ease,
+    color .2s ease,
+    transform .2s ease;
+}
+
+.preview-nav:hover{
+  background:#211d18;
+  color:#fff;
+}
+
+/* esquerda */
+
+.preview-prev{
+  left:14px;
+}
+
+/* direita */
+
+.preview-next{
+  right:14px;
+}
+
+/* bolinhas */
+
+.preview-dots{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  gap:7px;
+  margin-top:12px;
+}
+
+.preview-dot{
+  width:8px;
+  height:8px;
+  padding:0;
+  border:0;
+  border-radius:50%;
+  background:#cfc6bd;
+  cursor:pointer;
+}
+
+.preview-dot.active{
+  width:22px;
+  border-radius:999px;
+  background:#6e533b;
+}
+
+/* Se existir somente uma foto,
+   esconde setas e indicadores */
+
+.preview-carousel.single-image .preview-nav,
+.preview-carousel.single-image .preview-dots{
+  display:none;
+}
+
+
+/* CELULAR */
+
+@media(max-width:600px){
+
+  .preview{
+    height:420px;
+  }
+
+  .preview-nav{
+    width:38px;
+    height:38px;
+    font-size:26px;
+  }
+
+  .preview-prev{
+    left:10px;
+  }
+
+  .preview-next{
+    right:10px;
+  }
+}
 
 /* ==========================================================
    ITENS DO RESUMO
