@@ -496,8 +496,8 @@ function atualizarPreview() {
     fotos[previewIndex];
 
 
-  img.alt =
-    `${state.tecido} ${state.cor} - foto ${previewIndex + 1}`;
+img.alt =
+  `${state.tecido} ${state.cor}`;
 
 
   if (carousel) {
