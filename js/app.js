@@ -205,7 +205,6 @@ function atualizarOrcamento() {
 
   const dados =
     dadosAtuais();
-    atualizarPreview();
 
   const altura =
     Number(dados.altura) || 0;
