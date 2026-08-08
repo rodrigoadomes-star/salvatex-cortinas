@@ -1570,6 +1570,31 @@ const zoomFechar =
 const zoomFundo =
   document.getElementById("zoom-foto-fundo");
 
+const zoomPrev =
+  document.getElementById("zoom-prev");
+
+const zoomNext =
+  document.getElementById("zoom-next");
+
+if (zoomPrev) {
+
+  zoomPrev.addEventListener(
+    "click",
+    () => mudarFotoZoom(-1)
+  );
+
+}
+
+
+if (zoomNext) {
+
+  zoomNext.addEventListener(
+    "click",
+    () => mudarFotoZoom(1)
+  );
+
+}
+
 
 if (previewImg) {
 
