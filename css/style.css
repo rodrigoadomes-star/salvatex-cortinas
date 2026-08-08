@@ -927,8 +927,8 @@ h1{
 /* Foto */
 
 #cores-choice .card-cor-img{
-  width:100%;
-  height:50px;
+  width:200%;
+  height:100px;
 
   object-fit:cover;
   object-position:center;
