@@ -443,9 +443,6 @@ function atualizarPreview() {
     FOTOS_CARROSSEL?.[state.tecido]?.[state.cor] || [];
 
 
-  // Se ainda não houver fotos para esta cor,
-  // usa a capa da cor como fallback.
-
   if (!fotos.length) {
 
     const capa =
@@ -496,8 +493,8 @@ function atualizarPreview() {
     fotos[previewIndex];
 
 
-img.alt =
-  `${state.tecido} ${state.cor}`;
+  img.alt =
+    `${state.tecido} ${state.cor}`;
 
 
   if (carousel) {
@@ -537,7 +534,7 @@ img.alt =
 
         dot.setAttribute(
           "aria-label",
-          `Ver foto ${indice + 1}`
+          `Ver ${state.tecido} ${state.cor}`
         );
 
 
