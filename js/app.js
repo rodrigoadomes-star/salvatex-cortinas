@@ -128,6 +128,241 @@ function atualizarCores() {
   const cores =
     CONFIG.cores?.[state.tecido] || [];
 
+  const GALERIAS_CORES = {
+
+  "Gaze de Linho": {
+
+    "Branco": [
+      {
+        src: "imagens/gaze-branco-1.jpeg",
+        legenda: "Visão geral"
+      },
+      {
+        src: "imagens/gaze-branco-2.jpeg",
+        legenda: "Detalhe da trama"
+      }
+    ],
+
+    "Bege": [
+      {
+        src: "imagens/gaze-bege-1.jpeg",
+        legenda: "Gaze de Linho Bege"
+      }
+    ],
+
+    "Cinza": [
+      {
+        src: "imagens/gaze-cinza-1.jpeg",
+        legenda: "Gaze de Linho Cinza"
+      }
+    ],
+
+    "Off White": [
+      {
+        src: "imagens/gaze-offwhite-1.jpeg",
+        legenda: "Gaze de Linho Off White"
+      }
+    ],
+
+    "Natural": [
+      {
+        src: "imagens/gazenatural100bck.jpeg",
+        legenda: "Detalhe do Gaze de Linho Natural"
+      },
+
+      {
+        src: "imagens/gaze-natural-ambiente.jpeg",
+        legenda: "Aplicação em ambiente"
+      },
+
+      {
+        src: "imagens/gaze-natural-detalhe.jpeg",
+        legenda: "Detalhe da trama"
+      }
+    ]
+
+  },
+
+
+  "Linho Damasco": {
+
+    "Natural": [
+      {
+        src: "imagens/damasco-natural-1.jpeg",
+        legenda: "Linho Damasco Natural"
+      }
+    ],
+
+    "Branco": [
+      {
+        src: "imagens/damasco-branco-1.jpeg",
+        legenda: "Linho Damasco Branco"
+      }
+    ],
+
+    "Bege": [
+      {
+        src: "imagens/damascobege.jpeg",
+        legenda: "Linho Damasco Bege"
+      }
+    ],
+
+    "Off White": [
+      {
+        src: "imagens/damasco-offwhite-1.jpeg",
+        legenda: "Linho Damasco Off White"
+      }
+    ],
+
+    "Grafite": [
+      {
+        src: "imagens/damasco-grafite-1.jpeg",
+        legenda: "Linho Damasco Grafite"
+      }
+    ]
+
+  }
+
+};
+
+  function abrirGaleriaCor() {
+
+  const modal =
+    document.getElementById("modal-cor");
+
+  const galeria =
+    document.getElementById("modal-cor-galeria");
+
+  const titulo =
+    document.getElementById("modal-cor-titulo");
+
+  const tecido =
+    document.getElementById("modal-cor-tecido");
+
+
+  if (
+    !modal ||
+    !galeria ||
+    !titulo ||
+    !tecido
+  ) {
+    return;
+  }
+
+
+  const fotos =
+    GALERIAS_CORES?.[state.tecido]?.[state.cor] || [];
+
+
+  tecido.textContent =
+    state.tecido;
+
+
+  titulo.textContent =
+    state.cor;
+
+
+  galeria.innerHTML =
+    "";
+
+
+  if (!fotos.length) {
+
+    galeria.innerHTML =
+      `<p style="color:#746c63;">
+        Fotos desta cor serão adicionadas em breve.
+      </p>`;
+
+  } else {
+
+    fotos.forEach((foto) => {
+
+      if (foto.legenda) {
+
+        const legenda =
+          document.createElement("div");
+
+        legenda.className =
+          "modal-cor-legenda";
+
+        legenda.textContent =
+          foto.legenda;
+
+        galeria.appendChild(
+          legenda
+        );
+
+      }
+
+
+      const img =
+        document.createElement("img");
+
+      img.src =
+        foto.src;
+
+      img.alt =
+        `${state.tecido} ${state.cor}`;
+
+      img.loading =
+        "lazy";
+
+
+      galeria.appendChild(
+        img
+      );
+
+    });
+
+  }
+
+
+  modal.classList.add(
+    "aberto"
+  );
+
+
+  modal.setAttribute(
+    "aria-hidden",
+    "false"
+  );
+
+
+  document.body.classList.add(
+    "modal-aberto"
+  );
+
+}
+
+
+function fecharGaleriaCor() {
+
+  const modal =
+    document.getElementById("modal-cor");
+
+
+  if (!modal) {
+    return;
+  }
+
+
+  modal.classList.remove(
+    "aberto"
+  );
+
+
+  modal.setAttribute(
+    "aria-hidden",
+    "true"
+  );
+
+
+  document.body.classList.remove(
+    "modal-aberto"
+  );
+
+},
+
 
   // Se a cor atual não existir no novo tecido,
   // seleciona automaticamente a primeira
@@ -907,5 +1142,58 @@ if (botaoComprar) {
 // ============================================================
 // PRIMEIRO CÁLCULO
 // ============================================================
+
+const botaoConhecerCor =
+  document.getElementById("conhecer-cor");
+
+
+const modalCorFechar =
+  document.getElementById("modal-cor-fechar");
+
+
+const modalCorFundo =
+  document.getElementById("modal-cor-fundo");
+
+
+if (botaoConhecerCor) {
+
+  botaoConhecerCor.addEventListener(
+    "click",
+    abrirGaleriaCor
+  );
+
+}
+
+
+if (modalCorFechar) {
+
+  modalCorFechar.addEventListener(
+    "click",
+    fecharGaleriaCor
+  );
+
+}
+
+
+if (modalCorFundo) {
+
+  modalCorFundo.addEventListener(
+    "click",
+    fecharGaleriaCor
+  );
+
+}
+
+
+document.addEventListener(
+  "keydown",
+  (evento) => {
+
+    if (evento.key === "Escape") {
+      fecharGaleriaCor();
+    }
+
+  }
+);
 
 atualizarOrcamento();
