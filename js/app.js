@@ -601,6 +601,65 @@ function mudarPreview(direcao) {
 // ZOOM DA FOTO PRINCIPAL
 // ============================================================
 
+// ============================================================
+// ZOOM DA FOTO PRINCIPAL
+// COM NAVEGAÇÃO ENTRE AS FOTOS
+// ============================================================
+
+function atualizarImagemZoom() {
+
+  const imagemGrande =
+    document.getElementById("zoom-foto-img");
+
+  if (!imagemGrande) {
+    return;
+  }
+
+
+  const fotos =
+    FOTOS_CARROSSEL?.[state.tecido]?.[state.cor] || [];
+
+
+  if (!fotos.length) {
+
+    const capa =
+      GALERIAS_CORES?.[state.tecido]?.[state.cor]?.[0]?.src;
+
+
+    if (capa) {
+
+      imagemGrande.src =
+        capa;
+
+      imagemGrande.alt =
+        `${state.tecido} ${state.cor}`;
+
+    }
+
+    return;
+  }
+
+
+  if (
+    previewIndex < 0 ||
+    previewIndex >= fotos.length
+  ) {
+
+    previewIndex = 0;
+
+  }
+
+
+  imagemGrande.src =
+    fotos[previewIndex];
+
+
+  imagemGrande.alt =
+    `${state.tecido} ${state.cor}`;
+
+}
+
+
 function abrirZoomPreview() {
 
   const modal =
@@ -609,25 +668,16 @@ function abrirZoomPreview() {
   const imagemGrande =
     document.getElementById("zoom-foto-img");
 
-  const imagemAtual =
-    document.getElementById("preview-img");
-
 
   if (
     !modal ||
-    !imagemGrande ||
-    !imagemAtual
+    !imagemGrande
   ) {
     return;
   }
 
 
-  imagemGrande.src =
-    imagemAtual.src;
-
-
-  imagemGrande.alt =
-    imagemAtual.alt;
+  atualizarImagemZoom();
 
 
   modal.classList.add("aberto");
@@ -670,6 +720,52 @@ function fecharZoomPreview() {
 
 }
 
+
+// ============================================================
+// PASSAR FOTO DENTRO DO ZOOM
+// ============================================================
+
+function mudarFotoZoom(direcao) {
+
+  const fotos =
+    FOTOS_CARROSSEL?.[state.tecido]?.[state.cor] || [];
+
+
+  if (!fotos.length) {
+    return;
+  }
+
+
+  previewIndex +=
+    direcao;
+
+
+  if (previewIndex < 0) {
+
+    previewIndex =
+      fotos.length - 1;
+
+  }
+
+
+  if (previewIndex >= fotos.length) {
+
+    previewIndex =
+      0;
+
+  }
+
+
+  // Atualiza a foto ampliada
+
+  atualizarImagemZoom();
+
+
+  // Atualiza também o carrossel atrás do zoom
+
+  atualizarPreview();
+
+}
 
 // ============================================================
 // GALERIA "CONHECER ESTE TECIDO"
