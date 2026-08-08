@@ -54,7 +54,6 @@ function dadosAtuais() {
 // ============================================================
 
 function bindCards(groupId, key) {
-
   document
     .querySelectorAll("#" + groupId + " .card")
     .forEach((el) => {
@@ -155,7 +154,6 @@ function atualizarResumoBasico(
     "x";
 
 
-  // Mostra qual trilho foi escolhido
   document.getElementById("sum-trilho").textContent =
     dados.trilho === "Não"
       ? "Não incluso"
@@ -198,6 +196,38 @@ function atualizarResumoBasico(
 
 
 // ============================================================
+// ATUALIZA IMAGEM DA CORTINA
+// ============================================================
+
+function atualizarPreview() {
+
+  const img =
+    document.getElementById("preview-img");
+
+  if (!img) {
+    return;
+  }
+
+  if (state.tecido === "Linho Damasco") {
+
+    img.src =
+      "imagens/damascooffmicro.jpeg";
+
+    img.alt =
+      "Cortina Linho Damasco";
+
+  } else {
+
+    img.src =
+      "imagens/gazenatural100bck.jpeg";
+
+    img.alt =
+      "Cortina Gaze de Linho";
+  }
+}
+
+
+// ============================================================
 // ATUALIZA ORÇAMENTO
 // ============================================================
 
@@ -205,6 +235,8 @@ function atualizarOrcamento() {
 
   const dados =
     dadosAtuais();
+
+  atualizarPreview();
 
   const altura =
     Number(dados.altura) || 0;
@@ -231,23 +263,7 @@ function atualizarOrcamento() {
     dados,
     resultado
   );
-function atualizarPreview() {
 
-    const img = document.getElementById("preview-img");
-
-    if (!img) return;
-
-    if (state.tecido === "Linho Damasco") {
-
-        img.src = "imagens/damascooffmicro.jpeg";
-
-    } else {
-
-        img.src = "imagens/gazenatural100bck.jpeg";
-
-    }
-
-},
 
   preco.classList.remove(
     "sob-consulta"
@@ -267,7 +283,6 @@ function atualizarPreview() {
       resultado.mensagem;
 
     window.currentTotal = null;
-
     window.currentSobConsulta = false;
 
     return;
@@ -294,11 +309,8 @@ function atualizarPreview() {
       "Solicitar orçamento";
 
     window.currentTotal = null;
-
     window.currentSobConsulta = true;
-
     window.currentBarra = null;
-
     window.currentAcrescimoAltura = false;
 
     return;
