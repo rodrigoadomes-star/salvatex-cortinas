@@ -42,7 +42,7 @@ const CONFIG = {
     valorMetro: 110,
     minimo: 125
   }
-}
+},
 
   // Ajuste demonstrativo do modelo Ilhós
   ilhos: {
