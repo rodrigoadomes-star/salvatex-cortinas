@@ -73,3 +73,22 @@ const CONFIG = {
   }
 
 };
+cores:{
+
+    "Gaze de Linho":[
+        "Branco",
+        "Bege",
+        "Cinza",
+        "Off White",
+        "Natural"
+    ],
+
+    "Linho Damasco":[
+        "Natural",
+        "Branco",
+        "Bege",
+        "Off White",
+        "Grafite"
+    ]
+
+},
