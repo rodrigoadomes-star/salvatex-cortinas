@@ -210,7 +210,7 @@ function atualizarPreview() {
 
   if (state.tecido === "Linho Damasco") {
 
-   img.src = "imagens/damascooffmicro.jpeg";
+   img.src = "imagens/damascobege.jpeg";
 
     img.alt =
       "Cortina Linho Damasco";
