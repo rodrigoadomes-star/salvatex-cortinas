@@ -51,6 +51,7 @@ function dadosAtuais() {
     trilho: state.trilho,
     largura: val("largura"),
     altura: val("altura"),
+    cor:state.cor,
     franzimento: val("franzimento")
   };
 }
@@ -132,6 +133,9 @@ function atualizarResumoBasico(
 
   document.getElementById("sum-tecido").textContent =
     dados.tecido;
+    
+    document.getElementById("sum-cor").textContent =
+dados.cor;
 
   document.getElementById("sum-forro").textContent =
     dados.forro;
