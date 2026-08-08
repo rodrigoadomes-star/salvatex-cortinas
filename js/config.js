@@ -3,6 +3,7 @@
 // ============================================================
 
 const CONFIG = {
+
   // Coloque somente números: DDI 55 + DDD + número.
   // Exemplo: "5544999999999"
   whatsapp: "5544998793160",
@@ -29,30 +30,32 @@ const CONFIG = {
       { ate: 2.75, tamanho: 10 },
       { ate: 2.80, tamanho: 5 }
     ],
+
     acimaDe280: 20
   },
 
+  // ==========================================================
+  // TRILHOS
+  // ==========================================================
   instalacao: {
-  "Trilho simples": {
-    valorMetro: 74,
-    minimo: 85
-  },
 
-  "Trilho duplo": {
-    valorMetro: 110,
-    minimo: 125
-  }
-},
+    "Trilho simples": {
+      valorMetro: 74,
+      minimo: 85
+    },
 
-  // Ajuste demonstrativo do modelo Ilhós
-  ilhos: {
-    multiplicador: 0.94
+    "Trilho duplo": {
+      valorMetro: 110,
+      minimo: 125
+    }
+
   },
 
   // ==========================================================
-  // PREÇOS — ALTERE AQUI
+  // PREÇOS DAS CORTINAS
   // ==========================================================
   precos: {
+
     "Gaze de Linho": {
       "Sem forro": 121,
       "Forro leve": 142,
@@ -65,7 +68,8 @@ const CONFIG = {
       "Forro leve": 179,
       "Blackout 70%": 226,
       "Blackout 100%": 247
-      
     }
+
   }
+
 };
