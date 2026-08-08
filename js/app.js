@@ -234,73 +234,127 @@ function bindCards(groupId, key) {
 function atualizarCores() {
 
   const container =
-    document.getElementById(
-      "cores-choice"
-    );
-
+    document.getElementById("cores-choice");
 
   if (!container) {
-
     return;
-
   }
-
 
   const cores =
     CONFIG.cores?.[state.tecido] || [];
 
-
-  // Se a cor atual não estiver disponível
-  // para o novo tecido, escolhe a primeira.
-
-  if (
-    !cores.includes(
-      state.cor
-    )
-  ) {
-
+  if (!cores.includes(state.cor)) {
     state.cor =
       cores.length
         ? cores[0]
         : "";
-
   }
 
+  container.innerHTML = "";
 
-  container.innerHTML =
-    "";
+
+  // Fotos usadas como miniatura de cada cor
+  const MINIATURAS_CORES = {
+
+    "Gaze de Linho": {
+
+      "Branco":
+        "imagens/gaze-branco-1.jpeg",
+
+      "Bege":
+        "imagens/gaze-bege-1.jpeg",
+
+      "Cinza":
+        "imagens/gaze-cinza-1.jpeg",
+
+      "Off White":
+        "imagens/gaze-offwhite-1.jpeg",
+
+      "Natural":
+        "imagens/gazenatural100bck.jpeg"
+
+    },
+
+
+    "Linho Damasco": {
+
+      "Natural":
+        "imagens/damasco-natural-1.jpeg",
+
+      "Branco":
+        "imagens/damasco-branco-1.jpeg",
+
+      "Bege":
+        "imagens/damascobege.jpeg",
+
+      "Off White":
+        "imagens/damasco-offwhite-1.jpeg",
+
+      "Grafite":
+        "imagens/damasco-grafite-1.jpeg"
+
+    }
+
+  };
 
 
   cores.forEach((cor) => {
 
     const card =
-      document.createElement(
-        "div"
-      );
-
+      document.createElement("div");
 
     card.className =
-      "card" +
-      (
-        state.cor === cor
-          ? " selected"
-          : ""
-      );
-
+      "card card-cor" +
+      (state.cor === cor
+        ? " selected"
+        : "");
 
     card.dataset.value =
       cor;
 
 
-    const strong =
-      document.createElement(
-        "strong"
-      );
+    // IMAGEM
 
+    const imagem =
+      document.createElement("img");
+
+    imagem.className =
+      "card-cor-img";
+
+    imagem.src =
+      MINIATURAS_CORES?.[state.tecido]?.[cor] || "";
+
+    imagem.alt =
+      `${state.tecido} ${cor}`;
+
+    imagem.loading =
+      "lazy";
+
+
+    // Caso a foto ainda não exista,
+    // esconde somente a imagem
+
+    imagem.addEventListener(
+      "error",
+      () => {
+        imagem.style.display =
+          "none";
+      }
+    );
+
+
+    // NOME DA COR
+
+    const strong =
+      document.createElement("strong");
 
     strong.textContent =
       cor;
 
+
+    card.appendChild(
+      imagem
+    );
 
     card.appendChild(
       strong
@@ -312,26 +366,17 @@ function atualizarCores() {
       () => {
 
         container
-          .querySelectorAll(
-            ".card"
-          )
-          .forEach((c) => {
-
-            c.classList.remove(
-              "selected"
-            );
-
-          });
-
+          .querySelectorAll(".card")
+          .forEach((c) =>
+            c.classList.remove("selected")
+          );
 
         card.classList.add(
           "selected"
         );
 
-
         state.cor =
           cor;
-
 
         atualizarOrcamento();
 
@@ -346,7 +391,6 @@ function atualizarCores() {
   });
 
 }
-
 
 // ============================================================
 // ABRIR GALERIA DA COR
