@@ -1176,112 +1176,239 @@ h1{
 }
 
 /* ==========================================================
-   CARROSSEL DE CORES
+   CARROSSEL PEQUENO — SUA CORTINA
    ========================================================== */
 
-.cores-showcase{
-  padding:42px 0 55px;
-}
-
-.cores-showcase-head{
-  display:flex;
-  align-items:flex-end;
-  justify-content:space-between;
-  gap:20px;
+.preview-carousel{
+  position:relative;
   margin-bottom:20px;
 }
 
-.cores-showcase h2{
-  font-family:Georgia,serif;
-  font-size:32px;
-  font-weight:400;
-  margin:5px 0;
-}
 
-.cores-showcase p{
-  color:var(--muted);
-  font-size:13px;
-  margin:0;
-}
+.preview{
+  width:100%;
+  height:300px;
 
-.cores-setas{
-  display:flex;
-  gap:8px;
-}
-
-.cores-seta{
-  width:42px;
-  height:42px;
-  border:1px solid var(--line);
-  border-radius:50%;
-  background:white;
-  color:var(--ink);
-  font-size:26px;
-  cursor:pointer;
-}
-
-.cores-seta:hover{
-  background:var(--ink);
-  color:white;
-}
-
-.cores-carrossel{
-  display:flex;
-  gap:14px;
-
-  overflow-x:auto;
-  scroll-behavior:smooth;
-
-  scroll-snap-type:x mandatory;
-
-  padding-bottom:8px;
-
-  scrollbar-width:none;
-}
-
-.cores-carrossel::-webkit-scrollbar{
-  display:none;
-}
-
-.cor-slide{
-  flex:0 0 calc((100% - 42px) / 4);
-
-  min-width:0;
-
-  background:white;
-
-  border:1px solid var(--line);
-  border-radius:16px;
+  position:relative;
 
   overflow:hidden;
 
-  scroll-snap-align:start;
+  border-radius:16px;
+
+  background:#f3eee8;
 }
 
-.cor-slide img{
+
+.preview img{
   width:100%;
-  aspect-ratio:1 / 1;
+  height:100%;
 
   object-fit:cover;
   object-position:center;
 
   display:block;
+
+  cursor:zoom-in;
 }
 
-.cor-slide-info{
-  padding:12px 13px 14px;
+
+/* SETAS */
+
+.preview-nav{
+  position:absolute;
+  top:50%;
+
+  transform:translateY(-50%);
+
+  width:42px;
+  height:42px;
+
+  border:0;
+  border-radius:50%;
+
+  background:rgba(255,255,255,.94);
+
+  color:#211d18;
+
+  font-size:25px;
+
+  cursor:pointer;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  box-shadow:0 5px 18px rgba(0,0,0,.12);
+
+  z-index:3;
 }
 
-.cor-slide-info small{
+
+.preview-prev{
+  left:14px;
+}
+
+
+.preview-next{
+  right:14px;
+}
+
+
+.preview-nav:hover{
+  background:#211d18;
+  color:#fff;
+}
+
+
+/* BOTÃO DE ZOOM */
+
+.preview-zoom{
+  position:absolute;
+
+  right:12px;
+  top:12px;
+
+  width:38px;
+  height:38px;
+
+  border:0;
+  border-radius:50%;
+
+  background:rgba(255,255,255,.94);
+
+  font-size:18px;
+
+  cursor:pointer;
+
+  z-index:4;
+}
+
+
+/* BOLINHAS */
+
+.preview-dots{
+  display:flex;
+  justify-content:center;
+
+  gap:6px;
+
+  margin-top:10px;
+}
+
+
+.preview-dot{
+  width:7px;
+  height:7px;
+
+  padding:0;
+
+  border:0;
+  border-radius:50%;
+
+  background:#d4ccc4;
+
+  cursor:pointer;
+}
+
+
+.preview-dot.active{
+  background:#6e533b;
+}
+
+
+/* ==========================================================
+   ZOOM
+   ========================================================== */
+
+.zoom-foto{
+  display:none;
+
+  position:fixed;
+  inset:0;
+
+  z-index:10000;
+}
+
+
+.zoom-foto.aberto{
   display:block;
-  color:var(--muted);
-  font-size:10px;
-  margin-bottom:3px;
 }
 
-.cor-slide-info strong{
+
+.zoom-foto-fundo{
+  position:absolute;
+  inset:0;
+
+  background:rgba(0,0,0,.78);
+}
+
+
+.zoom-foto-conteudo{
+  position:absolute;
+
+  left:50%;
+  top:50%;
+
+  transform:translate(-50%,-50%);
+
+  width:min(1000px,92vw);
+  max-height:92vh;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+
+.zoom-foto-conteudo img{
+  max-width:100%;
+  max-height:88vh;
+
+  object-fit:contain;
+
+  border-radius:12px;
+
   display:block;
-  font-size:13px;
+}
+
+
+.zoom-foto-fechar{
+  position:absolute;
+
+  top:-18px;
+  right:-18px;
+
+  width:42px;
+  height:42px;
+
+  border:0;
+  border-radius:50%;
+
+  background:#fff;
+
+  color:#211d18;
+
+  font-size:27px;
+
+  cursor:pointer;
+
+  z-index:2;
+}
+
+
+/* CELULAR */
+
+@media(max-width:600px){
+
+  .preview{
+    height:320px;
+  }
+
+  .preview-nav{
+    width:38px;
+    height:38px;
+  }
+
 }
 
 
