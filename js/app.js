@@ -12,31 +12,82 @@ const state = {
 
 
 // ============================================================
-// FOTOS DO CARROSSEL PEQUENO
+// FOTOS DO CARROSSEL
+// Fotos reais separadas por TECIDO + COR
 // ============================================================
 
-const FOTOS_TECIDOS = {
+const FOTOS_CARROSSEL = {
 
-  "Gaze de Linho": [
-    "imagens/capas/gaze-branco-capa.png",
-    "imagens/capas/gaze-bege-capa.png",
-    "imagens/capas/gaze-cinza-capa.png",
-    "imagens/capas/gaze-offwhite-capa.png",
-    "imagens/capas/gaze-natural-capa.png"
-  ],
+  "Gaze de Linho": {
 
-  "Linho Damasco": [
-    "imagens/capas/damasco-natural-capa.png",
-    "imagens/capas/damasco-branco-capa.png",
-    "imagens/capas/damasco-bege-capa.png",
-    "imagens/capas/damasco-offwhite-capa.png",
-    "imagens/capas/damasco-grafite-capa.png"
-  ]
+    "Branco": [
+      "imagens/galeria/gaze/branco/foto-1.png",
+      "imagens/galeria/gaze/branco/foto-2.png",
+      "imagens/galeria/gaze/branco/foto-3.png"
+    ],
+
+    "Bege": [
+      "imagens/galeria/gaze/bege/foto-1.png",
+      "imagens/galeria/gaze/bege/foto-2.png",
+      "imagens/galeria/gaze/bege/foto-3.png"
+    ],
+
+    "Cinza": [
+      "imagens/galeria/gaze/cinza/foto-1.png",
+      "imagens/galeria/gaze/cinza/foto-2.png",
+      "imagens/galeria/gaze/cinza/foto-3.png"
+    ],
+
+    "Off White": [
+      "imagens/galeria/gaze/offwhite/foto-1.png",
+      "imagens/galeria/gaze/offwhite/foto-2.png",
+      "imagens/galeria/gaze/offwhite/foto-3.png"
+    ],
+
+    "Natural": [
+      "imagens/galeria/gaze/natural/foto-1.png",
+      "imagens/galeria/gaze/natural/foto-2.png",
+      "imagens/galeria/gaze/natural/foto-3.png"
+    ]
+
+  },
+
+
+  "Linho Damasco": {
+
+    "Natural": [
+      "imagens/galeria/damasco/natural/foto-1.png",
+      "imagens/galeria/damasco/natural/foto-2.png",
+      "imagens/galeria/damasco/natural/foto-3.png"
+    ],
+
+    "Branco": [
+      "imagens/galeria/damasco/branco/foto-1.png",
+      "imagens/galeria/damasco/branco/foto-2.png",
+      "imagens/galeria/damasco/branco/foto-3.png"
+    ],
+
+    "Bege": [
+      "imagens/galeria/damasco/bege/foto-1.png",
+      "imagens/galeria/damasco/bege/foto-2.png",
+      "imagens/galeria/damasco/bege/foto-3.png"
+    ],
+
+    "Off White": [
+      "imagens/galeria/damasco/offwhite/foto-1.png",
+      "imagens/galeria/damasco/offwhite/foto-2.png",
+      "imagens/galeria/damasco/offwhite/foto-3.png"
+    ],
+
+    "Grafite": [
+      "imagens/galeria/damasco/grafite/foto-1.png",
+      "imagens/galeria/damasco/grafite/foto-2.png",
+      "imagens/galeria/damasco/grafite/foto-3.png"
+    ]
+
+  }
 
 };
-
-
-let previewIndex = 0;
 
 
 // ============================================================
