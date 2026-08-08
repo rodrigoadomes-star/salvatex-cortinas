@@ -10,6 +10,38 @@ const state = {
   trilho: "Trilho simples"
 };
 
+// ============================================================
+// FOTOS DO CARROSSEL PEQUENO
+// ============================================================
+
+const FOTOS_TECIDOS = {
+
+  "Gaze de Linho": [
+
+    "imagens/capas/gaze-branco-capa.png",
+    "imagens/capas/gaze-bege-capa.png",
+    "imagens/capas/gaze-cinza-capa.png",
+    "imagens/capas/gaze-offwhite-capa.png",
+    "imagens/capas/gaze-natural-capa.png"
+
+  ],
+
+
+  "Linho Damasco": [
+
+    "imagens/capas/damasco-natural-capa.png",
+    "imagens/capas/damasco-branco-capa.png",
+    "imagens/capas/damasco-bege-capa.png",
+    "imagens/capas/damasco-offwhite-capa.png",
+    "imagens/capas/damasco-grafite-capa.png"
+
+  ]
+
+};
+
+
+let previewIndex = 0;
+
 
 // ============================================================
 // GALERIAS DAS CORES
@@ -212,9 +244,11 @@ function bindCards(groupId, key) {
 
           if (key === "tecido") {
 
-            atualizarCores();
+  atualizarCores();
 
-          }
+  previewIndex = 0;
+
+}
 
 
           atualizarOrcamento();
@@ -821,43 +855,94 @@ function atualizarResumoBasico(
 function atualizarPreview() {
 
   const img =
-    document.getElementById(
-      "preview-img"
-    );
+    document.getElementById("preview-img");
+
+  const dots =
+    document.getElementById("preview-dots");
 
 
   if (!img) {
-
     return;
+  }
 
+
+  const fotos =
+    FOTOS_TECIDOS[state.tecido] || [];
+
+
+  if (!fotos.length) {
+    return;
   }
 
 
   if (
-    state.tecido ===
-    "Linho Damasco"
+    previewIndex >=
+    fotos.length
   ) {
 
-    img.src =
-      "imagens/damascobege.jpeg";
+    previewIndex = 0;
+
+  }
 
 
-    img.alt =
-      `Cortina Linho Damasco ${state.cor}`;
-
-  } else {
-
-    img.src =
-      "imagens/gazenatural100bck.jpeg";
+  img.src =
+    fotos[previewIndex];
 
 
-    img.alt =
-      `Cortina Gaze de Linho ${state.cor}`;
+  img.alt =
+    `${state.tecido} - foto ${previewIndex + 1}`;
+
+
+  // bolinhas
+
+  if (dots) {
+
+    dots.innerHTML = "";
+
+
+    fotos.forEach(
+      (_, indice) => {
+
+        const dot =
+          document.createElement("button");
+
+
+        dot.type =
+          "button";
+
+
+        dot.className =
+          "preview-dot" +
+          (
+            indice === previewIndex
+              ? " active"
+              : ""
+          );
+
+
+        dot.addEventListener(
+          "click",
+          () => {
+
+            previewIndex =
+              indice;
+
+            atualizarPreview();
+
+          }
+        );
+
+
+        dots.appendChild(
+          dot
+        );
+
+      }
+    );
 
   }
 
 }
-
 
 // ============================================================
 // ATUALIZA ORÇAMENTO
@@ -1381,58 +1466,204 @@ document.addEventListener(
 );
 
 // ============================================================
-// CARROSSEL DE CORES DA PÁGINA
+// CONTROLES DO CARROSSEL PEQUENO
 // ============================================================
 
-const carrosselCores =
-  document.getElementById("cores-carrossel");
+const previewPrev =
+  document.getElementById("preview-prev");
 
-const coresAnterior =
-  document.getElementById("cores-anterior");
+const previewNext =
+  document.getElementById("preview-next");
 
-const coresProximo =
-  document.getElementById("cores-proximo");
+const previewImg =
+  document.getElementById("preview-img");
+
+const previewZoom =
+  document.getElementById("preview-zoom");
 
 
-function moverCarrosselCores(direcao) {
+function mudarPreview(direcao) {
 
-  if (!carrosselCores) {
+  const fotos =
+    FOTOS_TECIDOS[state.tecido] || [];
+
+
+  if (!fotos.length) {
     return;
   }
 
-  const primeiroSlide =
-    carrosselCores.querySelector(".cor-slide");
 
-  if (!primeiroSlide) {
-    return;
+  previewIndex +=
+    direcao;
+
+
+  if (
+    previewIndex <
+    0
+  ) {
+
+    previewIndex =
+      fotos.length - 1;
+
   }
 
-  const larguraSlide =
-    primeiroSlide.getBoundingClientRect().width;
 
-  carrosselCores.scrollBy({
-    left: direcao * (larguraSlide + 14),
-    behavior: "smooth"
-  });
+  if (
+    previewIndex >=
+    fotos.length
+  ) {
+
+    previewIndex =
+      0;
+
+  }
+
+
+  atualizarPreview();
 
 }
 
 
-if (coresAnterior) {
+if (previewPrev) {
 
-  coresAnterior.addEventListener(
+  previewPrev.addEventListener(
     "click",
-    () => moverCarrosselCores(-1)
+    () => mudarPreview(-1)
   );
 
 }
 
 
-if (coresProximo) {
+if (previewNext) {
 
-  coresProximo.addEventListener(
+  previewNext.addEventListener(
     "click",
-    () => moverCarrosselCores(1)
+    () => mudarPreview(1)
+  );
+
+}
+
+
+// ============================================================
+// ZOOM
+// ============================================================
+
+function abrirZoomPreview() {
+
+  const modal =
+    document.getElementById("zoom-foto");
+
+  const imgZoom =
+    document.getElementById("zoom-foto-img");
+
+  const img =
+    document.getElementById("preview-img");
+
+
+  if (
+    !modal ||
+    !imgZoom ||
+    !img
+  ) {
+    return;
+  }
+
+
+  imgZoom.src =
+    img.src;
+
+  imgZoom.alt =
+    img.alt;
+
+
+  modal.classList.add(
+    "aberto"
+  );
+
+
+  modal.setAttribute(
+    "aria-hidden",
+    "false"
+  );
+
+
+  document.body.style.overflow =
+    "hidden";
+
+}
+
+
+function fecharZoomPreview() {
+
+  const modal =
+    document.getElementById("zoom-foto");
+
+
+  if (!modal) {
+    return;
+  }
+
+
+  modal.classList.remove(
+    "aberto"
+  );
+
+
+  modal.setAttribute(
+    "aria-hidden",
+    "true"
+  );
+
+
+  document.body.style.overflow =
+    "";
+
+}
+
+
+if (previewImg) {
+
+  previewImg.addEventListener(
+    "click",
+    abrirZoomPreview
+  );
+
+}
+
+
+if (previewZoom) {
+
+  previewZoom.addEventListener(
+    "click",
+    abrirZoomPreview
+  );
+
+}
+
+
+const zoomFechar =
+  document.getElementById("zoom-foto-fechar");
+
+
+const zoomFundo =
+  document.getElementById("zoom-foto-fundo");
+
+
+if (zoomFechar) {
+
+  zoomFechar.addEventListener(
+    "click",
+    fecharZoomPreview
+  );
+
+}
+
+
+if (zoomFundo) {
+
+  zoomFundo.addEventListener(
+    "click",
+    fecharZoomPreview
   );
 
 }
