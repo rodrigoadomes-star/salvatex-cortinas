@@ -53,20 +53,49 @@ function calcularOrcamento(dados) {
     cortina *= 1 + CONFIG.altura.acrescimoApos280;
   }
 
-  let valorTrilho = 74;
-  if (dados.trilho === "Sim") {
-    valorTrilho = Math.max(
-      CONFIG.trilho.valorMinimo,
-      largura * CONFIG.trilho.precoPorMetro
+let valorInstalacao = 0;
+
+if (state.trilho !== "Não") {
+  const sistema = CONFIG.instalacao[state.trilho];
+
+  if (sistema) {
+    valorInstalacao = Math.max(
+      sistema.minimo,
+      largura * sistema.valorMetro
     );
   }
+}
 
   if (dados.modelo === "Ilhós") {
     valorTrilho = 74;
     cortina *= CONFIG.ilhos.multiplicador;
   }
+  
+ const total =
+Math.round((cortina + valorSistema) * 100) / 100;
 
-  const total = Math.round((cortina + valorTrilho) * 100) / 100;
+  switch(state.trilho){
+
+case "Trilho simples":
+    valorSistema = largura * CONFIG.trilhoSimples;
+break;
+
+case "Trilho duplo":
+    valorSistema = largura * CONFIG.trilhoDuplo;
+break;
+
+case "Varão simples":
+    valorSistema = largura * CONFIG.varaoSimples;
+break;
+
+case "Varão duplo":
+    valorSistema = largura * CONFIG.varaoDuplo;
+break;
+
+default:
+    valorSistema = 0;
+
+}
 
   return {
     sobConsulta: false,
