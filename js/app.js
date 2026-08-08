@@ -141,11 +141,11 @@ function mensagemWhatsApp() {
     estimativa = brl(window.currentTotal);
   }
 
-  let barraTexto = "Sob consulta";
-  if (window.currentBarra) {
-    barraTexto = `${window.currentBarra} cm` +
-      (window.currentAcrescimoAltura ? " (+25% por altura acima de 2,80 m)" : " (valor tabelado)");
-  }
+let barraTexto = "Sob consulta";
+
+if (window.currentBarra) {
+  barraTexto = `${window.currentBarra} cm`;
+}
 
   return `Olá! Montei uma cortina no site:
 Modelo: ${dados.modelo}
