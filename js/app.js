@@ -12,123 +12,18 @@ const state = {
 
 
 // ============================================================
-// FORMATAÇÃO DE VALOR
+// GALERIAS DAS CORES
+// ============================================================
+//
+// IMPORTANTE:
+// Só coloque aqui arquivos que realmente existem
+// dentro da pasta imagens.
+//
+// Se uma imagem não existir, ela apenas não carregará no modal.
+// Isso não deve quebrar o restante do site.
 // ============================================================
 
-function brl(valor) {
-  return Number(valor).toLocaleString("pt-BR", {
-    style: "currency",
-    currency: "BRL"
-  });
-}
-
-
-// ============================================================
-// PEGA VALOR DE UM CAMPO
-// ============================================================
-
-function val(id) {
-
-  const elemento =
-    document.getElementById(id);
-
-  return elemento
-    ? elemento.value
-    : "";
-}
-
-
-// ============================================================
-// DADOS ATUAIS DO CONFIGURADOR
-// ============================================================
-
-function dadosAtuais() {
-
-  return {
-
-    modelo: state.modelo,
-
-    tecido: state.tecido,
-
-    cor: state.cor,
-
-    forro: state.forro,
-
-    trilho: state.trilho,
-
-    largura: val("largura"),
-
-    altura: val("altura"),
-
-    franzimento: val("franzimento")
-
-  };
-}
-
-
-// ============================================================
-// CARDS CLICÁVEIS
-// ============================================================
-
-function bindCards(groupId, key) {
-
-  document
-    .querySelectorAll("#" + groupId + " .card")
-    .forEach((el) => {
-
-      el.addEventListener("click", () => {
-
-        document
-          .querySelectorAll("#" + groupId + " .card")
-          .forEach((c) =>
-            c.classList.remove("selected")
-          );
-
-
-        el.classList.add("selected");
-
-
-        state[key] =
-          el.dataset.value;
-
-
-        // Se trocar o tecido,
-        // atualiza as cores disponíveis
-
-        if (key === "tecido") {
-
-          atualizarCores();
-
-        }
-
-
-        atualizarOrcamento();
-
-      });
-
-    });
-}
-
-
-// ============================================================
-// CORES DISPONÍVEIS
-// ============================================================
-
-function atualizarCores() {
-
-  const container =
-    document.getElementById("cores-choice");
-
-
-  if (!container) {
-    return;
-  }
-
-
-  const cores =
-    CONFIG.cores?.[state.tecido] || [];
-
-  const GALERIAS_CORES = {
+const GALERIAS_CORES = {
 
   "Gaze de Linho": {
 
@@ -136,10 +31,6 @@ function atualizarCores() {
       {
         src: "imagens/gaze-branco-1.jpeg",
         legenda: "Visão geral"
-      },
-      {
-        src: "imagens/gaze-branco-2.jpeg",
-        legenda: "Detalhe da trama"
       }
     ],
 
@@ -167,17 +58,7 @@ function atualizarCores() {
     "Natural": [
       {
         src: "imagens/gazenatural100bck.jpeg",
-        legenda: "Detalhe do Gaze de Linho Natural"
-      },
-
-      {
-        src: "imagens/gaze-natural-ambiente.jpeg",
-        legenda: "Aplicação em ambiente"
-      },
-
-      {
-        src: "imagens/gaze-natural-detalhe.jpeg",
-        legenda: "Detalhe da trama"
+        legenda: "Gaze de Linho Natural"
       }
     ]
 
@@ -225,19 +106,273 @@ function atualizarCores() {
 
 };
 
-  function abrirGaleriaCor() {
+
+// ============================================================
+// FORMATAÇÃO DE VALOR
+// ============================================================
+
+function brl(valor) {
+
+  return Number(valor).toLocaleString(
+    "pt-BR",
+    {
+      style: "currency",
+      currency: "BRL"
+    }
+  );
+
+}
+
+
+// ============================================================
+// PEGA VALOR DE UM CAMPO
+// ============================================================
+
+function val(id) {
+
+  const elemento =
+    document.getElementById(id);
+
+  return elemento
+    ? elemento.value
+    : "";
+
+}
+
+
+// ============================================================
+// DADOS ATUAIS DO CONFIGURADOR
+// ============================================================
+
+function dadosAtuais() {
+
+  return {
+
+    modelo: state.modelo,
+
+    tecido: state.tecido,
+
+    cor: state.cor,
+
+    forro: state.forro,
+
+    trilho: state.trilho,
+
+    largura: val("largura"),
+
+    altura: val("altura"),
+
+    franzimento: val("franzimento")
+
+  };
+
+}
+
+
+// ============================================================
+// CARDS CLICÁVEIS
+// ============================================================
+
+function bindCards(groupId, key) {
+
+  document
+    .querySelectorAll(
+      "#" + groupId + " .card"
+    )
+    .forEach((el) => {
+
+      el.addEventListener(
+        "click",
+        () => {
+
+          document
+            .querySelectorAll(
+              "#" + groupId + " .card"
+            )
+            .forEach((c) => {
+
+              c.classList.remove(
+                "selected"
+              );
+
+            });
+
+
+          el.classList.add(
+            "selected"
+          );
+
+
+          state[key] =
+            el.dataset.value;
+
+
+          // Ao trocar tecido,
+          // atualiza as cores disponíveis.
+
+          if (key === "tecido") {
+
+            atualizarCores();
+
+          }
+
+
+          atualizarOrcamento();
+
+        }
+      );
+
+    });
+
+}
+
+
+// ============================================================
+// CORES DISPONÍVEIS
+// ============================================================
+
+function atualizarCores() {
+
+  const container =
+    document.getElementById(
+      "cores-choice"
+    );
+
+
+  if (!container) {
+
+    return;
+
+  }
+
+
+  const cores =
+    CONFIG.cores?.[state.tecido] || [];
+
+
+  // Se a cor atual não estiver disponível
+  // para o novo tecido, escolhe a primeira.
+
+  if (
+    !cores.includes(
+      state.cor
+    )
+  ) {
+
+    state.cor =
+      cores.length
+        ? cores[0]
+        : "";
+
+  }
+
+
+  container.innerHTML =
+    "";
+
+
+  cores.forEach((cor) => {
+
+    const card =
+      document.createElement(
+        "div"
+      );
+
+
+    card.className =
+      "card" +
+      (
+        state.cor === cor
+          ? " selected"
+          : ""
+      );
+
+
+    card.dataset.value =
+      cor;
+
+
+    const strong =
+      document.createElement(
+        "strong"
+      );
+
+
+    strong.textContent =
+      cor;
+
+
+    card.appendChild(
+      strong
+    );
+
+
+    card.addEventListener(
+      "click",
+      () => {
+
+        container
+          .querySelectorAll(
+            ".card"
+          )
+          .forEach((c) => {
+
+            c.classList.remove(
+              "selected"
+            );
+
+          });
+
+
+        card.classList.add(
+          "selected"
+        );
+
+
+        state.cor =
+          cor;
+
+
+        atualizarOrcamento();
+
+      }
+    );
+
+
+    container.appendChild(
+      card
+    );
+
+  });
+
+}
+
+
+// ============================================================
+// ABRIR GALERIA DA COR
+// ============================================================
+
+function abrirGaleriaCor() {
 
   const modal =
-    document.getElementById("modal-cor");
+    document.getElementById(
+      "modal-cor"
+    );
 
   const galeria =
-    document.getElementById("modal-cor-galeria");
+    document.getElementById(
+      "modal-cor-galeria"
+    );
 
   const titulo =
-    document.getElementById("modal-cor-titulo");
+    document.getElementById(
+      "modal-cor-titulo"
+    );
 
   const tecido =
-    document.getElementById("modal-cor-tecido");
+    document.getElementById(
+      "modal-cor-tecido"
+    );
 
 
   if (
@@ -246,7 +381,9 @@ function atualizarCores() {
     !titulo ||
     !tecido
   ) {
+
     return;
+
   }
 
 
@@ -277,39 +414,64 @@ function atualizarCores() {
 
     fotos.forEach((foto) => {
 
+      const bloco =
+        document.createElement(
+          "div"
+        );
+
+
+      bloco.className =
+        "modal-cor-foto";
+
+
+      const img =
+        document.createElement(
+          "img"
+        );
+
+
+      img.src =
+        foto.src;
+
+
+      img.alt =
+        `${state.tecido} ${state.cor}`;
+
+
+      img.loading =
+        "lazy";
+
+
+      bloco.appendChild(
+        img
+      );
+
+
       if (foto.legenda) {
 
         const legenda =
-          document.createElement("div");
+          document.createElement(
+            "div"
+          );
+
 
         legenda.className =
           "modal-cor-legenda";
 
+
         legenda.textContent =
           foto.legenda;
 
-        galeria.appendChild(
+
+        bloco.appendChild(
           legenda
         );
 
       }
 
 
-      const img =
-        document.createElement("img");
-
-      img.src =
-        foto.src;
-
-      img.alt =
-        `${state.tecido} ${state.cor}`;
-
-      img.loading =
-        "lazy";
-
-
       galeria.appendChild(
-        img
+        bloco
       );
 
     });
@@ -335,14 +497,22 @@ function atualizarCores() {
 }
 
 
+// ============================================================
+// FECHAR GALERIA
+// ============================================================
+
 function fecharGaleriaCor() {
 
   const modal =
-    document.getElementById("modal-cor");
+    document.getElementById(
+      "modal-cor"
+    );
 
 
   if (!modal) {
+
     return;
+
   }
 
 
@@ -361,83 +531,6 @@ function fecharGaleriaCor() {
     "modal-aberto"
   );
 
-},
-
-
-  // Se a cor atual não existir no novo tecido,
-  // seleciona automaticamente a primeira
-
-  if (!cores.includes(state.cor)) {
-
-    state.cor =
-      cores.length
-        ? cores[0]
-        : "";
-
-  }
-
-
-  container.innerHTML = "";
-
-
-  cores.forEach((cor) => {
-
-    const card =
-      document.createElement("div");
-
-
-    card.className =
-      "card" +
-      (state.cor === cor
-        ? " selected"
-        : "");
-
-
-    card.dataset.value =
-      cor;
-
-
-    const strong =
-      document.createElement("strong");
-
-
-    strong.textContent =
-      cor;
-
-
-    card.appendChild(strong);
-
-
-    card.addEventListener(
-      "click",
-      () => {
-
-        container
-          .querySelectorAll(".card")
-          .forEach((c) =>
-            c.classList.remove("selected")
-          );
-
-
-        card.classList.add(
-          "selected"
-        );
-
-
-        state.cor =
-          cor;
-
-
-        atualizarOrcamento();
-
-      }
-    );
-
-
-    container.appendChild(card);
-
-  });
-
 }
 
 
@@ -448,11 +541,15 @@ function fecharGaleriaCor() {
 function atualizarInfoBarra(altura) {
 
   const info =
-    document.getElementById("barra-info");
+    document.getElementById(
+      "barra-info"
+    );
 
 
   if (!info) {
+
     return;
+
   }
 
 
@@ -465,11 +562,14 @@ function atualizarInfoBarra(altura) {
       "Acima de 3,20 m, o acabamento e o valor são definidos em orçamento personalizado.";
 
     return;
+
   }
 
 
   const regra =
-    obterRegraBarra(altura);
+    obterRegraBarra(
+      altura
+    );
 
 
   if (regra.acrescimo) {
@@ -487,6 +587,7 @@ function atualizarInfoBarra(altura) {
         .replace(".", ",")} m de altura, a cortina será produzida com barra de ${regra.tamanho} cm.`;
 
   }
+
 }
 
 
@@ -541,35 +642,47 @@ function atualizarResumoBasico(
 
 
   if (sumModelo) {
+
     sumModelo.textContent =
       dados.modelo;
+
   }
 
 
   if (sumTecido) {
+
     sumTecido.textContent =
       dados.tecido;
+
   }
 
 
   if (sumCor) {
+
     sumCor.textContent =
       dados.cor;
+
   }
 
 
   if (sumForro) {
+
     sumForro.textContent =
       dados.forro;
+
   }
 
 
   const largura =
-    Number(dados.largura) || 0;
+    Number(
+      dados.largura
+    ) || 0;
 
 
   const altura =
-    Number(dados.altura) || 0;
+    Number(
+      dados.altura
+    ) || 0;
 
 
   if (sumMedidas) {
@@ -592,7 +705,10 @@ function atualizarResumoBasico(
     sumFranz.textContent =
       String(
         dados.franzimento
-      ).replace(".", ",") +
+      ).replace(
+        ".",
+        ","
+      ) +
       "x";
 
   }
@@ -661,8 +777,11 @@ function atualizarResumoBasico(
 
 
 // ============================================================
-// FOTO DA CORTINA
-// POR ENQUANTO TROCA SOMENTE PELO TECIDO
+// FOTO PRINCIPAL DA CORTINA
+// ============================================================
+//
+// Por enquanto continua usando uma foto principal por tecido.
+// Depois podemos fazer tecido + cor.
 // ============================================================
 
 function atualizarPreview() {
@@ -674,7 +793,9 @@ function atualizarPreview() {
 
 
   if (!img) {
+
     return;
+
   }
 
 
@@ -686,6 +807,7 @@ function atualizarPreview() {
     img.src =
       "imagens/damascobege.jpeg";
 
+
     img.alt =
       `Cortina Linho Damasco ${state.cor}`;
 
@@ -693,6 +815,7 @@ function atualizarPreview() {
 
     img.src =
       "imagens/gazenatural100bck.jpeg";
+
 
     img.alt =
       `Cortina Gaze de Linho ${state.cor}`;
@@ -755,7 +878,9 @@ function atualizarOrcamento() {
 
 
   if (!preco) {
+
     return;
+
   }
 
 
@@ -785,11 +910,13 @@ function atualizarOrcamento() {
     window.currentTotal =
       null;
 
+
     window.currentSobConsulta =
       false;
 
 
     return;
+
   }
 
 
@@ -829,17 +956,21 @@ function atualizarOrcamento() {
     window.currentTotal =
       null;
 
+
     window.currentSobConsulta =
       true;
 
+
     window.currentBarra =
       null;
+
 
     window.currentAcrescimoAltura =
       false;
 
 
     return;
+
   }
 
 
@@ -879,11 +1010,14 @@ function atualizarOrcamento() {
   window.currentTotal =
     resultado.total;
 
+
   window.currentSobConsulta =
     false;
 
+
   window.currentBarra =
     resultado.barra;
+
 
   window.currentAcrescimoAltura =
     resultado.acrescimoAltura;
@@ -987,7 +1121,7 @@ function abrirWhatsApp() {
 
 
 // ============================================================
-// ATIVA CARDS
+// ATIVA OS CARDS
 // ============================================================
 
 bindCards(
@@ -1015,7 +1149,7 @@ bindCards(
 
 
 // ============================================================
-// CRIA AS CORES INICIAIS
+// CRIA CORES INICIAIS
 // ============================================================
 
 atualizarCores();
@@ -1032,7 +1166,9 @@ atualizarCores();
 ].forEach((id) => {
 
   const elemento =
-    document.getElementById(id);
+    document.getElementById(
+      id
+    );
 
 
   if (elemento) {
@@ -1041,6 +1177,7 @@ atualizarCores();
       "input",
       atualizarOrcamento
     );
+
 
     elemento.addEventListener(
       "change",
@@ -1140,19 +1277,25 @@ if (botaoComprar) {
 
 
 // ============================================================
-// PRIMEIRO CÁLCULO
+// MODAL CONHECER TECIDO
 // ============================================================
 
 const botaoConhecerCor =
-  document.getElementById("conhecer-cor");
+  document.getElementById(
+    "conhecer-cor"
+  );
 
 
 const modalCorFechar =
-  document.getElementById("modal-cor-fechar");
+  document.getElementById(
+    "modal-cor-fechar"
+  );
 
 
 const modalCorFundo =
-  document.getElementById("modal-cor-fundo");
+  document.getElementById(
+    "modal-cor-fundo"
+  );
 
 
 if (botaoConhecerCor) {
@@ -1185,15 +1328,27 @@ if (modalCorFundo) {
 }
 
 
+// Fecha apertando ESC
+
 document.addEventListener(
   "keydown",
   (evento) => {
 
-    if (evento.key === "Escape") {
+    if (
+      evento.key ===
+      "Escape"
+    ) {
+
       fecharGaleriaCor();
+
     }
 
   }
 );
+
+
+// ============================================================
+// PRIMEIRO CÁLCULO
+// ============================================================
 
 atualizarOrcamento();
