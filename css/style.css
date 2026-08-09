@@ -52,6 +52,31 @@
    IDENTIFICAÇÃO DA FOTO NO ZOOM
    ========================================================== */
 
+.zoom-imagem-wrapper{
+  position:relative;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  max-width:100%;
+  max-height:88vh;
+}
+
+.zoom-imagem-wrapper #zoom-foto-img{
+  display:block;
+
+  max-width:100%;
+  max-height:88vh;
+
+  width:auto;
+  height:auto;
+
+  object-fit:contain;
+
+  border-radius:12px;
+}
+
 .zoom-foto-info{
   position:absolute;
 
@@ -126,6 +151,10 @@
   z-index:7;
 
   box-shadow:0 6px 20px rgba(0,0,0,.18);
+
+  transition:
+    background .2s ease,
+    color .2s ease;
 }
 
 .zoom-prev{
