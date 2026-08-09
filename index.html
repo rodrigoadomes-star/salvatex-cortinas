@@ -2,6 +2,7 @@
 <html lang="pt-BR">
 
 <head>
+
   <meta charset="UTF-8">
 
   <meta
@@ -9,7 +10,9 @@
     content="width=device-width, initial-scale=1.0"
   >
 
-  <title>Salvatex | Cortinas Sob Medida</title>
+  <title>
+    Salvatex | Cortinas Sob Medida
+  </title>
 
   <meta
     name="description"
@@ -20,6 +23,7 @@
     rel="stylesheet"
     href="css/style.css"
   >
+
 </head>
 
 
@@ -43,6 +47,7 @@
       <small>
         CORTINAS
       </small>
+
     </a>
 
 
@@ -203,10 +208,9 @@
 
         <div class="field">
 
-          <label>
+          <label for="largura">
             Largura do ambiente
           </label>
-
 
           <div class="control">
 
@@ -230,10 +234,9 @@
 
         <div class="field">
 
-          <label>
+          <label for="altura">
             Altura da cortina
           </label>
-
 
           <div class="control">
 
@@ -459,9 +462,10 @@
         style="margin-top:26px"
       >
 
+
         <div class="field">
 
-          <label>
+          <label for="franzimento">
             Franzimento
           </label>
 
@@ -509,73 +513,84 @@
 
         </div>
 
+
       </div>
 
 
-    <!-- ===================================================
-     TRILHO
-     =================================================== -->
+      <!-- ===================================================
+           TRILHO / VARÃO
+           =================================================== -->
 
-<div class="choice-title">
-  Deseja incluir o trilho?
-</div>
+      <div class="choice-title">
+        Deseja incluir o trilho?
+      </div>
 
-<p class="trilho-descricao">
-  Deseja incluir o trilho no orçamento?
-  Escolha abaixo a opção:
-</p>
 
-<div class="trilho-select-wrapper">
+      <p class="trilho-descricao">
+        Deseja incluir o trilho ou varão no orçamento?
+        Escolha abaixo a opção:
+      </p>
 
-  <select
-    id="trilho-select"
-    class="trilho-select"
-  >
 
-    <option
-      value=""
-      disabled
-      selected
-    >
-      Selecione...
-    </option>
+      <div class="trilho-select-wrapper">
 
-    <option value="Não">
-      Não
-    </option>
+        <select
+          id="trilho-select"
+          class="trilho-select"
+        >
 
-    <option value="Varão Wave Deslizante - Aço Escovado">
-      Varão Wave Deslizante - Aço Escovado (Parede)
-    </option>
+          <option
+            value=""
+            disabled
+            selected
+          >
+            Selecione...
+          </option>
 
-    <option value="Varão Wave Deslizante - Branco">
-      Varão Wave Deslizante - Branco (Parede)
-    </option>
 
-    <option value="Varão Wave Deslizante - Cromado">
-      Varão Wave Deslizante - Cromado (Parede)
-    </option>
+          <option value="Não">
+            Não
+          </option>
 
-    <option value="Varão Wave Deslizante - Preto">
-      Varão Wave Deslizante - Preto (Parede)
-    </option>
 
-    <option value="Trilho Suíço - Branco">
-      Trilho Suíço - Branco (Teto)
-    </option>
-    
-    <option value="Varão Wave Deslizante Duplo - Cromado">
-    Varão Wave Deslizante Duplo - Cromado (Parede)
-    </option>
-    
-    <option value="Trilho Suíço Duplo- Branco">
-    Trilho Suíço Duplo - Branco (Teto)
-    </option>
-    
+          <option value="Varão Wave Deslizante - Aço Escovado">
+            Varão Wave Deslizante - Aço Escovado (Parede)
+          </option>
 
-  </select>
 
-</div>
+          <option value="Varão Wave Deslizante - Branco">
+            Varão Wave Deslizante - Branco (Parede)
+          </option>
+
+
+          <option value="Varão Wave Deslizante - Cromado">
+            Varão Wave Deslizante - Cromado (Parede)
+          </option>
+
+
+          <option value="Varão Wave Deslizante - Preto">
+            Varão Wave Deslizante - Preto (Parede)
+          </option>
+
+
+          <option value="Trilho Suíço - Branco">
+            Trilho Suíço - Branco (Teto)
+          </option>
+
+
+          <option value="Varão Wave Deslizante Duplo - Cromado">
+            Varão Wave Deslizante Duplo - Cromado (Parede)
+          </option>
+
+
+          <option value="Trilho Suíço Duplo - Branco">
+            Trilho Suíço Duplo - Branco (Teto)
+          </option>
+
+        </select>
+
+      </div>
+
 
       <!-- ===================================================
            ATUALIZAR
@@ -598,7 +613,7 @@
 
 
     <!-- =====================================================
-         RESUMO / LADO DIREITO
+         RESUMO
          ===================================================== -->
 
     <aside class="summary">
@@ -625,12 +640,10 @@
 
           <img
             id="preview-img"
-            src="imagens/galeria/gaze/branco/foto-1.jpg"
+            src="imagens/galeria/gaze/branco/foto-1.png"
             alt="Gaze de Linho Branco"
           >
 
-
-          <!-- Nome do tecido e cor da FOTO exibida -->
 
           <div
             class="preview-info"
@@ -648,8 +661,6 @@
           </div>
 
 
-          <!-- Zoom -->
-
           <button
             type="button"
             class="preview-zoom"
@@ -663,8 +674,6 @@
         </div>
 
 
-        <!-- Anterior -->
-
         <button
           class="preview-nav preview-prev"
           id="preview-prev"
@@ -675,8 +684,6 @@
         </button>
 
 
-        <!-- Próxima -->
-
         <button
           class="preview-nav preview-next"
           id="preview-next"
@@ -686,8 +693,6 @@
           ›
         </button>
 
-
-        <!-- Indicadores -->
 
         <div
           class="preview-dots"
@@ -704,9 +709,7 @@
 
       <div class="item">
 
-        <b>
-          Modelo
-        </b>
+        <b>Modelo</b>
 
         <span id="sum-modelo">
           Wave
@@ -717,9 +720,7 @@
 
       <div class="item">
 
-        <b>
-          Tecido
-        </b>
+        <b>Tecido</b>
 
         <span id="sum-tecido">
           Gaze de Linho
@@ -730,9 +731,7 @@
 
       <div class="item">
 
-        <b>
-          Cor
-        </b>
+        <b>Cor</b>
 
         <span id="sum-cor">
           Branco
@@ -743,9 +742,7 @@
 
       <div class="item">
 
-        <b>
-          Forro
-        </b>
+        <b>Forro</b>
 
         <span id="sum-forro">
           Forro leve
@@ -756,12 +753,10 @@
 
       <div class="item">
 
-        <b>
-          Medidas
-        </b>
+        <b>Medidas</b>
 
         <span id="sum-medidas">
-          2,00 × 2,70 m
+          2,50 × 2,70 m
         </span>
 
       </div>
@@ -769,12 +764,10 @@
 
       <div class="item">
 
-        <b>
-          Franzimento
-        </b>
+        <b>Franzimento</b>
 
         <span id="sum-franz">
-          2x
+          2,5x
         </span>
 
       </div>
@@ -782,12 +775,10 @@
 
       <div class="item">
 
-        <b>
-          Trilho
-        </b>
+        <b>Trilho / Varão</b>
 
         <span id="sum-trilho">
-          Trilho simples
+          Selecione uma opção
         </span>
 
       </div>
@@ -795,9 +786,7 @@
 
       <div class="item">
 
-        <b>
-          Barra
-        </b>
+        <b>Barra</b>
 
         <span id="sum-barra">
           15 cm
@@ -983,7 +972,7 @@
     <span
       style="
         font-size:12px;
-        color:var(--muted)
+        color:var(--muted);
       "
     >
       Opções de acabamento
@@ -1108,7 +1097,7 @@
 
 
 <!-- =========================================================
-     MODAL — ZOOM DA FOTO
+     MODAL — ZOOM
      ========================================================= -->
 
 <div
@@ -1118,20 +1107,14 @@
 >
 
 
-  <!-- Fundo -->
-
   <div
     class="zoom-foto-fundo"
     id="zoom-foto-fundo"
   ></div>
 
 
-  <!-- Caixa principal -->
-
   <div class="zoom-foto-conteudo">
 
-
-    <!-- Fechar -->
 
     <button
       type="button"
@@ -1143,8 +1126,6 @@
     </button>
 
 
-    <!-- Voltar -->
-
     <button
       type="button"
       class="zoom-nav zoom-prev"
@@ -1154,10 +1135,6 @@
       ‹
     </button>
 
-
-    <!-- =====================================================
-         IMAGEM + IDENTIFICAÇÃO
-         ===================================================== -->
 
     <div class="zoom-imagem-wrapper">
 
@@ -1187,8 +1164,6 @@
 
     </div>
 
-
-    <!-- Avançar -->
 
     <button
       type="button"
@@ -1239,7 +1214,6 @@
 
 <!-- =========================================================
      JAVASCRIPT
-     IMPORTANTE: SEMPRE POR ÚLTIMO
      ========================================================= -->
 
 <script src="js/config.js"></script>
