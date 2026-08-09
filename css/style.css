@@ -1,10 +1,730 @@
+:root{
+  --ink:#211d18;
+  --muted:#746c63;
+  --line:#e7e0d8;
+  --paper:#fbfaf8;
+  --panel:#ffffff;
+  --sand:#efe8df;
+  --accent:#6e533b;
+  --soft:#f5f1ec;
+}
+
+
 /* ==========================================================
-   IDENTIFICAÇÃO DA FOTO NO CARROSSEL
+   RESET
    ========================================================== */
+
+*{
+  box-sizing:border-box;
+}
+
+html{
+  scroll-behavior:smooth;
+}
+
+body{
+  margin:0;
+
+  font-family:
+    Inter,
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+
+  color:var(--ink);
+
+  background:var(--paper);
+}
+
+button,
+input,
+select{
+  font:inherit;
+}
+
+button{
+  -webkit-tap-highlight-color:transparent;
+}
+
+a{
+  text-decoration:none;
+  color:inherit;
+}
+
+img{
+  max-width:100%;
+}
+
+.shell{
+  max-width:1240px;
+  margin:auto;
+  padding:0 24px;
+}
+
+
+/* ==========================================================
+   TOPO
+   ========================================================== */
+
+.topbar{
+  position:sticky;
+  top:0;
+
+  z-index:20;
+
+  background:rgba(251,250,248,.93);
+
+  backdrop-filter:blur(14px);
+  -webkit-backdrop-filter:blur(14px);
+
+  border-bottom:1px solid var(--line);
+}
+
+.nav{
+  height:74px;
+
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+
+  gap:28px;
+}
+
+.logo{
+  font-family:Georgia,serif;
+
+  font-size:24px;
+
+  letter-spacing:.12em;
+}
+
+.logo small{
+  display:block;
+
+  margin-top:4px;
+
+  font:500 9px/1.3 Inter,sans-serif;
+
+  letter-spacing:.35em;
+}
+
+.navlinks{
+  display:flex;
+
+  gap:28px;
+
+  font-size:13px;
+}
+
+.navlinks a:hover{
+  opacity:.6;
+}
+
+.cta-small{
+  padding:10px 15px;
+
+  border:1px solid var(--ink);
+  border-radius:999px;
+
+  font-size:12px;
+}
+
+
+/* ==========================================================
+   HERO
+   ========================================================== */
+
+.hero{
+  position:relative;
+
+  min-height:380px;
+
+  overflow:hidden;
+
+  background:
+    linear-gradient(
+      105deg,
+      #f6f0e8 0%,
+      #f6f0e8 48%,
+      #e5d8c9 48%,
+      #c6b19a 100%
+    );
+}
+
+.hero::after{
+  content:"";
+
+  position:absolute;
+
+  right:8%;
+  top:0;
+
+  width:34%;
+  height:100%;
+
+  opacity:.45;
+
+  background:
+    repeating-linear-gradient(
+      90deg,
+      rgba(255,255,255,.88) 0 8px,
+      rgba(255,255,255,.12) 8px 24px
+    );
+
+  filter:
+    drop-shadow(
+      0 8px 20px rgba(0,0,0,.08)
+    );
+}
+
+.hero-copy{
+  position:relative;
+
+  z-index:2;
+
+  max-width:590px;
+
+  padding:68px 0 94px;
+}
+
+.kicker{
+  text-transform:uppercase;
+
+  letter-spacing:.16em;
+
+  font-size:11px;
+
+  color:var(--accent);
+}
+
+h1{
+  margin:13px 0 18px;
+
+  font-family:Georgia,serif;
+
+  font-size:54px;
+  font-weight:400;
+
+  line-height:1.02;
+}
+
+.hero p{
+  max-width:480px;
+
+  font-size:17px;
+
+  line-height:1.6;
+
+  color:#56504a;
+}
+
+.pill{
+  display:inline-flex;
+
+  align-items:center;
+
+  gap:8px;
+
+  margin-top:8px;
+
+  padding:10px 14px;
+
+  background:#fff;
+
+  border:1px solid var(--line);
+  border-radius:999px;
+
+  font-size:12px;
+}
+
+
+/* ==========================================================
+   CONFIGURADOR
+   ========================================================== */
+
+.config-wrap{
+  position:relative;
+
+  z-index:5;
+
+  margin-top:-58px;
+
+  padding-bottom:50px;
+}
+
+.config{
+  display:grid;
+
+  grid-template-columns:
+    minmax(0,1.55fr)
+    minmax(320px,.75fr);
+
+  overflow:hidden;
+
+  background:#fff;
+
+  border:1px solid var(--line);
+  border-radius:24px;
+
+  box-shadow:
+    0 30px 80px rgba(45,34,24,.10);
+}
+
+.builder{
+  padding:34px 38px 40px;
+}
+
+.summary{
+  position:relative;
+
+  padding:30px;
+
+  background:#f8f5f1;
+
+  border-left:1px solid var(--line);
+}
+
+
+/* ==========================================================
+   ETAPAS
+   ========================================================== */
+
+.steps{
+  display:grid;
+
+  grid-template-columns:
+    repeat(5,1fr);
+
+  gap:5px;
+
+  margin-bottom:32px;
+}
+
+.step{
+  position:relative;
+
+  text-align:center;
+
+  font-size:11px;
+
+  color:var(--muted);
+}
+
+.step::before{
+  content:attr(data-n);
+
+  display:flex;
+
+  width:30px;
+  height:30px;
+
+  align-items:center;
+  justify-content:center;
+
+  margin:0 auto 8px;
+
+  background:#fff;
+
+  border:1px solid var(--line);
+  border-radius:50%;
+
+  color:var(--ink);
+}
+
+.step.active::before{
+  background:var(--ink);
+
+  color:#fff;
+
+  border-color:var(--ink);
+}
+
+
+/* ==========================================================
+   TÍTULOS
+   ========================================================== */
+
+.section-title{
+  margin:0 0 4px;
+
+  font-family:Georgia,serif;
+
+  font-size:28px;
+
+  font-weight:400;
+}
+
+.section-sub{
+  margin:0 0 24px;
+
+  font-size:13px;
+
+  color:var(--muted);
+}
+
+
+/* ==========================================================
+   CAMPOS
+   ========================================================== */
+
+.grid2{
+  display:grid;
+
+  grid-template-columns:
+    1fr 1fr;
+
+  gap:16px;
+}
+
+.field label{
+  display:block;
+
+  margin-bottom:7px;
+
+  font-size:11px;
+
+  text-transform:uppercase;
+
+  letter-spacing:.04em;
+}
+
+.control{
+  display:flex;
+
+  align-items:center;
+
+  overflow:hidden;
+
+  background:#fff;
+
+  border:1px solid var(--line);
+  border-radius:12px;
+}
+
+.control input,
+.control select{
+  width:100%;
+
+  padding:15px 14px;
+
+  border:0;
+  outline:0;
+
+  background:transparent;
+
+  color:var(--ink);
+}
+
+.control select option:disabled{
+  color:#aaa;
+}
+
+.unit{
+  padding-right:14px;
+
+  font-size:12px;
+
+  color:var(--muted);
+}
+
+.field-help{
+  display:block;
+
+  margin-top:7px;
+
+  font-size:10px;
+
+  color:var(--muted);
+}
+
+
+/* ==========================================================
+   CARDS
+   ========================================================== */
+
+.choice-title{
+  margin:27px 0 10px;
+
+  font-size:11px;
+
+  text-transform:uppercase;
+
+  letter-spacing:.05em;
+}
+
+.cards{
+  display:grid;
+
+  grid-template-columns:
+    repeat(3,1fr);
+
+  gap:12px;
+}
+
+.cards.two{
+  grid-template-columns:
+    repeat(2,1fr);
+}
+
+.card{
+  min-height:96px;
+
+  padding:16px;
+
+  background:#fff;
+
+  border:1px solid var(--line);
+  border-radius:13px;
+
+  cursor:pointer;
+
+  transition:
+    transform .2s ease,
+    box-shadow .2s ease,
+    border-color .2s ease;
+}
+
+.card:hover{
+  transform:translateY(-1px);
+
+  box-shadow:
+    0 10px 22px rgba(0,0,0,.05);
+}
+
+.card.selected{
+  border:1.5px solid var(--accent);
+
+  box-shadow:
+    inset 0 0 0 1px var(--accent);
+}
+
+.card strong{
+  display:block;
+
+  margin-bottom:5px;
+
+  font-size:13px;
+}
+
+.card span{
+  font-size:11px;
+
+  line-height:1.4;
+
+  color:var(--muted);
+}
+
+
+/* ==========================================================
+   CORES DO TECIDO
+   ========================================================== */
+
+#cores-choice{
+  display:grid;
+
+  grid-template-columns:
+    repeat(5,minmax(0,1fr));
+
+  gap:12px;
+}
+
+#cores-choice .card-cor{
+  width:100%;
+
+  min-width:0;
+  min-height:0;
+
+  padding:6px;
+
+  display:flex;
+
+  flex-direction:column;
+
+  overflow:hidden;
+
+  background:#fff;
+
+  border:1px solid var(--line);
+  border-radius:12px;
+
+  cursor:pointer;
+}
+
+#cores-choice .card-cor:hover{
+  transform:none;
+}
+
+#cores-choice .card-cor.selected{
+  border:2px solid var(--accent);
+
+  box-shadow:none;
+}
+
+#cores-choice .card-cor-img{
+  display:block;
+
+  width:100%;
+  height:100px;
+
+  margin:0 0 8px;
+
+  object-fit:cover;
+  object-position:center;
+
+  border-radius:9px;
+
+  image-rendering:auto;
+
+  backface-visibility:hidden;
+}
+
+#cores-choice .card-cor strong{
+  display:block;
+
+  width:100%;
+
+  margin:0;
+
+  padding:2px 2px 4px;
+
+  font-size:11px;
+
+  line-height:1.2;
+
+  text-align:center;
+}
+
+
+/* ==========================================================
+   BOTÕES
+   ========================================================== */
+
+.next{
+  display:flex;
+
+  justify-content:flex-end;
+
+  margin-top:28px;
+}
+
+.btn{
+  padding:14px 20px;
+
+  border:0;
+  border-radius:12px;
+
+  cursor:pointer;
+}
+
+.btn.primary{
+  min-width:170px;
+
+  background:var(--ink);
+
+  color:#fff;
+}
+
+.btn.ghost{
+  background:#fff;
+
+  border:1px solid var(--line);
+}
+
+.btn-conhecer-cor{
+  margin-top:12px;
+
+  padding:11px 16px;
+
+  background:var(--accent);
+
+  color:#fff;
+
+  border:0;
+  border-radius:10px;
+
+  font-size:12px;
+
+  font-weight:600;
+
+  cursor:pointer;
+
+  transition:
+    background .2s ease;
+}
+
+.btn-conhecer-cor:hover{
+  background:var(--ink);
+}
+
+
+/* ==========================================================
+   RESUMO
+   ========================================================== */
+
+.summary h2{
+  margin:0 0 18px;
+
+  font-family:Georgia,serif;
+
+  font-weight:400;
+}
+
+
+/* ==========================================================
+   CARROSSEL — SUA CORTINA
+   ========================================================== */
+
+.preview-carousel{
+  position:relative;
+
+  width:100%;
+
+  margin-bottom:20px;
+}
 
 .preview{
   position:relative;
+
+  width:100%;
+  height:300px;
+
+  overflow:hidden;
+
+  background:#f3eee8;
+
+  border-radius:16px;
+
+  box-shadow:
+    0 10px 28px rgba(33,29,24,.10);
 }
+
+.preview img{
+  display:block;
+
+  width:100%;
+  height:100%;
+
+  object-fit:cover;
+  object-position:center;
+
+  cursor:zoom-in;
+
+  transition:
+    transform .35s ease,
+    opacity .2s ease;
+}
+
+.preview:hover img{
+  transform:scale(1.025);
+}
+
+
+/* ==========================================================
+   NOME DO TECIDO / COR NO CARROSSEL
+   ========================================================== */
 
 .preview-info{
   position:absolute;
@@ -18,11 +738,13 @@
 
   padding:9px 12px;
 
-  background:rgba(255,255,255,.94);
+  background:
+    rgba(255,255,255,.94);
 
   border-radius:10px;
 
-  box-shadow:0 5px 18px rgba(0,0,0,.13);
+  box-shadow:
+    0 5px 18px rgba(0,0,0,.13);
 
   pointer-events:none;
 }
@@ -30,32 +752,641 @@
 .preview-info small{
   display:block;
 
+  margin-bottom:2px;
+
   font-size:10px;
+
   line-height:1.2;
 
-  color:#746c63;
-
-  margin-bottom:2px;
+  color:var(--muted);
 }
 
 .preview-info strong{
   display:block;
 
   font-size:13px;
+
   line-height:1.2;
 
-  color:#211d18;
+  color:var(--ink);
 }
 
 
 /* ==========================================================
-   IDENTIFICAÇÃO DA FOTO NO ZOOM
+   SETAS DO CARROSSEL
+   ========================================================== */
+
+.preview-nav{
+  position:absolute;
+
+  top:50%;
+
+  transform:translateY(-50%);
+
+  width:42px;
+  height:42px;
+
+  padding:0;
+
+  display:flex;
+
+  align-items:center;
+  justify-content:center;
+
+  background:
+    rgba(255,255,255,.94);
+
+  color:var(--ink);
+
+  border:0;
+  border-radius:50%;
+
+  font-size:25px;
+
+  line-height:1;
+
+  cursor:pointer;
+
+  z-index:6;
+
+  box-shadow:
+    0 5px 18px rgba(0,0,0,.12);
+
+  transition:
+    background .2s ease,
+    color .2s ease;
+}
+
+.preview-prev{
+  left:14px;
+}
+
+.preview-next{
+  right:14px;
+}
+
+.preview-nav:hover{
+  background:var(--ink);
+
+  color:#fff;
+}
+
+
+/* ==========================================================
+   BOTÃO ZOOM
+   ========================================================== */
+
+.preview-zoom{
+  position:absolute;
+
+  right:12px;
+  top:12px;
+
+  width:38px;
+  height:38px;
+
+  padding:0;
+
+  display:flex;
+
+  align-items:center;
+  justify-content:center;
+
+  background:
+    rgba(255,255,255,.94);
+
+  color:var(--ink);
+
+  border:0;
+  border-radius:50%;
+
+  font-size:18px;
+
+  cursor:pointer;
+
+  z-index:7;
+
+  box-shadow:
+    0 5px 18px rgba(0,0,0,.10);
+}
+
+
+/* ==========================================================
+   BOLINHAS DO CARROSSEL
+   ========================================================== */
+
+.preview-dots{
+  display:flex;
+
+  justify-content:center;
+  align-items:center;
+
+  flex-wrap:wrap;
+
+  gap:6px;
+
+  margin-top:10px;
+}
+
+.preview-dot{
+  width:7px;
+  height:7px;
+
+  padding:0;
+
+  background:#d4ccc4;
+
+  border:0;
+  border-radius:50%;
+
+  cursor:pointer;
+}
+
+.preview-dot.active{
+  width:20px;
+
+  background:var(--accent);
+
+  border-radius:999px;
+}
+
+.preview-carousel.single-image .preview-nav,
+.preview-carousel.single-image .preview-dots{
+  display:none;
+}
+
+
+/* ==========================================================
+   ITENS DO RESUMO
+   ========================================================== */
+
+.item{
+  display:flex;
+
+  justify-content:space-between;
+
+  gap:12px;
+
+  padding:9px 0;
+
+  border-bottom:
+    1px solid #e8e0d8;
+
+  font-size:12px;
+}
+
+.item b{
+  font-weight:600;
+}
+
+.item span{
+  color:var(--muted);
+
+  text-align:right;
+}
+
+
+/* ==========================================================
+   PREÇO
+   ========================================================== */
+
+.pricebox{
+  padding:20px 0 16px;
+}
+
+.pricebox small{
+  color:var(--muted);
+}
+
+.price{
+  margin:3px 0;
+
+  font-family:Georgia,serif;
+
+  font-size:34px;
+}
+
+.price.sob-consulta{
+  font-size:28px;
+}
+
+.installments{
+  font-size:12px;
+
+  color:var(--muted);
+}
+
+.summary .btn{
+  width:100%;
+
+  margin-top:9px;
+}
+
+.note{
+  margin-top:14px;
+
+  font-size:10px;
+
+  line-height:1.5;
+
+  color:#8b8177;
+}
+
+
+/* ==========================================================
+   BARRA AUTOMÁTICA
+   ========================================================== */
+
+.barra-info{
+  margin-top:8px;
+
+  padding:10px 12px;
+
+  background:var(--soft);
+
+  border-radius:10px;
+
+  font-size:11px;
+
+  line-height:1.5;
+
+  color:var(--muted);
+}
+
+.barra-resumo{
+  padding:9px 0 3px;
+
+  font-size:10px;
+
+  line-height:1.45;
+
+  color:var(--muted);
+}
+
+
+/* ==========================================================
+   BENEFÍCIOS
+   ========================================================== */
+
+.benefits{
+  display:grid;
+
+  grid-template-columns:
+    repeat(4,1fr);
+
+  gap:14px;
+
+  padding:8px 0 55px;
+}
+
+.benefit{
+  padding:20px 18px;
+
+  border-top:1px solid var(--line);
+}
+
+.benefit b{
+  font-size:13px;
+}
+
+.benefit p{
+  font-size:11px;
+
+  line-height:1.5;
+
+  color:var(--muted);
+}
+
+
+/* ==========================================================
+   TECIDOS
+   ========================================================== */
+
+.fabrics{
+  margin-bottom:48px;
+
+  padding:30px;
+
+  background:#fff;
+
+  border:1px solid var(--line);
+  border-radius:22px;
+}
+
+.fabrics-head{
+  display:flex;
+
+  align-items:flex-end;
+  justify-content:space-between;
+}
+
+.fabrics h3{
+  margin:0;
+
+  font-family:Georgia,serif;
+
+  font-size:28px;
+
+  font-weight:400;
+}
+
+.fabric-grid{
+  display:grid;
+
+  grid-template-columns:
+    repeat(4,1fr);
+
+  gap:14px;
+
+  margin-top:20px;
+}
+
+.fabric{
+  position:relative;
+
+  height:230px;
+
+  overflow:hidden;
+
+  border-radius:16px;
+
+  background:
+    linear-gradient(
+      135deg,
+      #eee7de,
+      #cdbca9
+    );
+}
+
+.fabric:nth-child(2){
+  background:
+    linear-gradient(
+      135deg,
+      #ede2d3,
+      #bba68e
+    );
+}
+
+.fabric:nth-child(3){
+  background:
+    linear-gradient(
+      135deg,
+      #f7f4ef,
+      #d4c9bd
+    );
+}
+
+.fabric:nth-child(4){
+  background:
+    linear-gradient(
+      135deg,
+      #ddd1c5,
+      #aa927b
+    );
+}
+
+.fabric::before{
+  content:"";
+
+  position:absolute;
+
+  inset:0;
+
+  background:
+    repeating-linear-gradient(
+      15deg,
+      rgba(255,255,255,.16) 0 2px,
+      transparent 2px 5px
+    );
+}
+
+.fabric label{
+  position:absolute;
+
+  left:12px;
+  bottom:12px;
+
+  padding:10px 11px;
+
+  background:
+    rgba(255,255,255,.92);
+
+  border-radius:9px;
+
+  font-family:Georgia,serif;
+}
+
+
+/* ==========================================================
+   MODAL — CONHECER TECIDO
+   ========================================================== */
+
+.modal-cor{
+  position:fixed;
+
+  inset:0;
+
+  z-index:9999;
+
+  display:none;
+}
+
+.modal-cor.aberto{
+  display:block;
+}
+
+.modal-cor-fundo{
+  position:absolute;
+
+  inset:0;
+
+  background:
+    rgba(0,0,0,.55);
+
+  backdrop-filter:blur(2px);
+  -webkit-backdrop-filter:blur(2px);
+}
+
+.modal-cor-conteudo{
+  position:absolute;
+
+  top:3vh;
+  bottom:3vh;
+
+  left:50%;
+
+  width:min(900px,92vw);
+
+  padding:28px;
+
+  overflow-y:auto;
+
+  transform:
+    translateX(-50%);
+
+  background:#fff;
+
+  border-radius:18px;
+
+  box-shadow:
+    0 20px 70px rgba(0,0,0,.30);
+}
+
+.modal-cor-fechar{
+  position:sticky;
+
+  top:0;
+
+  display:flex;
+
+  width:42px;
+  height:42px;
+
+  align-items:center;
+  justify-content:center;
+
+  margin-left:auto;
+
+  padding:0;
+
+  background:var(--ink);
+
+  color:#fff;
+
+  border:0;
+  border-radius:50%;
+
+  font-size:28px;
+
+  line-height:1;
+
+  cursor:pointer;
+
+  z-index:5;
+}
+
+.modal-cor-cabecalho{
+  margin-bottom:24px;
+}
+
+.modal-cor-tecido{
+  display:block;
+
+  margin-bottom:4px;
+
+  font-size:11px;
+
+  text-transform:uppercase;
+
+  letter-spacing:.12em;
+
+  color:var(--muted);
+}
+
+.modal-cor-cabecalho h2{
+  margin:0;
+
+  font-family:Georgia,serif;
+
+  font-size:32px;
+
+  font-weight:400;
+}
+
+.modal-cor-galeria{
+  display:flex;
+
+  flex-direction:column;
+
+  gap:18px;
+}
+
+.modal-cor-foto{
+  width:100%;
+}
+
+.modal-cor-galeria img{
+  display:block;
+
+  width:100%;
+  height:auto;
+
+  border-radius:12px;
+}
+
+.modal-cor-legenda{
+  margin-top:8px;
+
+  font-size:14px;
+
+  font-weight:600;
+
+  color:#5f5750;
+}
+
+body.modal-aberto{
+  overflow:hidden;
+}
+
+
+/* ==========================================================
+   ZOOM
+   ========================================================== */
+
+.zoom-foto{
+  position:fixed;
+
+  inset:0;
+
+  z-index:10000;
+
+  display:none;
+}
+
+.zoom-foto.aberto{
+  display:block;
+}
+
+.zoom-foto-fundo{
+  position:absolute;
+
+  inset:0;
+
+  background:
+    rgba(0,0,0,.82);
+}
+
+
+/* Caixa geral do zoom */
+
+.zoom-foto-conteudo{
+  position:absolute;
+
+  left:50%;
+  top:50%;
+
+  transform:
+    translate(-50%,-50%);
+
+  width:min(1000px,92vw);
+  height:min(900px,92vh);
+
+  display:flex;
+
+  align-items:center;
+  justify-content:center;
+}
+
+
+/* ==========================================================
+   FOTO + NOME NO ZOOM
    ========================================================== */
 
 .zoom-imagem-wrapper{
   position:relative;
 
   display:flex;
+
   align-items:center;
   justify-content:center;
 
@@ -66,34 +1397,44 @@
 .zoom-imagem-wrapper #zoom-foto-img{
   display:block;
 
-  max-width:100%;
-  max-height:88vh;
-
   width:auto;
   height:auto;
+
+  max-width:100%;
+  max-height:88vh;
 
   object-fit:contain;
 
   border-radius:12px;
+
+  box-shadow:
+    0 15px 50px rgba(0,0,0,.30);
 }
+
+
+/* ==========================================================
+   NOME DO TECIDO / COR NO ZOOM
+   ========================================================== */
 
 .zoom-foto-info{
   position:absolute;
 
-  left:18px;
-  bottom:18px;
+  left:16px;
+  bottom:16px;
 
-  z-index:6;
+  z-index:8;
 
   min-width:140px;
 
   padding:10px 14px;
 
-  background:rgba(255,255,255,.94);
+  background:
+    rgba(255,255,255,.95);
 
   border-radius:10px;
 
-  box-shadow:0 5px 18px rgba(0,0,0,.18);
+  box-shadow:
+    0 5px 20px rgba(0,0,0,.20);
 
   pointer-events:none;
 }
@@ -101,21 +1442,63 @@
 .zoom-foto-info small{
   display:block;
 
+  margin-bottom:3px;
+
   font-size:11px;
+
   line-height:1.2;
 
-  color:#746c63;
-
-  margin-bottom:3px;
+  color:var(--muted);
 }
 
 .zoom-foto-info strong{
   display:block;
 
   font-size:15px;
+
   line-height:1.2;
 
-  color:#211d18;
+  color:var(--ink);
+}
+
+
+/* ==========================================================
+   FECHAR ZOOM
+   ========================================================== */
+
+.zoom-foto-fechar{
+  position:absolute;
+
+  top:0;
+  right:0;
+
+  width:44px;
+  height:44px;
+
+  padding:0;
+
+  display:flex;
+
+  align-items:center;
+  justify-content:center;
+
+  background:#fff;
+
+  color:var(--ink);
+
+  border:0;
+  border-radius:50%;
+
+  font-size:28px;
+
+  line-height:1;
+
+  cursor:pointer;
+
+  z-index:20;
+
+  box-shadow:
+    0 5px 20px rgba(0,0,0,.18);
 }
 
 
@@ -128,29 +1511,37 @@
 
   top:50%;
 
-  transform:translateY(-50%);
+  transform:
+    translateY(-50%);
 
   width:48px;
   height:48px;
 
-  border:0;
-  border-radius:50%;
-
-  background:rgba(255,255,255,.94);
-
-  color:#211d18;
-
-  font-size:30px;
+  padding:0;
 
   display:flex;
+
   align-items:center;
   justify-content:center;
 
+  background:
+    rgba(255,255,255,.95);
+
+  color:var(--ink);
+
+  border:0;
+  border-radius:50%;
+
+  font-size:30px;
+
+  line-height:1;
+
   cursor:pointer;
 
-  z-index:7;
+  z-index:20;
 
-  box-shadow:0 6px 20px rgba(0,0,0,.18);
+  box-shadow:
+    0 6px 20px rgba(0,0,0,.18);
 
   transition:
     background .2s ease,
@@ -166,8 +1557,114 @@
 }
 
 .zoom-nav:hover{
-  background:#211d18;
+  background:var(--ink);
+
   color:#fff;
+}
+
+
+/* ==========================================================
+   RODAPÉ
+   ========================================================== */
+
+.footer{
+  padding:36px 0 50px;
+
+  border-top:1px solid var(--line);
+
+  font-size:12px;
+
+  color:var(--muted);
+}
+
+
+/* ==========================================================
+   TOAST
+   ========================================================== */
+
+.toast{
+  position:fixed;
+
+  right:22px;
+  bottom:22px;
+
+  z-index:30;
+
+  padding:14px 16px;
+
+  background:var(--ink);
+
+  color:#fff;
+
+  border-radius:12px;
+
+  font-size:12px;
+
+  box-shadow:
+    0 12px 30px rgba(0,0,0,.20);
+
+  opacity:0;
+
+  transform:
+    translateY(10px);
+
+  pointer-events:none;
+
+  transition:.25s;
+}
+
+.toast.show{
+  opacity:1;
+
+  transform:
+    translateY(0);
+}
+
+
+/* ==========================================================
+   TABLET
+   ========================================================== */
+
+@media(max-width:900px){
+
+  .navlinks{
+    display:none;
+  }
+
+  .hero{
+    min-height:330px;
+  }
+
+  .hero-copy{
+    padding:50px 0 80px;
+  }
+
+  h1{
+    font-size:42px;
+  }
+
+  .config{
+    grid-template-columns:1fr;
+  }
+
+  .summary{
+    border-left:0;
+
+    border-top:
+      1px solid var(--line);
+  }
+
+  .benefits,
+  .fabric-grid{
+    grid-template-columns:
+      repeat(2,1fr);
+  }
+
+  #cores-choice{
+    grid-template-columns:
+      repeat(5,minmax(0,1fr));
+  }
+
 }
 
 
@@ -177,18 +1674,168 @@
 
 @media(max-width:600px){
 
+  .shell{
+    padding:0 14px;
+  }
+
+  .nav{
+    height:64px;
+  }
+
+  .logo{
+    font-size:20px;
+  }
+
+  .cta-small{
+    display:none;
+  }
+
+  h1{
+    font-size:38px;
+  }
+
+  .hero-copy{
+    padding-top:42px;
+  }
+
+  .config-wrap{
+    margin-top:-34px;
+  }
+
+  .builder,
+  .summary{
+    padding:24px 18px;
+  }
+
+  .steps{
+    grid-template-columns:
+      repeat(5,72px);
+
+    overflow-x:auto;
+
+    padding-bottom:5px;
+  }
+
+  .grid2,
+  .cards,
+  .cards.two{
+    grid-template-columns:1fr;
+  }
+
+  #cores-choice{
+    grid-template-columns:
+      repeat(3,minmax(0,1fr));
+
+    gap:8px;
+  }
+
+  #cores-choice .card-cor-img{
+    height:90px;
+  }
+
+  .benefits,
+  .fabric-grid{
+    grid-template-columns:1fr;
+  }
+
+  .fabric{
+    height:170px;
+  }
+
+  .fabrics{
+    padding:22px 16px;
+  }
+
+  .fabrics-head{
+    display:block;
+  }
+
+
+  /* Carrossel */
+
+  .preview{
+    height:320px;
+  }
+
+  .preview-nav{
+    width:38px;
+    height:38px;
+
+    font-size:24px;
+  }
+
+  .preview-prev{
+    left:10px;
+  }
+
+  .preview-next{
+    right:10px;
+  }
+
   .preview-info{
     left:10px;
     bottom:10px;
 
+    min-width:105px;
+
     padding:8px 10px;
+  }
+
+
+  /* Modal conhecer tecido */
+
+  .modal-cor-conteudo{
+    top:0;
+    bottom:0;
+
+    width:100vw;
+
+    padding:18px;
+
+    border-radius:0;
+  }
+
+  .modal-cor-cabecalho h2{
+    font-size:26px;
+  }
+
+
+  /* Zoom */
+
+  .zoom-foto-conteudo{
+    width:100vw;
+    height:100vh;
+
+    padding:12px;
+  }
+
+  .zoom-imagem-wrapper{
+    max-width:100%;
+    max-height:90vh;
+  }
+
+  .zoom-imagem-wrapper #zoom-foto-img{
+    max-width:100%;
+    max-height:90vh;
+
+    border-radius:8px;
   }
 
   .zoom-foto-info{
     left:10px;
     bottom:10px;
 
+    min-width:110px;
+
     padding:8px 11px;
+  }
+
+  .zoom-foto-info small{
+    font-size:9px;
+  }
+
+  .zoom-foto-info strong{
+    font-size:13px;
   }
 
   .zoom-nav{
@@ -204,6 +1851,14 @@
 
   .zoom-next{
     right:8px;
+  }
+
+  .zoom-foto-fechar{
+    top:12px;
+    right:12px;
+
+    width:42px;
+    height:42px;
   }
 
 }
