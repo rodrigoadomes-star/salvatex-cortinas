@@ -104,7 +104,7 @@ instalacao: {
   },
 
 
-  "Trilho Suíço de Teto - Branco": {
+  "Trilho Suíço - Branco": {
 
     valorMetro: 74,
 
