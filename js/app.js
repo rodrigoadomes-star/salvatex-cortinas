@@ -7,7 +7,7 @@ const state = {
   tecido: "Gaze de Linho",
   cor: "Branco",
   forro: "Forro leve",
-  trilho: "Trilho simples"
+  trilho: ""
 };
 
 
@@ -1698,10 +1698,32 @@ bindCards(
 );
 
 
-bindCards(
-  "trilho-choice",
-  "trilho"
-);
+// ============================================================
+// SELETOR DE TRILHO
+// ============================================================
+
+const trilhoSelect =
+  document.getElementById(
+    "trilho-select"
+  );
+
+
+if (trilhoSelect) {
+
+  trilhoSelect.addEventListener(
+    "change",
+    () => {
+
+      state.trilho =
+        trilhoSelect.value;
+
+
+      atualizarOrcamento();
+
+    }
+  );
+
+}
 
 
 atualizarCores();
