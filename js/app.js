@@ -373,7 +373,8 @@ function atualizarCores() {
   }
 
 
-  container.innerHTML = "";
+  container.innerHTML =
+    "";
 
 
   cores.forEach((cor) => {
