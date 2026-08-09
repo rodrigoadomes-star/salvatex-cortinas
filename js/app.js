@@ -13,7 +13,8 @@ const state = {
 
 // ============================================================
 // FOTOS DO CARROSSEL
-// Fotos reais separadas por TECIDO + COR
+// Todas as fotos disponíveis de cada TECIDO, separadas por COR
+// O carrossel percorre TODAS as cores do tecido selecionado.
 // ============================================================
 
 const FOTOS_CARROSSEL = {
@@ -95,7 +96,7 @@ let previewIndex = 0;
 
 // ============================================================
 // GALERIAS DAS CORES
-// Fotos usadas nos cards das cores e no botão
+// Fotos usadas SOMENTE nos cards das cores e no botão
 // "Conhecer este tecido"
 // ============================================================
 
@@ -140,6 +141,7 @@ const GALERIAS_CORES = {
 
   },
 
+
   "Linho Damasco": {
 
     "Natural": [
@@ -180,6 +182,40 @@ const GALERIAS_CORES = {
   }
 
 };
+
+
+// ============================================================
+// MONTA TODAS AS FOTOS DO CARROSSEL DO TECIDO SELECIONADO
+// ============================================================
+
+function obterFotosCarrossel() {
+
+  const tecido =
+    FOTOS_CARROSSEL?.[state.tecido] || {};
+
+
+  const fotos = [];
+
+
+  Object.entries(tecido).forEach(
+    ([cor, imagens]) => {
+
+      imagens.forEach((src) => {
+
+        fotos.push({
+          src: src,
+          cor: cor
+        });
+
+      });
+
+    }
+  );
+
+
+  return fotos;
+
+}
 
 
 // ============================================================
@@ -402,9 +438,6 @@ function atualizarCores() {
           cor;
 
 
-        previewIndex = 0;
-
-
         atualizarOrcamento();
 
       }
@@ -420,6 +453,7 @@ function atualizarCores() {
 
 // ============================================================
 // CARROSSEL PRINCIPAL
+// Mostra TODAS as fotos de TODAS as cores do tecido selecionado
 // ============================================================
 
 function atualizarPreview() {
@@ -440,7 +474,7 @@ function atualizarPreview() {
 
 
   const fotos =
-    FOTOS_CARROSSEL?.[state.tecido]?.[state.cor] || [];
+    obterFotosCarrossel();
 
 
   if (!fotos.length) {
@@ -489,12 +523,16 @@ function atualizarPreview() {
   }
 
 
-  img.src =
+  const fotoAtual =
     fotos[previewIndex];
 
 
+  img.src =
+    fotoAtual.src;
+
+
   img.alt =
-    `${state.tecido} ${state.cor}`;
+    `${state.tecido} ${fotoAtual.cor}`;
 
 
   if (carousel) {
@@ -513,7 +551,7 @@ function atualizarPreview() {
 
 
     fotos.forEach(
-      (_, indice) => {
+      (foto, indice) => {
 
         const dot =
           document.createElement("button");
@@ -534,7 +572,7 @@ function atualizarPreview() {
 
         dot.setAttribute(
           "aria-label",
-          `Ver ${state.tecido} ${state.cor}`
+          `Ver ${state.tecido} ${foto.cor}`
         );
 
 
@@ -561,10 +599,14 @@ function atualizarPreview() {
 }
 
 
+// ============================================================
+// PASSAR FOTO NO CARROSSEL
+// ============================================================
+
 function mudarPreview(direcao) {
 
   const fotos =
-    FOTOS_CARROSSEL?.[state.tecido]?.[state.cor] || [];
+    obterFotosCarrossel();
 
 
   if (!fotos.length) {
@@ -599,11 +641,7 @@ function mudarPreview(direcao) {
 
 // ============================================================
 // ZOOM DA FOTO PRINCIPAL
-// ============================================================
-
-// ============================================================
-// ZOOM DA FOTO PRINCIPAL
-// COM NAVEGAÇÃO ENTRE AS FOTOS
+// COM NAVEGAÇÃO POR TODAS AS CORES
 // ============================================================
 
 function atualizarImagemZoom() {
@@ -611,13 +649,14 @@ function atualizarImagemZoom() {
   const imagemGrande =
     document.getElementById("zoom-foto-img");
 
+
   if (!imagemGrande) {
     return;
   }
 
 
   const fotos =
-    FOTOS_CARROSSEL?.[state.tecido]?.[state.cor] || [];
+    obterFotosCarrossel();
 
 
   if (!fotos.length) {
@@ -636,7 +675,9 @@ function atualizarImagemZoom() {
 
     }
 
+
     return;
+
   }
 
 
@@ -650,15 +691,23 @@ function atualizarImagemZoom() {
   }
 
 
-  imagemGrande.src =
+  const fotoAtual =
     fotos[previewIndex];
 
 
+  imagemGrande.src =
+    fotoAtual.src;
+
+
   imagemGrande.alt =
-    `${state.tecido} ${state.cor}`;
+    `${state.tecido} ${fotoAtual.cor}`;
 
 }
 
+
+// ============================================================
+// ABRIR ZOOM
+// ============================================================
 
 function abrirZoomPreview() {
 
@@ -695,6 +744,10 @@ function abrirZoomPreview() {
 }
 
 
+// ============================================================
+// FECHAR ZOOM
+// ============================================================
+
 function fecharZoomPreview() {
 
   const modal =
@@ -728,7 +781,7 @@ function fecharZoomPreview() {
 function mudarFotoZoom(direcao) {
 
   const fotos =
-    FOTOS_CARROSSEL?.[state.tecido]?.[state.cor] || [];
+    obterFotosCarrossel();
 
 
   if (!fotos.length) {
@@ -756,16 +809,13 @@ function mudarFotoZoom(direcao) {
   }
 
 
-  // Atualiza a foto ampliada
-
   atualizarImagemZoom();
 
-
-  // Atualiza também o carrossel atrás do zoom
 
   atualizarPreview();
 
 }
+
 
 // ============================================================
 // GALERIA "CONHECER ESTE TECIDO"
@@ -891,6 +941,10 @@ function abrirGaleriaCor() {
 
 }
 
+
+// ============================================================
+// FECHAR GALERIA
+// ============================================================
 
 function fecharGaleriaCor() {
 
@@ -1575,6 +1629,7 @@ const zoomPrev =
 
 const zoomNext =
   document.getElementById("zoom-next");
+
 
 if (zoomPrev) {
 
