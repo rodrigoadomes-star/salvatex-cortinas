@@ -418,20 +418,21 @@
 
         </div>
 
+
         <div
-  class="card"
-  data-value="Forro Peletizado 50%"
->
+          class="card"
+          data-value="Forro Peletizado 50%"
+        >
 
-  <strong>
-    Forro Peletizado 50%
-  </strong>
+          <strong>
+            Forro Peletizado 50%
+          </strong>
 
-  <span>
-    Reduz a luminosidade mantendo o ambiente mais leve.
-  </span>
+          <span>
+            Reduz a luminosidade mantendo o ambiente mais leve.
+          </span>
 
-</div>
+        </div>
 
 
         <div
@@ -493,8 +494,7 @@
                 2x — Menos Volumosa
               </option>
 
-              <option
-                value="2.5">
+              <option value="2.5">
                 2,5x — Bem Franzido
               </option>
 
@@ -535,13 +535,13 @@
            =================================================== -->
 
       <div class="choice-title">
-        Deseja incluir o trilho?
+        Deseja incluir trilho ou varão?
       </div>
 
 
       <p class="trilho-descricao">
-        Deseja incluir o trilho ou varão no orçamento?
-        Escolha abaixo a opção:
+        Selecione obrigatoriamente se deseja incluir
+        trilho ou varão no orçamento.
       </p>
 
 
@@ -550,6 +550,7 @@
         <select
           id="trilho-select"
           class="trilho-select"
+          required
         >
 
           <option
@@ -562,7 +563,7 @@
 
 
           <option value="Não">
-            Não
+            Não quero trilho ou varão
           </option>
 
 
@@ -769,7 +770,7 @@
         <b>Consumo de Tecido</b>
 
         <span id="sum-medidas">
-          2,50 × 2,70 m
+          4,00 × 2,70 m
         </span>
 
       </div>
@@ -780,7 +781,7 @@
         <b>Franzimento</b>
 
         <span id="sum-franz">
-          2,5x
+          2x
         </span>
 
       </div>
@@ -815,101 +816,101 @@
 
 
       <!-- ===================================================
-     PREÇO / RESUMO DOS PRODUTOS
-     =================================================== -->
+           PREÇO / RESUMO DOS PRODUTOS
+           =================================================== -->
 
-<div class="pricebox">
+      <div class="pricebox">
 
-  <small>
-    Resumo do orçamento
-  </small>
-
-
-  <!-- CORTINA -->
-
-  <div class="produto-preco-linha">
-
-    <div class="produto-preco-info">
-
-      <strong>
-        Cortina sob medida
-      </strong>
-
-      <span>
-        Configuração selecionada
-      </span>
-
-    </div>
+        <small>
+          Resumo do orçamento
+        </small>
 
 
-    <div
-      class="produto-preco-valor"
-      id="preco-cortina"
-    >
-      R$ 0,00
-    </div>
+        <!-- CORTINA -->
 
-  </div>
+        <div class="produto-preco-linha">
 
+          <div class="produto-preco-info">
 
-  <!-- TRILHO / VARÃO -->
+            <strong>
+              Cortina Wave sob medida
+            </strong>
 
-  <div
-    class="produto-preco-linha"
-    id="linha-preco-trilho"
-    style="display:none;"
-  >
+            <span>
+              Tecido, forro e acabamento selecionados
+            </span>
 
-    <div class="produto-preco-info">
-
-      <strong id="nome-preco-trilho">
-        Trilho / Varão
-      </strong>
-
-      <span>
-        Item adicional
-      </span>
-
-    </div>
+          </div>
 
 
-    <div
-      class="produto-preco-valor"
-      id="preco-trilho"
-    >
-      R$ 0,00
-    </div>
+          <div
+            class="produto-preco-valor"
+            id="preco-cortina"
+          >
+            R$ 0,00
+          </div>
 
-  </div>
-
-
-  <!-- TOTAL -->
-
-  <div class="total-orcamento">
-
-    <span>
-      Total
-    </span>
+        </div>
 
 
-    <div
-      class="price"
-      id="preco"
-    >
-      R$ 0,00
-    </div>
+        <!-- TRILHO / VARÃO -->
 
-  </div>
+        <div
+          class="produto-preco-linha"
+          id="linha-preco-trilho"
+          style="display:none;"
+        >
+
+          <div class="produto-preco-info">
+
+            <strong id="nome-preco-trilho">
+              Trilho / Varão
+            </strong>
+
+            <span>
+              Produto adicional
+            </span>
+
+          </div>
 
 
-  <div
-    class="installments"
-    id="parcelas"
-  >
-    ou 10x de R$ 0,00 sem juros
-  </div>
+          <div
+            class="produto-preco-valor"
+            id="preco-trilho"
+          >
+            R$ 0,00
+          </div>
 
-</div>
+        </div>
+
+
+        <!-- TOTAL -->
+
+        <div class="total-orcamento">
+
+          <span>
+            Total
+          </span>
+
+
+          <div
+            class="price"
+            id="preco"
+          >
+            R$ 0,00
+          </div>
+
+        </div>
+
+
+        <div
+          class="installments"
+          id="parcelas"
+        >
+          ou 10x de R$ 0,00 sem juros
+        </div>
+
+      </div>
 
 
       <!-- ===================================================
