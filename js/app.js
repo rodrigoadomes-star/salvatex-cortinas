@@ -1304,31 +1304,46 @@ function atualizarResumoBasico(
   }
 
 
-  const largura =
-    Number(
-      dados.largura
-    ) || 0;
+const largura =
+  Number(
+    dados.largura
+  ) || 0;
 
 
-  const altura =
-    Number(
-      dados.altura
-    ) || 0;
+const altura =
+  Number(
+    dados.altura
+  ) || 0;
 
 
-  if (sumMedidas) {
+const franzimento =
+  Number(
+    dados.franzimento
+  ) || 1;
 
-    sumMedidas.textContent =
-      largura
-        .toFixed(2)
-        .replace(".", ",") +
-      " × " +
-      altura
-        .toFixed(2)
-        .replace(".", ",") +
-      " m";
 
-  }
+// ============================================================
+// QUANTIDADE FINAL DE TECIDO
+// Largura do ambiente × franzimento
+// ============================================================
+
+const larguraTecido =
+  largura * franzimento;
+
+
+if (sumMedidas) {
+
+  sumMedidas.textContent =
+    larguraTecido
+      .toFixed(2)
+      .replace(".", ",") +
+    " × " +
+    altura
+      .toFixed(2)
+      .replace(".", ",") +
+    " m";
+
+}
 
 
   if (sumFranz) {
