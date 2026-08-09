@@ -13,8 +13,6 @@ const state = {
 
 // ============================================================
 // FOTOS DO CARROSSEL
-// Todas as fotos disponíveis de cada TECIDO, separadas por COR
-// O carrossel percorre TODAS as cores do tecido selecionado.
 // ============================================================
 
 const FOTOS_CARROSSEL = {
@@ -22,33 +20,33 @@ const FOTOS_CARROSSEL = {
   "Gaze de Linho": {
 
     "Branco": [
-      "imagens/galeria/gaze/branco/foto-1.png",
-      "imagens/galeria/gaze/branco/foto-2.png",
-      "imagens/galeria/gaze/branco/foto-3.png"
+      "imagens/galeria/gaze/branco/foto-1.jpg",
+      "imagens/galeria/gaze/branco/foto-2.jpg",
+      "imagens/galeria/gaze/branco/foto-3.jpg"
     ],
 
     "Bege": [
-      "imagens/galeria/gaze/bege/foto-1.png",
-      "imagens/galeria/gaze/bege/foto-2.png",
-      "imagens/galeria/gaze/bege/foto-3.png"
+      "imagens/galeria/gaze/bege/foto-1.jpg",
+      "imagens/galeria/gaze/bege/foto-2.jpg",
+      "imagens/galeria/gaze/bege/foto-3.jpg"
     ],
 
     "Cinza": [
-      "imagens/galeria/gaze/cinza/foto-1.png",
-      "imagens/galeria/gaze/cinza/foto-2.png",
-      "imagens/galeria/gaze/cinza/foto-3.png"
+      "imagens/galeria/gaze/cinza/foto-1.jpg",
+      "imagens/galeria/gaze/cinza/foto-2.jpg",
+      "imagens/galeria/gaze/cinza/foto-3.jpg"
     ],
 
     "Off White": [
-      "imagens/galeria/gaze/offwhite/foto-1.png",
-      "imagens/galeria/gaze/offwhite/foto-2.png",
-      "imagens/galeria/gaze/offwhite/foto-3.png"
+      "imagens/galeria/gaze/offwhite/foto-1.jpg",
+      "imagens/galeria/gaze/offwhite/foto-2.jpg",
+      "imagens/galeria/gaze/offwhite/foto-3.jpg"
     ],
 
     "Natural": [
-      "imagens/galeria/gaze/natural/foto-1.png",
-      "imagens/galeria/gaze/natural/foto-2.png",
-      "imagens/galeria/gaze/natural/foto-3.png"
+      "imagens/galeria/gaze/natural/foto-1.jpg",
+      "imagens/galeria/gaze/natural/foto-2.jpg",
+      "imagens/galeria/gaze/natural/foto-3.jpg"
     ]
 
   },
@@ -57,33 +55,33 @@ const FOTOS_CARROSSEL = {
   "Linho Damasco": {
 
     "Natural": [
-      "imagens/galeria/damasco/natural/foto-1.png",
-      "imagens/galeria/damasco/natural/foto-2.png",
-      "imagens/galeria/damasco/natural/foto-3.png"
+      "imagens/galeria/damasco/natural/foto-1.jpg",
+      "imagens/galeria/damasco/natural/foto-2.jpg",
+      "imagens/galeria/damasco/natural/foto-3.jpg"
     ],
 
     "Branco": [
-      "imagens/galeria/damasco/branco/foto-1.png",
-      "imagens/galeria/damasco/branco/foto-2.png",
-      "imagens/galeria/damasco/branco/foto-3.png"
+      "imagens/galeria/damasco/branco/foto-1.jpg",
+      "imagens/galeria/damasco/branco/foto-2.jpg",
+      "imagens/galeria/damasco/branco/foto-3.jpg"
     ],
 
     "Bege": [
-      "imagens/galeria/damasco/bege/foto-1.png",
-      "imagens/galeria/damasco/bege/foto-2.png",
-      "imagens/galeria/damasco/bege/foto-3.png"
+      "imagens/galeria/damasco/bege/foto-1.jpg",
+      "imagens/galeria/damasco/bege/foto-2.jpg",
+      "imagens/galeria/damasco/bege/foto-3.jpg"
     ],
 
     "Off White": [
-      "imagens/galeria/damasco/offwhite/foto-1.png",
-      "imagens/galeria/damasco/offwhite/foto-2.png",
-      "imagens/galeria/damasco/offwhite/foto-3.png"
+      "imagens/galeria/damasco/offwhite/foto-1.jpg",
+      "imagens/galeria/damasco/offwhite/foto-2.jpg",
+      "imagens/galeria/damasco/offwhite/foto-3.jpg"
     ],
 
     "Grafite": [
-      "imagens/galeria/damasco/grafite/foto-1.png",
-      "imagens/galeria/damasco/grafite/foto-2.png",
-      "imagens/galeria/damasco/grafite/foto-3.png"
+      "imagens/galeria/damasco/grafite/foto-1.jpg",
+      "imagens/galeria/damasco/grafite/foto-2.jpg",
+      "imagens/galeria/damasco/grafite/foto-3.jpg"
     ]
 
   }
@@ -96,8 +94,6 @@ let previewIndex = 0;
 
 // ============================================================
 // GALERIAS DAS CORES
-// Fotos usadas SOMENTE nos cards das cores e no botão
-// "Conhecer este tecido"
 // ============================================================
 
 const GALERIAS_CORES = {
@@ -185,7 +181,7 @@ const GALERIAS_CORES = {
 
 
 // ============================================================
-// MONTA TODAS AS FOTOS DO CARROSSEL DO TECIDO SELECIONADO
+// MONTA TODAS AS FOTOS DO TECIDO
 // ============================================================
 
 function obterFotosCarrossel() {
@@ -203,8 +199,8 @@ function obterFotosCarrossel() {
       imagens.forEach((src) => {
 
         fotos.push({
-          src: src,
-          cor: cor
+          src,
+          cor
         });
 
       });
@@ -214,6 +210,36 @@ function obterFotosCarrossel() {
 
 
   return fotos;
+
+}
+
+
+// ============================================================
+// FOTO ATUAL
+// ============================================================
+
+function obterFotoAtual() {
+
+  const fotos =
+    obterFotosCarrossel();
+
+
+  if (!fotos.length) {
+    return null;
+  }
+
+
+  if (
+    previewIndex < 0 ||
+    previewIndex >= fotos.length
+  ) {
+
+    previewIndex = 0;
+
+  }
+
+
+  return fotos[previewIndex];
 
 }
 
@@ -236,7 +262,7 @@ function brl(valor) {
 
 
 // ============================================================
-// PEGA VALOR DE UM CAMPO
+// VALOR DO CAMPO
 // ============================================================
 
 function val(id) {
@@ -272,7 +298,7 @@ function dadosAtuais() {
 
 
 // ============================================================
-// CARDS CLICÁVEIS
+// CARDS
 // ============================================================
 
 function bindCards(groupId, key) {
@@ -319,7 +345,7 @@ function bindCards(groupId, key) {
 
 
 // ============================================================
-// CORES DISPONÍVEIS
+// CORES
 // ============================================================
 
 function atualizarCores() {
@@ -398,8 +424,10 @@ function atualizarCores() {
       imagem.addEventListener(
         "error",
         () => {
+
           imagem.style.display =
             "none";
+
         }
       );
 
@@ -427,7 +455,9 @@ function atualizarCores() {
         container
           .querySelectorAll(".card")
           .forEach((c) => {
+
             c.classList.remove("selected");
+
           });
 
 
@@ -452,8 +482,7 @@ function atualizarCores() {
 
 
 // ============================================================
-// CARROSSEL PRINCIPAL
-// Mostra TODAS as fotos de TODAS as cores do tecido selecionado
+// CARROSSEL
 // ============================================================
 
 function atualizarPreview() {
@@ -466,6 +495,12 @@ function atualizarPreview() {
 
   const carousel =
     document.getElementById("preview-carousel");
+
+  const previewTecido =
+    document.getElementById("preview-tecido");
+
+  const previewCor =
+    document.getElementById("preview-cor");
 
 
   if (!img) {
@@ -494,8 +529,27 @@ function atualizarPreview() {
     }
 
 
+    if (previewTecido) {
+
+      previewTecido.textContent =
+        state.tecido;
+
+    }
+
+
+    if (previewCor) {
+
+      previewCor.textContent =
+        state.cor;
+
+    }
+
+
     if (dots) {
-      dots.innerHTML = "";
+
+      dots.innerHTML =
+        "";
+
     }
 
 
@@ -513,18 +567,13 @@ function atualizarPreview() {
   }
 
 
-  if (
-    previewIndex < 0 ||
-    previewIndex >= fotos.length
-  ) {
-
-    previewIndex = 0;
-
-  }
-
-
   const fotoAtual =
-    fotos[previewIndex];
+    obterFotoAtual();
+
+
+  if (!fotoAtual) {
+    return;
+  }
 
 
   img.src =
@@ -533,6 +582,22 @@ function atualizarPreview() {
 
   img.alt =
     `${state.tecido} ${fotoAtual.cor}`;
+
+
+  if (previewTecido) {
+
+    previewTecido.textContent =
+      state.tecido;
+
+  }
+
+
+  if (previewCor) {
+
+    previewCor.textContent =
+      fotoAtual.cor;
+
+  }
 
 
   if (carousel) {
@@ -547,7 +612,8 @@ function atualizarPreview() {
 
   if (dots) {
 
-    dots.innerHTML = "";
+    dots.innerHTML =
+      "";
 
 
     fotos.forEach(
@@ -600,7 +666,7 @@ function atualizarPreview() {
 
 
 // ============================================================
-// PASSAR FOTO NO CARROSSEL
+// PASSAR FOTO
 // ============================================================
 
 function mudarPreview(direcao) {
@@ -640,8 +706,7 @@ function mudarPreview(direcao) {
 
 
 // ============================================================
-// ZOOM DA FOTO PRINCIPAL
-// COM NAVEGAÇÃO POR TODAS AS CORES
+// ZOOM
 // ============================================================
 
 function atualizarImagemZoom() {
@@ -649,17 +714,23 @@ function atualizarImagemZoom() {
   const imagemGrande =
     document.getElementById("zoom-foto-img");
 
+  const zoomTecido =
+    document.getElementById("zoom-tecido");
+
+  const zoomCor =
+    document.getElementById("zoom-cor");
+
 
   if (!imagemGrande) {
     return;
   }
 
 
-  const fotos =
-    obterFotosCarrossel();
+  const fotoAtual =
+    obterFotoAtual();
 
 
-  if (!fotos.length) {
+  if (!fotoAtual) {
 
     const capa =
       GALERIAS_CORES?.[state.tecido]?.[state.cor]?.[0]?.src;
@@ -676,23 +747,25 @@ function atualizarImagemZoom() {
     }
 
 
+    if (zoomTecido) {
+
+      zoomTecido.textContent =
+        state.tecido;
+
+    }
+
+
+    if (zoomCor) {
+
+      zoomCor.textContent =
+        state.cor;
+
+    }
+
+
     return;
 
   }
-
-
-  if (
-    previewIndex < 0 ||
-    previewIndex >= fotos.length
-  ) {
-
-    previewIndex = 0;
-
-  }
-
-
-  const fotoAtual =
-    fotos[previewIndex];
 
 
   imagemGrande.src =
@@ -701,6 +774,22 @@ function atualizarImagemZoom() {
 
   imagemGrande.alt =
     `${state.tecido} ${fotoAtual.cor}`;
+
+
+  if (zoomTecido) {
+
+    zoomTecido.textContent =
+      state.tecido;
+
+  }
+
+
+  if (zoomCor) {
+
+    zoomCor.textContent =
+      fotoAtual.cor;
+
+  }
 
 }
 
@@ -714,14 +803,8 @@ function abrirZoomPreview() {
   const modal =
     document.getElementById("zoom-foto");
 
-  const imagemGrande =
-    document.getElementById("zoom-foto-img");
 
-
-  if (
-    !modal ||
-    !imagemGrande
-  ) {
+  if (!modal) {
     return;
   }
 
@@ -775,7 +858,7 @@ function fecharZoomPreview() {
 
 
 // ============================================================
-// PASSAR FOTO DENTRO DO ZOOM
+// MUDAR FOTO NO ZOOM
 // ============================================================
 
 function mudarFotoZoom(direcao) {
@@ -974,7 +1057,7 @@ function fecharGaleriaCor() {
 
 
 // ============================================================
-// INFORMAÇÃO DA BARRA
+// BARRA
 // ============================================================
 
 function atualizarInfoBarra(altura) {
@@ -1175,7 +1258,7 @@ function atualizarResumoBasico(
 
 
 // ============================================================
-// ATUALIZA ORÇAMENTO
+// ORÇAMENTO
 // ============================================================
 
 function atualizarOrcamento() {
@@ -1345,7 +1428,7 @@ function atualizarOrcamento() {
 
 
 // ============================================================
-// MENSAGEM WHATSAPP
+// WHATSAPP
 // ============================================================
 
 function mensagemWhatsApp() {
@@ -1360,8 +1443,7 @@ function mensagemWhatsApp() {
 
   if (
     !window.currentSobConsulta &&
-    typeof window.currentTotal ===
-      "number"
+    typeof window.currentTotal === "number"
   ) {
 
     estimativa =
@@ -1399,10 +1481,6 @@ Gostaria de confirmar este orçamento.`;
 }
 
 
-// ============================================================
-// ABRIR WHATSAPP
-// ============================================================
-
 function abrirWhatsApp() {
 
   const numero =
@@ -1436,7 +1514,7 @@ function abrirWhatsApp() {
 
 
 // ============================================================
-// ATIVA CARDS
+// EVENTOS
 // ============================================================
 
 bindCards(
@@ -1463,16 +1541,8 @@ bindCards(
 );
 
 
-// ============================================================
-// CORES INICIAIS
-// ============================================================
-
 atualizarCores();
 
-
-// ============================================================
-// CAMPOS
-// ============================================================
 
 [
   "largura",
@@ -1501,10 +1571,6 @@ atualizarCores();
 
 });
 
-
-// ============================================================
-// BOTÃO ATUALIZAR
-// ============================================================
 
 const botaoRecalcular =
   document.getElementById("recalcular");
@@ -1545,10 +1611,6 @@ if (botaoRecalcular) {
 }
 
 
-// ============================================================
-// BOTÕES WHATSAPP
-// ============================================================
-
 const botaoWhatsapp =
   document.getElementById("whatsapp");
 
@@ -1577,10 +1639,6 @@ if (botaoComprar) {
 }
 
 
-// ============================================================
-// CARROSSEL
-// ============================================================
-
 const previewPrev =
   document.getElementById("preview-prev");
 
@@ -1608,10 +1666,6 @@ if (previewNext) {
 }
 
 
-// ============================================================
-// ZOOM
-// ============================================================
-
 const previewImg =
   document.getElementById("preview-img");
 
@@ -1629,26 +1683,6 @@ const zoomPrev =
 
 const zoomNext =
   document.getElementById("zoom-next");
-
-
-if (zoomPrev) {
-
-  zoomPrev.addEventListener(
-    "click",
-    () => mudarFotoZoom(-1)
-  );
-
-}
-
-
-if (zoomNext) {
-
-  zoomNext.addEventListener(
-    "click",
-    () => mudarFotoZoom(1)
-  );
-
-}
 
 
 if (previewImg) {
@@ -1691,9 +1725,25 @@ if (zoomFundo) {
 }
 
 
-// ============================================================
-// MODAL CONHECER TECIDO
-// ============================================================
+if (zoomPrev) {
+
+  zoomPrev.addEventListener(
+    "click",
+    () => mudarFotoZoom(-1)
+  );
+
+}
+
+
+if (zoomNext) {
+
+  zoomNext.addEventListener(
+    "click",
+    () => mudarFotoZoom(1)
+  );
+
+}
+
 
 const botaoConhecerCor =
   document.getElementById("conhecer-cor");
@@ -1734,10 +1784,6 @@ if (modalCorFundo) {
 
 }
 
-
-// ============================================================
-// ESC FECHA OS MODAIS
-// ============================================================
 
 document.addEventListener(
   "keydown",
