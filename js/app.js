@@ -69,25 +69,27 @@ const FOTOS_CARROSSEL = {
     "Branco": [
       "imagens/galeria/damasco/branco/foto-1.png",
       "imagens/galeria/damasco/branco/foto-2.png",
-      "imagens/galeria/damasco/branco/foto-3.png"
+      "imagens/galeria/damasco/branco/foto-3.png",
+      "imagens/galeria/damasco/branco/foto-4.png"
     ],
 
     "Bege": [
       "imagens/galeria/damasco/bege/foto-1.png",
       "imagens/galeria/damasco/bege/foto-2.png",
-      "imagens/galeria/damasco/bege/foto-3.png"
+      "imagens/galeria/damasco/bege/foto-3.png",
+      "imagens/galeria/damasco/bege/foto-4.png"
     ],
 
     "Off White": [
       "imagens/galeria/damasco/offwhite/foto-1.png",
       "imagens/galeria/damasco/offwhite/foto-2.png",
-      "imagens/galeria/damasco/offwhite/foto-3.png"
+      "imagens/galeria/damasco/offwhite/foto-3.png",
+      "imagens/galeria/damasco/offwhite/foto-4.png"
     ],
 
     "Grafite": [
       "imagens/galeria/damasco/grafite/foto-1.png",
-      "imagens/galeria/damasco/grafite/foto-2.png",
-      "imagens/galeria/damasco/grafite/foto-3.png"
+      "imagens/galeria/damasco/grafite/foto-2.png"
     ]
 
   }
