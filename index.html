@@ -815,32 +815,101 @@
 
 
       <!-- ===================================================
-           PREÇO
-           =================================================== -->
+     PREÇO / RESUMO DOS PRODUTOS
+     =================================================== -->
 
-      <div class="pricebox">
+<div class="pricebox">
 
-        <small>
-          Estimativa da sua cortina
-        </small>
-
-
-        <div
-          class="price"
-          id="preco"
-        >
-          R$ 0,00
-        </div>
+  <small>
+    Resumo do orçamento
+  </small>
 
 
-        <div
-          class="installments"
-          id="parcelas"
-        >
-          ou 10x de R$ 0,00 sem juros
-        </div>
+  <!-- CORTINA -->
 
-      </div>
+  <div class="produto-preco-linha">
+
+    <div class="produto-preco-info">
+
+      <strong>
+        Cortina sob medida
+      </strong>
+
+      <span>
+        Configuração selecionada
+      </span>
+
+    </div>
+
+
+    <div
+      class="produto-preco-valor"
+      id="preco-cortina"
+    >
+      R$ 0,00
+    </div>
+
+  </div>
+
+
+  <!-- TRILHO / VARÃO -->
+
+  <div
+    class="produto-preco-linha"
+    id="linha-preco-trilho"
+    style="display:none;"
+  >
+
+    <div class="produto-preco-info">
+
+      <strong id="nome-preco-trilho">
+        Trilho / Varão
+      </strong>
+
+      <span>
+        Item adicional
+      </span>
+
+    </div>
+
+
+    <div
+      class="produto-preco-valor"
+      id="preco-trilho"
+    >
+      R$ 0,00
+    </div>
+
+  </div>
+
+
+  <!-- TOTAL -->
+
+  <div class="total-orcamento">
+
+    <span>
+      Total
+    </span>
+
+
+    <div
+      class="price"
+      id="preco"
+    >
+      R$ 0,00
+    </div>
+
+  </div>
+
+
+  <div
+    class="installments"
+    id="parcelas"
+  >
+    ou 10x de R$ 0,00 sem juros
+  </div>
+
+</div>
 
 
       <!-- ===================================================
