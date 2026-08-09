@@ -19,11 +19,20 @@
 }
 
 html{
+  width:100%;
+  max-width:100%;
+  overflow-x:hidden;
+
   scroll-behavior:smooth;
 }
 
 body{
+  width:100%;
+  max-width:100%;
+
   margin:0;
+
+  overflow-x:hidden;
 
   font-family:
     Inter,
@@ -55,13 +64,39 @@ a{
 }
 
 img{
+  display:block;
+
   max-width:100%;
 }
 
 .shell{
+  width:100%;
   max-width:1240px;
+
   margin:auto;
+
   padding:0 24px;
+}
+
+
+/* ==========================================================
+   PROTEÇÃO CONTRA ESTOURO HORIZONTAL
+   ========================================================== */
+
+.config,
+.builder,
+.summary,
+.grid2,
+.cards,
+.preview-carousel,
+.preview,
+.fabrics,
+.benefits,
+.fabric-grid,
+.field,
+.control{
+  min-width:0;
+  max-width:100%;
 }
 
 
@@ -71,9 +106,12 @@ img{
 
 .topbar{
   position:sticky;
+
   top:0;
 
   z-index:20;
+
+  width:100%;
 
   background:rgba(251,250,248,.93);
 
@@ -87,6 +125,7 @@ img{
   height:74px;
 
   display:flex;
+
   align-items:center;
   justify-content:space-between;
 
@@ -94,6 +133,8 @@ img{
 }
 
 .logo{
+  flex-shrink:0;
+
   font-family:Georgia,serif;
 
   font-size:24px;
@@ -140,6 +181,8 @@ img{
 .hero{
   position:relative;
 
+  width:100%;
+
   min-height:380px;
 
   overflow:hidden;
@@ -185,6 +228,7 @@ img{
 
   z-index:2;
 
+  width:100%;
   max-width:590px;
 
   padding:68px 0 94px;
@@ -224,6 +268,8 @@ h1{
 .pill{
   display:inline-flex;
 
+  max-width:100%;
+
   align-items:center;
 
   gap:8px;
@@ -250,12 +296,16 @@ h1{
 
   z-index:5;
 
+  width:100%;
+
   margin-top:-58px;
 
   padding-bottom:50px;
 }
 
 .config{
+  width:100%;
+
   display:grid;
 
   grid-template-columns:
@@ -274,11 +324,15 @@ h1{
 }
 
 .builder{
+  width:100%;
+
   padding:34px 38px 40px;
 }
 
 .summary{
   position:relative;
+
+  width:100%;
 
   padding:30px;
 
@@ -371,12 +425,19 @@ h1{
    ========================================================== */
 
 .grid2{
+  width:100%;
+
   display:grid;
 
   grid-template-columns:
     1fr 1fr;
 
   gap:16px;
+}
+
+.field{
+  width:100%;
+  min-width:0;
 }
 
 .field label{
@@ -392,6 +453,9 @@ h1{
 }
 
 .control{
+  width:100%;
+  min-width:0;
+
   display:flex;
 
   align-items:center;
@@ -407,6 +471,7 @@ h1{
 .control input,
 .control select{
   width:100%;
+  min-width:0;
 
   padding:15px 14px;
 
@@ -423,6 +488,8 @@ h1{
 }
 
 .unit{
+  flex-shrink:0;
+
   padding-right:14px;
 
   font-size:12px;
@@ -456,20 +523,24 @@ h1{
 }
 
 .cards{
+  width:100%;
+
   display:grid;
 
   grid-template-columns:
-    repeat(3,1fr);
+    repeat(3,minmax(0,1fr));
 
   gap:12px;
 }
 
 .cards.two{
   grid-template-columns:
-    repeat(2,1fr);
+    repeat(2,minmax(0,1fr));
 }
 
 .card{
+  width:100%;
+  min-width:0;
   min-height:96px;
 
   padding:16px;
@@ -523,6 +594,8 @@ h1{
    ========================================================== */
 
 #cores-choice{
+  width:100%;
+
   display:grid;
 
   grid-template-columns:
@@ -533,7 +606,6 @@ h1{
 
 #cores-choice .card-cor{
   width:100%;
-
   min-width:0;
   min-height:0;
 
@@ -564,8 +636,6 @@ h1{
 }
 
 #cores-choice .card-cor-img{
-  display:block;
-
   width:100%;
   height:100px;
 
@@ -702,8 +772,6 @@ h1{
 }
 
 .preview img{
-  display:block;
-
   width:100%;
   height:100%;
 
@@ -735,6 +803,7 @@ h1{
   z-index:5;
 
   min-width:120px;
+  max-width:calc(100% - 28px);
 
   padding:9px 12px;
 
@@ -876,6 +945,8 @@ h1{
    ========================================================== */
 
 .preview-dots{
+  width:100%;
+
   display:flex;
 
   justify-content:center;
@@ -921,6 +992,8 @@ h1{
    ========================================================== */
 
 .item{
+  width:100%;
+
   display:flex;
 
   justify-content:space-between;
@@ -940,9 +1013,13 @@ h1{
 }
 
 .item span{
+  min-width:0;
+
   color:var(--muted);
 
   text-align:right;
+
+  overflow-wrap:anywhere;
 }
 
 
@@ -1029,10 +1106,12 @@ h1{
    ========================================================== */
 
 .benefits{
+  width:100%;
+
   display:grid;
 
   grid-template-columns:
-    repeat(4,1fr);
+    repeat(4,minmax(0,1fr));
 
   gap:14px;
 
@@ -1040,6 +1119,8 @@ h1{
 }
 
 .benefit{
+  min-width:0;
+
   padding:20px 18px;
 
   border-top:1px solid var(--line);
@@ -1063,6 +1144,8 @@ h1{
    ========================================================== */
 
 .fabrics{
+  width:100%;
+
   margin-bottom:48px;
 
   padding:30px;
@@ -1091,10 +1174,12 @@ h1{
 }
 
 .fabric-grid{
+  width:100%;
+
   display:grid;
 
   grid-template-columns:
-    repeat(4,1fr);
+    repeat(4,minmax(0,1fr));
 
   gap:14px;
 
@@ -1104,6 +1189,7 @@ h1{
 .fabric{
   position:relative;
 
+  min-width:0;
   height:230px;
 
   overflow:hidden;
@@ -1216,10 +1302,12 @@ h1{
   left:50%;
 
   width:min(900px,92vw);
+  max-width:92vw;
 
   padding:28px;
 
   overflow-y:auto;
+  overflow-x:hidden;
 
   transform:
     translateX(-50%);
@@ -1294,6 +1382,8 @@ h1{
 }
 
 .modal-cor-galeria{
+  width:100%;
+
   display:flex;
 
   flex-direction:column;
@@ -1306,8 +1396,6 @@ h1{
 }
 
 .modal-cor-galeria img{
-  display:block;
-
   width:100%;
   height:auto;
 
@@ -1356,9 +1444,6 @@ body.modal-aberto{
     rgba(0,0,0,.82);
 }
 
-
-/* Caixa geral do zoom */
-
 .zoom-foto-conteudo{
   position:absolute;
 
@@ -1370,6 +1455,9 @@ body.modal-aberto{
 
   width:min(1000px,92vw);
   height:min(900px,92vh);
+
+  max-width:92vw;
+  max-height:92vh;
 
   display:flex;
 
@@ -1385,18 +1473,16 @@ body.modal-aberto{
 .zoom-imagem-wrapper{
   position:relative;
 
+  max-width:100%;
+  max-height:88vh;
+
   display:flex;
 
   align-items:center;
   justify-content:center;
-
-  max-width:100%;
-  max-height:88vh;
 }
 
 .zoom-imagem-wrapper #zoom-foto-img{
-  display:block;
-
   width:auto;
   height:auto;
 
@@ -1425,6 +1511,7 @@ body.modal-aberto{
   z-index:8;
 
   min-width:140px;
+  max-width:calc(100% - 32px);
 
   padding:10px 14px;
 
@@ -1568,6 +1655,8 @@ body.modal-aberto{
    ========================================================== */
 
 .footer{
+  width:100%;
+
   padding:36px 0 50px;
 
   border-top:1px solid var(--line);
@@ -1589,6 +1678,8 @@ body.modal-aberto{
   bottom:22px;
 
   z-index:30;
+
+  max-width:calc(100vw - 44px);
 
   padding:14px 16px;
 
@@ -1657,7 +1748,7 @@ body.modal-aberto{
   .benefits,
   .fabric-grid{
     grid-template-columns:
-      repeat(2,1fr);
+      repeat(2,minmax(0,1fr));
   }
 
   #cores-choice{
@@ -1674,87 +1765,283 @@ body.modal-aberto{
 
 @media(max-width:600px){
 
+  html,
+  body{
+    width:100%;
+    max-width:100vw;
+
+    overflow-x:hidden;
+  }
+
+
+  /* ========================================================
+     CONTAINER GERAL
+     ======================================================== */
+
   .shell{
-    padding:0 14px;
+    width:100%;
+    max-width:100%;
+
+    margin:0 auto;
+
+    padding-left:12px;
+    padding-right:12px;
+  }
+
+
+  /* ========================================================
+     TOPO
+     ======================================================== */
+
+  .topbar{
+    width:100%;
   }
 
   .nav{
+    width:100%;
+
     height:64px;
+
+    gap:10px;
   }
 
   .logo{
-    font-size:20px;
+    font-size:19px;
   }
 
+  .navlinks,
   .cta-small{
     display:none;
   }
 
-  h1{
-    font-size:38px;
+
+  /* ========================================================
+     HERO
+     ======================================================== */
+
+  .hero{
+    width:100%;
+
+    min-height:310px;
+
+    overflow:hidden;
+  }
+
+  .hero::after{
+    right:-15%;
+
+    width:55%;
   }
 
   .hero-copy{
-    padding-top:42px;
+    width:100%;
+    max-width:100%;
+
+    padding:
+      42px 0
+      70px;
   }
 
+  h1{
+    max-width:100%;
+
+    font-size:36px;
+
+    line-height:1.05;
+
+    overflow-wrap:break-word;
+  }
+
+  .hero p{
+    width:100%;
+    max-width:100%;
+
+    font-size:15px;
+  }
+
+  .pill{
+    max-width:100%;
+
+    white-space:normal;
+  }
+
+
+  /* ========================================================
+     CONFIGURADOR
+     ======================================================== */
+
   .config-wrap{
-    margin-top:-34px;
+    width:100%;
+
+    margin-top:-30px;
+  }
+
+  .config{
+    width:100%;
+
+    display:block;
+
+    border-radius:18px;
   }
 
   .builder,
   .summary{
-    padding:24px 18px;
+    width:100%;
+    min-width:0;
+
+    padding:22px 16px;
   }
+
+  .summary{
+    border-left:0;
+
+    border-top:
+      1px solid var(--line);
+  }
+
+
+  /* ========================================================
+     ETAPAS
+     ======================================================== */
 
   .steps{
-    grid-template-columns:
-      repeat(5,72px);
+    width:100%;
+
+    display:flex;
+
+    gap:12px;
 
     overflow-x:auto;
+    overflow-y:hidden;
 
-    padding-bottom:5px;
+    padding-bottom:8px;
+
+    scrollbar-width:none;
+
+    -webkit-overflow-scrolling:touch;
   }
 
-  .grid2,
+  .steps::-webkit-scrollbar{
+    display:none;
+  }
+
+  .step{
+    flex:
+      0 0 64px;
+  }
+
+
+  /* ========================================================
+     CAMPOS
+     ======================================================== */
+
+  .grid2{
+    width:100%;
+
+    grid-template-columns:1fr;
+
+    gap:14px;
+  }
+
+  .field,
+  .control,
+  .control input,
+  .control select{
+    width:100%;
+    min-width:0;
+    max-width:100%;
+  }
+
+
+  /* ========================================================
+     CARDS
+     ======================================================== */
+
   .cards,
   .cards.two{
+    width:100%;
+
     grid-template-columns:1fr;
   }
 
+  .card{
+    width:100%;
+    min-width:0;
+  }
+
+
+  /* ========================================================
+     CORES — 3 POR LINHA
+     ======================================================== */
+
   #cores-choice{
+    width:100%;
+
     grid-template-columns:
       repeat(3,minmax(0,1fr));
 
     gap:8px;
   }
 
+  #cores-choice .card-cor{
+    width:100%;
+    min-width:0;
+
+    padding:5px;
+  }
+
   #cores-choice .card-cor-img{
-    height:90px;
-  }
+    width:100%;
+    height:auto;
 
-  .benefits,
-  .fabric-grid{
-    grid-template-columns:1fr;
-  }
+    aspect-ratio:1 / 1;
 
-  .fabric{
-    height:170px;
-  }
-
-  .fabrics{
-    padding:22px 16px;
-  }
-
-  .fabrics-head{
-    display:block;
+    object-fit:cover;
   }
 
 
-  /* Carrossel */
+  /* ========================================================
+     BOTÕES
+     ======================================================== */
+
+  .next{
+    width:100%;
+  }
+
+  .next .btn{
+    width:100%;
+  }
+
+  .btn{
+    max-width:100%;
+  }
+
+
+  /* ========================================================
+     CARROSSEL
+     ======================================================== */
+
+  .preview-carousel{
+    width:100%;
+    max-width:100%;
+  }
 
   .preview{
-    height:320px;
+    width:100%;
+    max-width:100%;
+
+    height:auto;
+
+    aspect-ratio:1 / 1;
+
+    border-radius:14px;
+  }
+
+  .preview img{
+    width:100%;
+    height:100%;
+
+    object-fit:cover;
   }
 
   .preview-nav{
@@ -1765,32 +2052,117 @@ body.modal-aberto{
   }
 
   .preview-prev{
-    left:10px;
+    left:8px;
   }
 
   .preview-next{
-    right:10px;
+    right:8px;
+  }
+
+  .preview-zoom{
+    top:9px;
+    right:9px;
+
+    width:36px;
+    height:36px;
   }
 
   .preview-info{
-    left:10px;
-    bottom:10px;
+    left:9px;
+    bottom:9px;
 
-    min-width:105px;
+    min-width:0;
 
-    padding:8px 10px;
+    max-width:
+      calc(100% - 18px);
+
+    padding:7px 9px;
+  }
+
+  .preview-dots{
+    width:100%;
+
+    padding:0 5px;
+
+    flex-wrap:wrap;
   }
 
 
-  /* Modal conhecer tecido */
+  /* ========================================================
+     RESUMO
+     ======================================================== */
+
+  .item{
+    width:100%;
+
+    gap:8px;
+  }
+
+  .item b{
+    flex-shrink:0;
+  }
+
+  .item span{
+    max-width:60%;
+
+    overflow-wrap:anywhere;
+  }
+
+  .price{
+    font-size:30px;
+
+    overflow-wrap:anywhere;
+  }
+
+  .price.sob-consulta{
+    font-size:25px;
+  }
+
+
+  /* ========================================================
+     BENEFÍCIOS / TECIDOS
+     ======================================================== */
+
+  .benefits,
+  .fabric-grid{
+    width:100%;
+
+    grid-template-columns:1fr;
+  }
+
+  .fabrics{
+    width:100%;
+
+    padding:20px 15px;
+  }
+
+  .fabrics-head{
+    display:block;
+  }
+
+  .fabric{
+    width:100%;
+
+    height:170px;
+  }
+
+
+  /* ========================================================
+     MODAL CONHECER TECIDO
+     ======================================================== */
 
   .modal-cor-conteudo{
     top:0;
     bottom:0;
 
-    width:100vw;
+    left:0;
 
-    padding:18px;
+    width:100%;
+    max-width:100%;
+
+    padding:16px;
+
+    transform:none;
 
     border-radius:0;
   }
@@ -1799,24 +2171,47 @@ body.modal-aberto{
     font-size:26px;
   }
 
+  .modal-cor-galeria img{
+    width:100%;
 
-  /* Zoom */
+    height:auto;
+  }
+
+
+  /* ========================================================
+     ZOOM
+     ======================================================== */
 
   .zoom-foto-conteudo{
+    left:0;
+    top:0;
+
     width:100vw;
     height:100vh;
 
+    max-width:100vw;
+    max-height:100vh;
+
     padding:12px;
+
+    transform:none;
   }
 
   .zoom-imagem-wrapper{
+    width:100%;
+
     max-width:100%;
     max-height:90vh;
   }
 
   .zoom-imagem-wrapper #zoom-foto-img{
+    width:auto;
+    height:auto;
+
     max-width:100%;
     max-height:90vh;
+
+    object-fit:contain;
 
     border-radius:8px;
   }
@@ -1826,6 +2221,9 @@ body.modal-aberto{
     bottom:10px;
 
     min-width:110px;
+
+    max-width:
+      calc(100% - 20px);
 
     padding:8px 11px;
   }
@@ -1839,10 +2237,10 @@ body.modal-aberto{
   }
 
   .zoom-nav{
-    width:42px;
-    height:42px;
+    width:40px;
+    height:40px;
 
-    font-size:27px;
+    font-size:25px;
   }
 
   .zoom-prev{
@@ -1854,11 +2252,27 @@ body.modal-aberto{
   }
 
   .zoom-foto-fechar{
-    top:12px;
-    right:12px;
+    top:10px;
+    right:10px;
 
-    width:42px;
-    height:42px;
+    width:40px;
+    height:40px;
+  }
+
+
+  /* ========================================================
+     TOAST
+     ======================================================== */
+
+  .toast{
+    left:12px;
+    right:12px;
+    bottom:12px;
+
+    width:auto;
+    max-width:none;
+
+    text-align:center;
   }
 
 }
