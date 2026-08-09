@@ -2276,3 +2276,123 @@ body.modal-aberto{
   }
 
 }
+/* ==========================================================
+   SELETOR DE TRILHO
+   ========================================================== */
+
+.trilho-descricao{
+  margin:0 0 9px;
+
+  font-size:13px;
+  line-height:1.5;
+
+  color:var(--muted);
+}
+
+
+.trilho-select-wrapper{
+  position:relative;
+
+  width:100%;
+  max-width:100%;
+}
+
+
+.trilho-select{
+  width:100%;
+
+  min-height:52px;
+
+  padding:
+    0 46px
+    0 14px;
+
+  background:#fff;
+
+  color:var(--ink);
+
+  border:
+    1px solid var(--line);
+
+  border-radius:10px;
+
+  outline:none;
+
+  font-size:14px;
+
+  cursor:pointer;
+
+  appearance:none;
+  -webkit-appearance:none;
+
+  transition:
+    border-color .2s ease,
+    box-shadow .2s ease;
+}
+
+
+.trilho-select-wrapper::after{
+  content:"";
+
+  position:absolute;
+
+  right:18px;
+  top:50%;
+
+  width:8px;
+  height:8px;
+
+  border-right:
+    2px solid var(--ink);
+
+  border-bottom:
+    2px solid var(--ink);
+
+  transform:
+    translateY(-70%)
+    rotate(45deg);
+
+  pointer-events:none;
+}
+
+
+.trilho-select:hover{
+  border-color:#cbbcaf;
+}
+
+
+.trilho-select:focus{
+  border-color:var(--accent);
+
+  box-shadow:
+    0 0 0 2px
+    rgba(110,83,59,.10);
+}
+
+
+.trilho-select option{
+  background:#fff;
+
+  color:var(--ink);
+
+  font-size:14px;
+}
+
+
+/* CELULAR */
+
+@media(max-width:600px){
+
+  .trilho-select{
+    min-height:50px;
+
+    font-size:16px;
+
+    padding-left:12px;
+  }
+
+  .trilho-descricao{
+    font-size:12px;
+  }
+
+}
