@@ -102,7 +102,6 @@ let previewIndex = 0;
 
 // ============================================================
 // GALERIAS DAS CORES
-// FOTOS DAS CAPAS
 // ============================================================
 
 const GALERIAS_CORES = {
@@ -207,8 +206,8 @@ function obterFotosCarrossel() {
       imagens.forEach((src) => {
 
         fotos.push({
-          src: src,
-          cor: cor
+          src,
+          cor
         });
 
       });
@@ -258,7 +257,7 @@ function obterFotoAtual() {
 
 function brl(valor) {
 
-  return Number(valor).toLocaleString(
+  return Number(valor || 0).toLocaleString(
     "pt-BR",
     {
       style: "currency",
@@ -579,7 +578,6 @@ function atualizarPreview() {
 
       img.src =
         capa;
-
 
       img.alt =
         `${state.tecido} ${state.cor}`;
@@ -1017,7 +1015,9 @@ function abrirGaleriaCor() {
     !titulo ||
     !tecido
   ) {
+
     return;
+
   }
 
 
@@ -1223,7 +1223,7 @@ function atualizarInfoBarra(altura) {
 
 
 // ============================================================
-// RESUMO
+// RESUMO BÁSICO
 // ============================================================
 
 function atualizarResumoBasico(
@@ -1291,7 +1291,7 @@ function atualizarResumoBasico(
   if (sumCor) {
 
     sumCor.textContent =
-      dados.cor;
+      dados.cor || "Selecione";
 
   }
 
@@ -1304,46 +1304,46 @@ function atualizarResumoBasico(
   }
 
 
-const largura =
-  Number(
-    dados.largura
-  ) || 0;
+  const largura =
+    Number(
+      dados.largura
+    ) || 0;
 
 
-const altura =
-  Number(
-    dados.altura
-  ) || 0;
+  const altura =
+    Number(
+      dados.altura
+    ) || 0;
 
 
-const franzimento =
-  Number(
-    dados.franzimento
-  ) || 1;
+  const franzimento =
+    Number(
+      dados.franzimento
+    ) || 1;
 
 
-// ============================================================
-// QUANTIDADE FINAL DE TECIDO
-// Largura do ambiente × franzimento
-// ============================================================
+  // ==========================================================
+  // CONSUMO DE TECIDO
+  // ==========================================================
 
-const larguraTecido =
-  largura * franzimento;
+  const consumoTecido =
+    largura *
+    franzimento;
 
 
-if (sumMedidas) {
+  if (sumMedidas) {
 
-  sumMedidas.textContent =
-    larguraTecido
-      .toFixed(2)
-      .replace(".", ",") +
-    " × " +
-    altura
-      .toFixed(2)
-      .replace(".", ",") +
-    " m";
+    sumMedidas.textContent =
+      consumoTecido
+        .toFixed(2)
+        .replace(".", ",") +
+      " × " +
+      altura
+        .toFixed(2)
+        .replace(".", ",") +
+      " m";
 
-}
+  }
 
 
   if (sumFranz) {
@@ -1360,10 +1360,24 @@ if (sumMedidas) {
 
   if (sumTrilho) {
 
-    sumTrilho.textContent =
+    if (!dados.trilho) {
+
+      sumTrilho.textContent =
+        "Selecione uma opção";
+
+    } else if (
       dados.trilho === "Não"
-        ? "Não incluso"
-        : dados.trilho;
+    ) {
+
+      sumTrilho.textContent =
+        "Não incluso";
+
+    } else {
+
+      sumTrilho.textContent =
+        dados.trilho;
+
+    }
 
   }
 
@@ -1412,6 +1426,117 @@ if (sumMedidas) {
 
       barraResumo.textContent =
         "O acabamento será confirmado no orçamento personalizado.";
+
+    }
+
+  }
+
+}
+
+
+// ============================================================
+// RESUMO DOS VALORES
+//
+// Estes elementos serão adicionados no index.html:
+//
+// preco-cortina
+// linha-preco-trilho
+// preco-trilho
+// preco = TOTAL
+// ============================================================
+
+function atualizarResumoValores(
+  dados,
+  resultado
+) {
+
+  const precoCortina =
+    document.getElementById(
+      "preco-cortina"
+    );
+
+  const linhaPrecoTrilho =
+    document.getElementById(
+      "linha-preco-trilho"
+    );
+
+  const nomePrecoTrilho =
+    document.getElementById(
+      "nome-preco-trilho"
+    );
+
+  const precoTrilho =
+    document.getElementById(
+      "preco-trilho"
+    );
+
+
+  // ==========================================================
+  // CORTINA
+  // ==========================================================
+
+  if (precoCortina) {
+
+    if (
+      typeof resultado.valorCortina ===
+      "number"
+    ) {
+
+      precoCortina.textContent =
+        brl(
+          resultado.valorCortina
+        );
+
+    } else {
+
+      precoCortina.textContent =
+        "Sob consulta";
+
+    }
+
+  }
+
+
+  // ==========================================================
+  // TRILHO / VARÃO
+  // ==========================================================
+
+  if (
+    !dados.trilho ||
+    dados.trilho === "Não"
+  ) {
+
+    if (linhaPrecoTrilho) {
+
+      linhaPrecoTrilho.style.display =
+        "none";
+
+    }
+
+  } else {
+
+    if (linhaPrecoTrilho) {
+
+      linhaPrecoTrilho.style.display =
+        "flex";
+
+    }
+
+
+    if (nomePrecoTrilho) {
+
+      nomePrecoTrilho.textContent =
+        dados.trilho;
+
+    }
+
+
+    if (precoTrilho) {
+
+      precoTrilho.textContent =
+        brl(
+          resultado.valorTrilho
+        );
 
     }
 
@@ -1482,6 +1607,10 @@ function atualizarOrcamento() {
   );
 
 
+  // ==========================================================
+  // ERRO
+  // ==========================================================
+
   if (resultado.erro) {
 
     preco.textContent =
@@ -1499,6 +1628,11 @@ function atualizarOrcamento() {
     window.currentTotal =
       null;
 
+    window.currentValorCortina =
+      null;
+
+    window.currentValorTrilho =
+      null;
 
     window.currentSobConsulta =
       false;
@@ -1508,6 +1642,10 @@ function atualizarOrcamento() {
 
   }
 
+
+  // ==========================================================
+  // SOB CONSULTA
+  // ==========================================================
 
   if (resultado.sobConsulta) {
 
@@ -1539,14 +1677,17 @@ function atualizarOrcamento() {
     window.currentTotal =
       null;
 
+    window.currentValorCortina =
+      null;
+
+    window.currentValorTrilho =
+      null;
 
     window.currentSobConsulta =
       true;
 
-
     window.currentBarra =
       null;
-
 
     window.currentAcrescimoAltura =
       false;
@@ -1556,6 +1697,20 @@ function atualizarOrcamento() {
 
   }
 
+
+  // ==========================================================
+  // VALORES SEPARADOS
+  // ==========================================================
+
+  atualizarResumoValores(
+    dados,
+    resultado
+  );
+
+
+  // ==========================================================
+  // TOTAL GERAL
+  // ==========================================================
 
   preco.textContent =
     brl(
@@ -1586,6 +1741,18 @@ function atualizarOrcamento() {
   }
 
 
+  // ==========================================================
+  // SALVA VALORES ATUAIS
+  // ==========================================================
+
+  window.currentValorCortina =
+    resultado.valorCortina;
+
+
+  window.currentValorTrilho =
+    resultado.valorTrilho;
+
+
   window.currentTotal =
     resultado.total;
 
@@ -1614,32 +1781,105 @@ function mensagemWhatsApp() {
     dadosAtuais();
 
 
-  let estimativa =
-    "Sob consulta";
+  const largura =
+    Number(
+      dados.largura
+    ) || 0;
 
 
-  if (
-    !window.currentSobConsulta &&
-    typeof window.currentTotal ===
-      "number"
-  ) {
+  const franzimento =
+    Number(
+      dados.franzimento
+    ) || 1;
 
-    estimativa =
-      brl(
-        window.currentTotal
-      );
 
-  }
+  const consumoTecido =
+    largura *
+    franzimento;
 
 
   let barraTexto =
     "Sob consulta";
 
 
-  if (window.currentBarra) {
+  if (
+    window.currentBarra
+  ) {
 
     barraTexto =
       `${window.currentBarra} cm`;
+
+  }
+
+
+  let valorCortina =
+    "Sob consulta";
+
+
+  if (
+    typeof window.currentValorCortina ===
+    "number"
+  ) {
+
+    valorCortina =
+      brl(
+        window.currentValorCortina
+      );
+
+  }
+
+
+  let trilhoTexto =
+    "Não selecionado";
+
+
+  let valorTrilhoTexto =
+    "";
+
+
+  if (
+    dados.trilho === "Não"
+  ) {
+
+    trilhoTexto =
+      "Não incluso";
+
+  } else if (
+    dados.trilho
+  ) {
+
+    trilhoTexto =
+      dados.trilho;
+
+
+    if (
+      typeof window.currentValorTrilho ===
+      "number"
+    ) {
+
+      valorTrilhoTexto =
+        ` - ${brl(
+          window.currentValorTrilho
+        )}`;
+
+    }
+
+  }
+
+
+  let total =
+    "Sob consulta";
+
+
+  if (
+    typeof window.currentTotal ===
+    "number"
+  ) {
+
+    total =
+      brl(
+        window.currentTotal
+      );
 
   }
 
@@ -1650,16 +1890,26 @@ Modelo: ${dados.modelo}
 Tecido: ${dados.tecido}
 Cor: ${dados.cor}
 Forro: ${dados.forro}
-Medidas: ${dados.largura} m x ${dados.altura} m
+Ambiente: ${dados.largura} m x ${dados.altura} m
+Consumo de tecido: ${consumoTecido
+    .toFixed(2)
+    .replace(".", ",")} m x ${dados.altura} m
 Franzimento: ${dados.franzimento}x
 Barra: ${barraTexto}
-Trilho: ${dados.trilho}
-Estimativa: ${estimativa}
+
+Cortina: ${valorCortina}
+Trilho / Varão: ${trilhoTexto}${valorTrilhoTexto}
+
+Total: ${total}
 
 Gostaria de confirmar este orçamento.`;
 
 }
 
+
+// ============================================================
+// ABRIR WHATSAPP
+// ============================================================
 
 function abrirWhatsApp() {
 
@@ -1694,7 +1944,7 @@ function abrirWhatsApp() {
 
 
 // ============================================================
-// EVENTOS
+// EVENTOS DOS CARDS
 // ============================================================
 
 bindCards(
@@ -1716,7 +1966,7 @@ bindCards(
 
 
 // ============================================================
-// SELETOR DE TRILHO
+// SELETOR DE TRILHO / VARÃO
 // ============================================================
 
 const trilhoSelect =
@@ -1743,8 +1993,16 @@ if (trilhoSelect) {
 }
 
 
+// ============================================================
+// CORES INICIAIS
+// ============================================================
+
 atualizarCores();
 
+
+// ============================================================
+// CAMPOS DE MEDIDA
+// ============================================================
 
 [
   "largura",
