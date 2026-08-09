@@ -1,14 +1,26 @@
 // ============================================================
-// CONFIGURAÇÕES DO SITE — EDITE PRINCIPALMENTE ESTE ARQUIVO
+// CONFIGURAÇÕES DO SITE
+// Edite principalmente este arquivo quando precisar alterar
+// preços, cores, trilhos, alturas ou parcelamento.
 // ============================================================
 
 const CONFIG = {
 
-  // Coloque somente números: DDI 55 + DDD + número.
+  // ==========================================================
+  // WHATSAPP
+  // ==========================================================
+
+  // Coloque somente números:
+  // DDI 55 + DDD + número
   // Exemplo: "5544999999999"
+
   whatsapp: "5544998793160",
 
-  // Parcelamento exibido no site
+
+  // ==========================================================
+  // PARCELAMENTO
+  // ==========================================================
+
   parcelas: 10,
 
 
@@ -18,9 +30,19 @@ const CONFIG = {
 
   altura: {
 
+    // Até esta altura usamos o cálculo normal.
+    // Acima disso, por enquanto, fica sob consulta.
+
     calculoMaximo: 3.20,
 
+
+    // A partir de 2,81 m começa o acréscimo.
+
     inicioAcrescimo: 2.80,
+
+
+    // 25% de acréscimo para alturas acima de 2,80 m
+    // até 3,20 m.
 
     acrescimoApos280: 0.25
 
@@ -57,6 +79,9 @@ const CONFIG = {
 
     ],
 
+
+    // De 2,81 m até 3,20 m
+
     acimaDe280: 20
 
   },
@@ -64,6 +89,11 @@ const CONFIG = {
 
   // ==========================================================
   // TRILHOS / VARÕES
+  //
+  // Estes produtos são calculados separadamente da cortina.
+  //
+  // valorMetro = preço por metro
+  // minimo     = valor mínimo cobrado pelo produto
   // ==========================================================
 
   instalacao: {
@@ -173,6 +203,10 @@ const CONFIG = {
 
   // ==========================================================
   // PREÇOS DAS CORTINAS
+  //
+  // Valor utilizado pelo cálculo conforme:
+  //
+  // tecido + forro
   // ==========================================================
 
   precos: {
@@ -198,7 +232,7 @@ const CONFIG = {
 
       "Forro leve": 179,
 
-       "Forro Peletizado 50%": 221,
+      "Forro Peletizado 50%": 221,
 
       "Blackout 80%": 226,
 
