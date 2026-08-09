@@ -183,7 +183,9 @@ const CONFIG = {
 
       "Forro leve": 142,
 
-      "Blackout 70%": 173,
+      "Forro Peletizado 50%": 163,
+
+      "Blackout 80%": 173,
 
       "Blackout 100%": 189
 
@@ -196,7 +198,9 @@ const CONFIG = {
 
       "Forro leve": 179,
 
-      "Blackout 70%": 226,
+       "Forro Peletizado 50%": 221,
+
+      "Blackout 80%": 226,
 
       "Blackout 100%": 247
 
