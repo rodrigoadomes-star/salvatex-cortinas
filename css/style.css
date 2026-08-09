@@ -1454,3 +1454,71 @@ body.modal-aberto{
   }
 
 }
+/* ==========================================================
+   SETAS DO ZOOM
+   ========================================================== */
+
+.zoom-nav{
+  position:absolute;
+  top:50%;
+
+  transform:translateY(-50%);
+
+  width:48px;
+  height:48px;
+
+  border:0;
+  border-radius:50%;
+
+  background:rgba(255,255,255,.94);
+
+  color:#211d18;
+
+  font-size:30px;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  cursor:pointer;
+
+  z-index:5;
+
+  box-shadow:0 6px 20px rgba(0,0,0,.18);
+}
+
+
+.zoom-prev{
+  left:18px;
+}
+
+
+.zoom-next{
+  right:18px;
+}
+
+
+.zoom-nav:hover{
+  background:#211d18;
+  color:#fff;
+}
+
+
+@media(max-width:600px){
+
+  .zoom-nav{
+    width:42px;
+    height:42px;
+
+    font-size:27px;
+  }
+
+  .zoom-prev{
+    left:8px;
+  }
+
+  .zoom-next{
+    right:8px;
+  }
+
+}
