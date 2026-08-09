@@ -37,18 +37,22 @@ const FOTOS_CARROSSEL = {
       "imagens/galeria/gaze/cinza/foto-1.png",
       "imagens/galeria/gaze/cinza/foto-2.png",
       "imagens/galeria/gaze/cinza/foto-3.png"
+      "imagens/galeria/gaze/cinza/foto-4.png"
+      "imagens/galeria/gaze/cinza/foto-5.png"
     ],
 
     "Off White": [
       "imagens/galeria/gaze/offwhite/foto-1.png",
       "imagens/galeria/gaze/offwhite/foto-2.png",
       "imagens/galeria/gaze/offwhite/foto-3.png"
+      "imagens/galeria/gaze/offwhite/foto-4.png"
     ],
 
     "Natural": [
       "imagens/galeria/gaze/natural/foto-1.png",
       "imagens/galeria/gaze/natural/foto-2.png",
       "imagens/galeria/gaze/natural/foto-3.png"
+      "imagens/galeria/gaze/natural/foto-4.png"
     ]
 
   },
