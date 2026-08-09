@@ -13,7 +13,10 @@ function obterRegraBarra(altura) {
 
   // Acima de 3,20 m = orçamento personalizado
   // Por enquanto mantemos esta regra.
-  if (altura > CONFIG.altura.calculoMaximo) {
+  if (
+    altura >
+    CONFIG.altura.calculoMaximo
+  ) {
 
     return {
       tamanho: null,
@@ -25,7 +28,10 @@ function obterRegraBarra(altura) {
 
   // De 2,81 m até 3,20 m
   // Barra de 20 cm + acréscimo configurado
-  if (altura > CONFIG.altura.inicioAcrescimo) {
+  if (
+    altura >
+    CONFIG.altura.inicioAcrescimo
+  ) {
 
     return {
       tamanho: CONFIG.barra.acimaDe280,
@@ -39,12 +45,17 @@ function obterRegraBarra(altura) {
   // Encontra automaticamente o tamanho da barra
   const faixa =
     CONFIG.barra.faixasSemAcrescimo.find(
-      (item) => altura <= item.ate
+      (item) =>
+        altura <= item.ate
     );
 
 
   return {
-    tamanho: faixa ? faixa.tamanho : 5,
+    tamanho:
+      faixa
+        ? faixa.tamanho
+        : 5,
+
     acrescimo: false
   };
 
@@ -81,14 +92,23 @@ function calcularOrcamento(dados) {
 
   // ==========================================================
   // CONSUMO DE TECIDO
+  //
+  // Exemplo:
+  // ambiente 2,00 m
+  // franzimento 2x
+  // consumo = 4,00 m
   // ==========================================================
 
   const consumoTecido =
-    largura * franzimento;
+    largura *
+    franzimento;
 
 
   // ==========================================================
   // ALTURA ACIMA DE 3,20 M
+  //
+  // Ainda não aplicamos aqui a futura regra especial.
+  // Por enquanto continua como orçamento personalizado.
   // ==========================================================
 
   if (
@@ -98,9 +118,12 @@ function calcularOrcamento(dados) {
 
     return {
 
+      erro: false,
+
       sobConsulta: true,
 
-      erro: false,
+
+      // Medidas
 
       largura,
 
@@ -110,13 +133,46 @@ function calcularOrcamento(dados) {
 
       consumoTecido,
 
-      barra: null,
+
+      // Cortina
+
+      precoBase: null,
 
       valorCortina: null,
 
+
+      // Trilho / Varão
+
+      trilho:
+        dados.trilho || "",
+
+      trilhoSelecionado:
+        Boolean(
+          dados.trilho &&
+          dados.trilho !== "Não"
+        ),
+
       valorTrilho: null,
 
+
+      // Total
+
       total: null,
+
+
+      // Barra
+
+      barra: null,
+
+      acrescimoAltura: false,
+
+
+      // Compatibilidade
+
+      cortina: null,
+
+      valorInstalacao: null,
+
 
       mensagem:
         `Alturas acima de ${
@@ -132,6 +188,9 @@ function calcularOrcamento(dados) {
 
   // ==========================================================
   // PREÇO BASE DA CORTINA
+  //
+  // Exemplo:
+  // Gaze de Linho + Forro leve = R$ 142
   // ==========================================================
 
   const precoBase =
@@ -157,7 +216,7 @@ function calcularOrcamento(dados) {
 
 
   // ==========================================================
-  // BARRA
+  // REGRA DA BARRA
   // ==========================================================
 
   const regraBarra =
@@ -167,11 +226,9 @@ function calcularOrcamento(dados) {
 
 
   // ==========================================================
-  // VALOR DA CORTINA
+  // VALOR SOMENTE DA CORTINA
   //
-  // largura do ambiente
-  // × franzimento
-  // × preço do tecido/forro
+  // consumo de tecido × preço por metro
   // ==========================================================
 
   let valorCortina =
@@ -181,7 +238,8 @@ function calcularOrcamento(dados) {
 
   // ==========================================================
   // ALTURA DE 2,81 m ATÉ 3,20 m
-  // Aplica acréscimo configurado
+  //
+  // Aplica o acréscimo configurado em config.js.
   // ==========================================================
 
   if (
@@ -195,7 +253,9 @@ function calcularOrcamento(dados) {
   }
 
 
-  // Arredonda a cortina para 2 casas decimais
+  // ==========================================================
+  // ARREDONDA VALOR DA CORTINA
+  // ==========================================================
 
   valorCortina =
     Math.round(
@@ -206,8 +266,8 @@ function calcularOrcamento(dados) {
   // ==========================================================
   // TRILHO / VARÃO
   //
-  // Agora é calculado como PRODUTO SEPARADO.
-  // Não faz parte do valor individual da cortina.
+  // É um segundo produto.
+  // O valor é calculado separadamente da cortina.
   // ==========================================================
 
   let valorTrilho =
@@ -231,9 +291,9 @@ function calcularOrcamento(dados) {
 
       valorTrilho =
         Math.max(
-          sistema.minimo,
+          Number(sistema.minimo) || 0,
           largura *
-          sistema.valorMetro
+          (Number(sistema.valorMetro) || 0)
         );
 
 
@@ -254,11 +314,7 @@ function calcularOrcamento(dados) {
   // ==========================================================
   // TOTAL GERAL
   //
-  // Mantemos o total para o resumo geral.
-  // Porém agora temos os dois produtos separados:
-  //
-  // valorCortina
-  // valorTrilho
+  // Cortina + Trilho / Varão
   // ==========================================================
 
   const total =
@@ -281,7 +337,9 @@ function calcularOrcamento(dados) {
     sobConsulta: false,
 
 
-    // Medidas
+    // ========================================================
+    // MEDIDAS
+    // ========================================================
 
     largura,
 
@@ -292,14 +350,18 @@ function calcularOrcamento(dados) {
     consumoTecido,
 
 
-    // Cortina
+    // ========================================================
+    // CORTINA
+    // ========================================================
 
     precoBase,
 
     valorCortina,
 
 
-    // Trilho / Varão
+    // ========================================================
+    // TRILHO / VARÃO
+    // ========================================================
 
     trilho:
       dados.trilho || "",
@@ -309,12 +371,16 @@ function calcularOrcamento(dados) {
     valorTrilho,
 
 
-    // Total do pedido
+    // ========================================================
+    // TOTAL DO PEDIDO
+    // ========================================================
 
     total,
 
 
-    // Barra
+    // ========================================================
+    // BARRA
+    // ========================================================
 
     barra:
       regraBarra.tamanho,
@@ -324,10 +390,7 @@ function calcularOrcamento(dados) {
 
 
     // ========================================================
-    // COMPATIBILIDADE COM O CÓDIGO ANTIGO
-    //
-    // Mantemos estes nomes temporariamente para não quebrar
-    // partes antigas do app.js enquanto fazemos a migração.
+    // COMPATIBILIDADE COM PARTES ANTIGAS DO APP.JS
     // ========================================================
 
     cortina:
