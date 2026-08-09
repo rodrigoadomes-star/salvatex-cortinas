@@ -62,30 +62,57 @@ const CONFIG = {
   },
 
 
-  // ==========================================================
-  // TRILHOS
-  // ==========================================================
+ // ==========================================================
+// TRILHOS
+// ==========================================================
 
-  instalacao: {
+instalacao: {
 
-    "Trilho simples": {
+  "Varão Wave Deslizante - Aço Escovado": {
 
-      valorMetro: 75,
+    valorMetro: 116,
 
-      minimo: 85
-
-    },
-
-
-    "Trilho duplo": {
-
-      valorMetro: 111,
-
-      minimo: 125
-
-    }
+    minimo: 116
 
   },
+
+
+  "Varão Wave Deslizante - Branco": {
+
+    valorMetro: 116,
+
+    minimo: 116
+
+  },
+
+
+  "Varão Wave Deslizante - Cromado": {
+
+    valorMetro: 95,
+
+    minimo: 95
+
+  },
+
+
+  "Varão Wave Deslizante - Preto": {
+
+    valorMetro: 116,
+
+    minimo: 116
+
+  },
+
+
+  "Trilho Suíço de Teto - Branco": {
+
+    valorMetro: 74,
+
+    minimo: 85
+
+  }
+
+},
 
 
   // ==========================================================
