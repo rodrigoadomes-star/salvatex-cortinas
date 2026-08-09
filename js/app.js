@@ -36,22 +36,22 @@ const FOTOS_CARROSSEL = {
     "Cinza": [
       "imagens/galeria/gaze/cinza/foto-1.png",
       "imagens/galeria/gaze/cinza/foto-2.png",
-      "imagens/galeria/gaze/cinza/foto-3.png"
-      "imagens/galeria/gaze/cinza/foto-4.png"
+      "imagens/galeria/gaze/cinza/foto-3.png",
+      "imagens/galeria/gaze/cinza/foto-4.png",
       "imagens/galeria/gaze/cinza/foto-5.png"
     ],
 
     "Off White": [
       "imagens/galeria/gaze/offwhite/foto-1.png",
       "imagens/galeria/gaze/offwhite/foto-2.png",
-      "imagens/galeria/gaze/offwhite/foto-3.png"
+      "imagens/galeria/gaze/offwhite/foto-3.png",
       "imagens/galeria/gaze/offwhite/foto-4.png"
     ],
 
     "Natural": [
       "imagens/galeria/gaze/natural/foto-1.png",
       "imagens/galeria/gaze/natural/foto-2.png",
-      "imagens/galeria/gaze/natural/foto-3.png"
+      "imagens/galeria/gaze/natural/foto-3.png",
       "imagens/galeria/gaze/natural/foto-4.png"
     ]
 
@@ -100,6 +100,7 @@ let previewIndex = 0;
 
 // ============================================================
 // GALERIAS DAS CORES
+// FOTOS DAS CAPAS
 // ============================================================
 
 const GALERIAS_CORES = {
@@ -195,7 +196,6 @@ function obterFotosCarrossel() {
   const tecido =
     FOTOS_CARROSSEL?.[state.tecido] || {};
 
-
   const fotos = [];
 
 
@@ -205,8 +205,8 @@ function obterFotosCarrossel() {
       imagens.forEach((src) => {
 
         fotos.push({
-          src,
-          cor
+          src: src,
+          cor: cor
         });
 
       });
@@ -268,13 +268,14 @@ function brl(valor) {
 
 
 // ============================================================
-// VALOR DO CAMPO
+// PEGA VALOR DO CAMPO
 // ============================================================
 
 function val(id) {
 
   const elemento =
     document.getElementById(id);
+
 
   return elemento
     ? elemento.value
@@ -290,14 +291,23 @@ function val(id) {
 function dadosAtuais() {
 
   return {
+
     modelo: state.modelo,
+
     tecido: state.tecido,
+
     cor: state.cor,
+
     forro: state.forro,
+
     trilho: state.trilho,
+
     largura: val("largura"),
+
     altura: val("altura"),
+
     franzimento: val("franzimento")
+
   };
 
 }
@@ -319,12 +329,18 @@ function bindCards(groupId, key) {
 
           document
             .querySelectorAll("#" + groupId + " .card")
-            .forEach((c) => {
-              c.classList.remove("selected");
+            .forEach((card) => {
+
+              card.classList.remove(
+                "selected"
+              );
+
             });
 
 
-          el.classList.add("selected");
+          el.classList.add(
+            "selected"
+          );
 
 
           state[key] =
@@ -357,7 +373,9 @@ function bindCards(groupId, key) {
 function atualizarCores() {
 
   const container =
-    document.getElementById("cores-choice");
+    document.getElementById(
+      "cores-choice"
+    );
 
 
   if (!container) {
@@ -369,7 +387,11 @@ function atualizarCores() {
     CONFIG.cores?.[state.tecido] || [];
 
 
-  if (!cores.includes(state.cor)) {
+  if (
+    !cores.includes(
+      state.cor
+    )
+  ) {
 
     state.cor =
       cores.length
@@ -386,7 +408,9 @@ function atualizarCores() {
   cores.forEach((cor) => {
 
     const card =
-      document.createElement("div");
+      document.createElement(
+        "div"
+      );
 
 
     card.className =
@@ -409,7 +433,9 @@ function atualizarCores() {
     if (fotos.length) {
 
       const imagem =
-        document.createElement("img");
+        document.createElement(
+          "img"
+        );
 
 
       imagem.className =
@@ -439,20 +465,26 @@ function atualizarCores() {
       );
 
 
-      card.appendChild(imagem);
+      card.appendChild(
+        imagem
+      );
 
     }
 
 
     const strong =
-      document.createElement("strong");
+      document.createElement(
+        "strong"
+      );
 
 
     strong.textContent =
       cor;
 
 
-    card.appendChild(strong);
+    card.appendChild(
+      strong
+    );
 
 
     card.addEventListener(
@@ -461,14 +493,18 @@ function atualizarCores() {
 
         container
           .querySelectorAll(".card")
-          .forEach((c) => {
+          .forEach((item) => {
 
-            c.classList.remove("selected");
+            item.classList.remove(
+              "selected"
+            );
 
           });
 
 
-        card.classList.add("selected");
+        card.classList.add(
+          "selected"
+        );
 
 
         state.cor =
@@ -481,7 +517,9 @@ function atualizarCores() {
     );
 
 
-    container.appendChild(card);
+    container.appendChild(
+      card
+    );
 
   });
 
@@ -495,19 +533,29 @@ function atualizarCores() {
 function atualizarPreview() {
 
   const img =
-    document.getElementById("preview-img");
+    document.getElementById(
+      "preview-img"
+    );
 
   const dots =
-    document.getElementById("preview-dots");
+    document.getElementById(
+      "preview-dots"
+    );
 
   const carousel =
-    document.getElementById("preview-carousel");
+    document.getElementById(
+      "preview-carousel"
+    );
 
   const previewTecido =
-    document.getElementById("preview-tecido");
+    document.getElementById(
+      "preview-tecido"
+    );
 
   const previewCor =
-    document.getElementById("preview-cor");
+    document.getElementById(
+      "preview-cor"
+    );
 
 
   if (!img) {
@@ -529,6 +577,7 @@ function atualizarPreview() {
 
       img.src =
         capa;
+
 
       img.alt =
         `${state.tecido} ${state.cor}`;
@@ -627,7 +676,9 @@ function atualizarPreview() {
       (foto, indice) => {
 
         const dot =
-          document.createElement("button");
+          document.createElement(
+            "button"
+          );
 
 
         dot.type =
@@ -656,13 +707,16 @@ function atualizarPreview() {
             previewIndex =
               indice;
 
+
             atualizarPreview();
 
           }
         );
 
 
-        dots.appendChild(dot);
+        dots.appendChild(
+          dot
+        );
 
       }
     );
@@ -699,7 +753,10 @@ function mudarPreview(direcao) {
   }
 
 
-  if (previewIndex >= fotos.length) {
+  if (
+    previewIndex >=
+    fotos.length
+  ) {
 
     previewIndex =
       0;
@@ -719,13 +776,19 @@ function mudarPreview(direcao) {
 function atualizarImagemZoom() {
 
   const imagemGrande =
-    document.getElementById("zoom-foto-img");
+    document.getElementById(
+      "zoom-foto-img"
+    );
 
   const zoomTecido =
-    document.getElementById("zoom-tecido");
+    document.getElementById(
+      "zoom-tecido"
+    );
 
   const zoomCor =
-    document.getElementById("zoom-cor");
+    document.getElementById(
+      "zoom-cor"
+    );
 
 
   if (!imagemGrande) {
@@ -747,6 +810,7 @@ function atualizarImagemZoom() {
 
       imagemGrande.src =
         capa;
+
 
       imagemGrande.alt =
         `${state.tecido} ${state.cor}`;
@@ -808,7 +872,9 @@ function atualizarImagemZoom() {
 function abrirZoomPreview() {
 
   const modal =
-    document.getElementById("zoom-foto");
+    document.getElementById(
+      "zoom-foto"
+    );
 
 
   if (!modal) {
@@ -819,7 +885,9 @@ function abrirZoomPreview() {
   atualizarImagemZoom();
 
 
-  modal.classList.add("aberto");
+  modal.classList.add(
+    "aberto"
+  );
 
 
   modal.setAttribute(
@@ -841,7 +909,9 @@ function abrirZoomPreview() {
 function fecharZoomPreview() {
 
   const modal =
-    document.getElementById("zoom-foto");
+    document.getElementById(
+      "zoom-foto"
+    );
 
 
   if (!modal) {
@@ -849,7 +919,9 @@ function fecharZoomPreview() {
   }
 
 
-  modal.classList.remove("aberto");
+  modal.classList.remove(
+    "aberto"
+  );
 
 
   modal.setAttribute(
@@ -891,7 +963,10 @@ function mudarFotoZoom(direcao) {
   }
 
 
-  if (previewIndex >= fotos.length) {
+  if (
+    previewIndex >=
+    fotos.length
+  ) {
 
     previewIndex =
       0;
@@ -914,16 +989,24 @@ function mudarFotoZoom(direcao) {
 function abrirGaleriaCor() {
 
   const modal =
-    document.getElementById("modal-cor");
+    document.getElementById(
+      "modal-cor"
+    );
 
   const galeria =
-    document.getElementById("modal-cor-galeria");
+    document.getElementById(
+      "modal-cor-galeria"
+    );
 
   const titulo =
-    document.getElementById("modal-cor-titulo");
+    document.getElementById(
+      "modal-cor-titulo"
+    );
 
   const tecido =
-    document.getElementById("modal-cor-tecido");
+    document.getElementById(
+      "modal-cor-tecido"
+    );
 
 
   if (
@@ -964,7 +1047,9 @@ function abrirGaleriaCor() {
     fotos.forEach((foto) => {
 
       const bloco =
-        document.createElement("div");
+        document.createElement(
+          "div"
+        );
 
 
       bloco.className =
@@ -972,7 +1057,9 @@ function abrirGaleriaCor() {
 
 
       const img =
-        document.createElement("img");
+        document.createElement(
+          "img"
+        );
 
 
       img.src =
@@ -987,13 +1074,17 @@ function abrirGaleriaCor() {
         "lazy";
 
 
-      bloco.appendChild(img);
+      bloco.appendChild(
+        img
+      );
 
 
       if (foto.legenda) {
 
         const legenda =
-          document.createElement("div");
+          document.createElement(
+            "div"
+          );
 
 
         legenda.className =
@@ -1004,19 +1095,25 @@ function abrirGaleriaCor() {
           foto.legenda;
 
 
-        bloco.appendChild(legenda);
+        bloco.appendChild(
+          legenda
+        );
 
       }
 
 
-      galeria.appendChild(bloco);
+      galeria.appendChild(
+        bloco
+      );
 
     });
 
   }
 
 
-  modal.classList.add("aberto");
+  modal.classList.add(
+    "aberto"
+  );
 
 
   modal.setAttribute(
@@ -1039,7 +1136,9 @@ function abrirGaleriaCor() {
 function fecharGaleriaCor() {
 
   const modal =
-    document.getElementById("modal-cor");
+    document.getElementById(
+      "modal-cor"
+    );
 
 
   if (!modal) {
@@ -1047,7 +1146,9 @@ function fecharGaleriaCor() {
   }
 
 
-  modal.classList.remove("aberto");
+  modal.classList.remove(
+    "aberto"
+  );
 
 
   modal.setAttribute(
@@ -1070,7 +1171,9 @@ function fecharGaleriaCor() {
 function atualizarInfoBarra(altura) {
 
   const info =
-    document.getElementById("barra-info");
+    document.getElementById(
+      "barra-info"
+    );
 
 
   if (!info) {
@@ -1086,13 +1189,16 @@ function atualizarInfoBarra(altura) {
     info.textContent =
       "Acima de 3,20 m, o acabamento e o valor são definidos em orçamento personalizado.";
 
+
     return;
 
   }
 
 
   const regra =
-    obterRegraBarra(altura);
+    obterRegraBarra(
+      altura
+    );
 
 
   if (regra.acrescimo) {
@@ -1124,59 +1230,88 @@ function atualizarResumoBasico(
 ) {
 
   const sumModelo =
-    document.getElementById("sum-modelo");
+    document.getElementById(
+      "sum-modelo"
+    );
 
   const sumTecido =
-    document.getElementById("sum-tecido");
+    document.getElementById(
+      "sum-tecido"
+    );
 
   const sumCor =
-    document.getElementById("sum-cor");
+    document.getElementById(
+      "sum-cor"
+    );
 
   const sumForro =
-    document.getElementById("sum-forro");
+    document.getElementById(
+      "sum-forro"
+    );
 
   const sumMedidas =
-    document.getElementById("sum-medidas");
+    document.getElementById(
+      "sum-medidas"
+    );
 
   const sumFranz =
-    document.getElementById("sum-franz");
+    document.getElementById(
+      "sum-franz"
+    );
 
   const sumTrilho =
-    document.getElementById("sum-trilho");
+    document.getElementById(
+      "sum-trilho"
+    );
 
   const sumBarra =
-    document.getElementById("sum-barra");
+    document.getElementById(
+      "sum-barra"
+    );
 
 
   if (sumModelo) {
+
     sumModelo.textContent =
       dados.modelo;
+
   }
 
 
   if (sumTecido) {
+
     sumTecido.textContent =
       dados.tecido;
+
   }
 
 
   if (sumCor) {
+
     sumCor.textContent =
       dados.cor;
+
   }
 
 
   if (sumForro) {
+
     sumForro.textContent =
       dados.forro;
+
   }
 
 
   const largura =
-    Number(dados.largura) || 0;
+    Number(
+      dados.largura
+    ) || 0;
+
 
   const altura =
-    Number(dados.altura) || 0;
+    Number(
+      dados.altura
+    ) || 0;
 
 
   if (sumMedidas) {
@@ -1197,7 +1332,9 @@ function atualizarResumoBasico(
   if (sumFranz) {
 
     sumFranz.textContent =
-      String(dados.franzimento)
+      String(
+        dados.franzimento
+      )
         .replace(".", ",") +
       "x";
 
@@ -1215,7 +1352,9 @@ function atualizarResumoBasico(
 
 
   const barraResumo =
-    document.getElementById("barra-resumo");
+    document.getElementById(
+      "barra-resumo"
+    );
 
 
   if (
@@ -1278,24 +1417,36 @@ function atualizarOrcamento() {
 
 
   const altura =
-    Number(dados.altura) || 0;
+    Number(
+      dados.altura
+    ) || 0;
 
 
-  atualizarInfoBarra(altura);
+  atualizarInfoBarra(
+    altura
+  );
 
 
   const resultado =
-    calcularOrcamento(dados);
+    calcularOrcamento(
+      dados
+    );
 
 
   const preco =
-    document.getElementById("preco");
+    document.getElementById(
+      "preco"
+    );
 
   const parcelas =
-    document.getElementById("parcelas");
+    document.getElementById(
+      "parcelas"
+    );
 
   const comprar =
-    document.getElementById("comprar");
+    document.getElementById(
+      "comprar"
+    );
 
 
   atualizarResumoBasico(
@@ -1390,7 +1541,9 @@ function atualizarOrcamento() {
 
 
   preco.textContent =
-    brl(resultado.total);
+    brl(
+      resultado.total
+    );
 
 
   if (parcelas) {
@@ -1450,11 +1603,14 @@ function mensagemWhatsApp() {
 
   if (
     !window.currentSobConsulta &&
-    typeof window.currentTotal === "number"
+    typeof window.currentTotal ===
+      "number"
   ) {
 
     estimativa =
-      brl(window.currentTotal);
+      brl(
+        window.currentTotal
+      );
 
   }
 
@@ -1558,7 +1714,9 @@ atualizarCores();
 ].forEach((id) => {
 
   const elemento =
-    document.getElementById(id);
+    document.getElementById(
+      id
+    );
 
 
   if (elemento) {
@@ -1579,8 +1737,14 @@ atualizarCores();
 });
 
 
+// ============================================================
+// BOTÃO ATUALIZAR
+// ============================================================
+
 const botaoRecalcular =
-  document.getElementById("recalcular");
+  document.getElementById(
+    "recalcular"
+  );
 
 
 if (botaoRecalcular) {
@@ -1593,18 +1757,24 @@ if (botaoRecalcular) {
 
 
       const toast =
-        document.getElementById("toast");
+        document.getElementById(
+          "toast"
+        );
 
 
       if (toast) {
 
-        toast.classList.add("show");
+        toast.classList.add(
+          "show"
+        );
 
 
         setTimeout(
           () => {
 
-            toast.classList.remove("show");
+            toast.classList.remove(
+              "show"
+            );
 
           },
           1800
@@ -1618,8 +1788,14 @@ if (botaoRecalcular) {
 }
 
 
+// ============================================================
+// WHATSAPP
+// ============================================================
+
 const botaoWhatsapp =
-  document.getElementById("whatsapp");
+  document.getElementById(
+    "whatsapp"
+  );
 
 
 if (botaoWhatsapp) {
@@ -1633,7 +1809,9 @@ if (botaoWhatsapp) {
 
 
 const botaoComprar =
-  document.getElementById("comprar");
+  document.getElementById(
+    "comprar"
+  );
 
 
 if (botaoComprar) {
@@ -1646,11 +1824,19 @@ if (botaoComprar) {
 }
 
 
+// ============================================================
+// CARROSSEL
+// ============================================================
+
 const previewPrev =
-  document.getElementById("preview-prev");
+  document.getElementById(
+    "preview-prev"
+  );
 
 const previewNext =
-  document.getElementById("preview-next");
+  document.getElementById(
+    "preview-next"
+  );
 
 
 if (previewPrev) {
@@ -1673,23 +1859,39 @@ if (previewNext) {
 }
 
 
+// ============================================================
+// ZOOM
+// ============================================================
+
 const previewImg =
-  document.getElementById("preview-img");
+  document.getElementById(
+    "preview-img"
+  );
 
 const previewZoom =
-  document.getElementById("preview-zoom");
+  document.getElementById(
+    "preview-zoom"
+  );
 
 const zoomFechar =
-  document.getElementById("zoom-foto-fechar");
+  document.getElementById(
+    "zoom-foto-fechar"
+  );
 
 const zoomFundo =
-  document.getElementById("zoom-foto-fundo");
+  document.getElementById(
+    "zoom-foto-fundo"
+  );
 
 const zoomPrev =
-  document.getElementById("zoom-prev");
+  document.getElementById(
+    "zoom-prev"
+  );
 
 const zoomNext =
-  document.getElementById("zoom-next");
+  document.getElementById(
+    "zoom-next"
+  );
 
 
 if (previewImg) {
@@ -1752,14 +1954,24 @@ if (zoomNext) {
 }
 
 
+// ============================================================
+// MODAL CONHECER TECIDO
+// ============================================================
+
 const botaoConhecerCor =
-  document.getElementById("conhecer-cor");
+  document.getElementById(
+    "conhecer-cor"
+  );
 
 const modalCorFechar =
-  document.getElementById("modal-cor-fechar");
+  document.getElementById(
+    "modal-cor-fechar"
+  );
 
 const modalCorFundo =
-  document.getElementById("modal-cor-fundo");
+  document.getElementById(
+    "modal-cor-fundo"
+  );
 
 
 if (botaoConhecerCor) {
@@ -1792,11 +2004,18 @@ if (modalCorFundo) {
 }
 
 
+// ============================================================
+// ESC FECHA MODAIS
+// ============================================================
+
 document.addEventListener(
   "keydown",
   (evento) => {
 
-    if (evento.key === "Escape") {
+    if (
+      evento.key ===
+      "Escape"
+    ) {
 
       fecharGaleriaCor();
 
