@@ -13,6 +13,7 @@ const state = {
 
 // ============================================================
 // FOTOS DO CARROSSEL
+// TODAS AS FOTOS EM PNG
 // ============================================================
 
 const FOTOS_CARROSSEL = {
@@ -20,33 +21,34 @@ const FOTOS_CARROSSEL = {
   "Gaze de Linho": {
 
     "Branco": [
-      "imagens/galeria/gaze/branco/foto-1.jpg",
-      "imagens/galeria/gaze/branco/foto-2.jpg",
-      "imagens/galeria/gaze/branco/foto-3.jpg"
+      "imagens/galeria/gaze/branco/foto-1.png",
+      "imagens/galeria/gaze/branco/foto-2.png",
+      "imagens/galeria/gaze/branco/foto-3.png"
     ],
 
     "Bege": [
-      "imagens/galeria/gaze/bege/foto-1.jpg",
-      "imagens/galeria/gaze/bege/foto-2.jpg",
-      "imagens/galeria/gaze/bege/foto-3.jpg"
+      "imagens/galeria/gaze/bege/foto-1.png",
+      "imagens/galeria/gaze/bege/foto-2.png",
+      "imagens/galeria/gaze/bege/foto-3.png",
+      "imagens/galeria/gaze/bege/foto-4.png"
     ],
 
     "Cinza": [
-      "imagens/galeria/gaze/cinza/foto-1.jpg",
-      "imagens/galeria/gaze/cinza/foto-2.jpg",
-      "imagens/galeria/gaze/cinza/foto-3.jpg"
+      "imagens/galeria/gaze/cinza/foto-1.png",
+      "imagens/galeria/gaze/cinza/foto-2.png",
+      "imagens/galeria/gaze/cinza/foto-3.png"
     ],
 
     "Off White": [
-      "imagens/galeria/gaze/offwhite/foto-1.jpg",
-      "imagens/galeria/gaze/offwhite/foto-2.jpg",
-      "imagens/galeria/gaze/offwhite/foto-3.jpg"
+      "imagens/galeria/gaze/offwhite/foto-1.png",
+      "imagens/galeria/gaze/offwhite/foto-2.png",
+      "imagens/galeria/gaze/offwhite/foto-3.png"
     ],
 
     "Natural": [
-      "imagens/galeria/gaze/natural/foto-1.jpg",
-      "imagens/galeria/gaze/natural/foto-2.jpg",
-      "imagens/galeria/gaze/natural/foto-3.jpg"
+      "imagens/galeria/gaze/natural/foto-1.png",
+      "imagens/galeria/gaze/natural/foto-2.png",
+      "imagens/galeria/gaze/natural/foto-3.png"
     ]
 
   },
@@ -55,33 +57,33 @@ const FOTOS_CARROSSEL = {
   "Linho Damasco": {
 
     "Natural": [
-      "imagens/galeria/damasco/natural/foto-1.jpg",
-      "imagens/galeria/damasco/natural/foto-2.jpg",
-      "imagens/galeria/damasco/natural/foto-3.jpg"
+      "imagens/galeria/damasco/natural/foto-1.png",
+      "imagens/galeria/damasco/natural/foto-2.png",
+      "imagens/galeria/damasco/natural/foto-3.png"
     ],
 
     "Branco": [
-      "imagens/galeria/damasco/branco/foto-1.jpg",
-      "imagens/galeria/damasco/branco/foto-2.jpg",
-      "imagens/galeria/damasco/branco/foto-3.jpg"
+      "imagens/galeria/damasco/branco/foto-1.png",
+      "imagens/galeria/damasco/branco/foto-2.png",
+      "imagens/galeria/damasco/branco/foto-3.png"
     ],
 
     "Bege": [
-      "imagens/galeria/damasco/bege/foto-1.jpg",
-      "imagens/galeria/damasco/bege/foto-2.jpg",
-      "imagens/galeria/damasco/bege/foto-3.jpg"
+      "imagens/galeria/damasco/bege/foto-1.png",
+      "imagens/galeria/damasco/bege/foto-2.png",
+      "imagens/galeria/damasco/bege/foto-3.png"
     ],
 
     "Off White": [
-      "imagens/galeria/damasco/offwhite/foto-1.jpg",
-      "imagens/galeria/damasco/offwhite/foto-2.jpg",
-      "imagens/galeria/damasco/offwhite/foto-3.jpg"
+      "imagens/galeria/damasco/offwhite/foto-1.png",
+      "imagens/galeria/damasco/offwhite/foto-2.png",
+      "imagens/galeria/damasco/offwhite/foto-3.png"
     ],
 
     "Grafite": [
-      "imagens/galeria/damasco/grafite/foto-1.jpg",
-      "imagens/galeria/damasco/grafite/foto-2.jpg",
-      "imagens/galeria/damasco/grafite/foto-3.jpg"
+      "imagens/galeria/damasco/grafite/foto-1.png",
+      "imagens/galeria/damasco/grafite/foto-2.png",
+      "imagens/galeria/damasco/grafite/foto-3.png"
     ]
 
   }
