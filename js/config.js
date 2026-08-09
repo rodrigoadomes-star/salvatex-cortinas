@@ -110,6 +110,22 @@ instalacao: {
 
     minimo: 85
 
+  },
+  
+  "Varão Wave Deslizante Duplo - Cromado": {
+
+    valorMetro: 163,
+
+    minimo: 163
+
+  },
+
+    "Trilho Suíço Duplo - Branco": {
+
+    valorMetro: 110,
+
+    minimo: 110
+
   }
 
 },
