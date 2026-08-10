@@ -684,6 +684,10 @@ function atualizarCores() {
       ]?.[cor] || [];
 
 
+    // ========================================================
+    // FOTO DA CAPA DA COR
+    // ========================================================
+
     if (
       fotos.length
     ) {
@@ -728,6 +732,10 @@ function atualizarCores() {
     }
 
 
+    // ========================================================
+    // NOME DA COR
+    // ========================================================
+
     const strong =
       document.createElement(
         "strong"
@@ -743,9 +751,13 @@ function atualizarCores() {
     );
 
 
+    // ========================================================
+    // CLIQUE NA COR
+    // ========================================================
+
     card.addEventListener(
       "click",
-      () => {
+      async () => {
 
         container
           .querySelectorAll(
@@ -769,7 +781,62 @@ function atualizarCores() {
           cor;
 
 
+        // ====================================================
+        // ATUALIZA PREÇO / RESUMO
+        // ====================================================
+
         atualizarOrcamento();
+
+
+        // ====================================================
+        // GARANTE QUE AS FOTOS DO TECIDO / MODELO / FORRO
+        // ESTEJAM CARREGADAS
+        // ====================================================
+
+        await carregarFotosCarrossel();
+
+
+        // ====================================================
+        // PROCURA A PRIMEIRA FOTO DA COR SELECIONADA
+        // ====================================================
+
+        const indiceCor =
+          fotosCarrosselAtuais.findIndex(
+            (foto) =>
+              foto.cor ===
+              state.cor
+          );
+
+
+        // ====================================================
+        // SE EXISTIR FOTO DA COR
+        // PULA O CARROSSEL PARA ELA
+        // ====================================================
+
+        if (
+          indiceCor >= 0
+        ) {
+
+          previewIndex =
+            indiceCor;
+
+
+          atualizarPreview();
+
+        } else {
+
+          // ==================================================
+          // SE NÃO EXISTIR FOTO DESTA COMBINAÇÃO,
+          // MOSTRA A CAPA DA COR
+          // ==================================================
+
+          previewIndex =
+            0;
+
+
+          mostrarCapaFallback();
+
+        }
 
       }
     );
