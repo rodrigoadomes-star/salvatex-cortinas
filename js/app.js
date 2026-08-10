@@ -12,96 +12,69 @@ const state = {
 
 
 // ============================================================
-// FOTOS DO CARROSSEL
-// TODAS AS FOTOS EM PNG
+// CONFIGURAÇÃO DAS PASTAS DE MÍDIA
+//
+// Estrutura utilizada:
+//
+// imagens/galeria/
+//   gaze/
+//     wave/
+//       branco/
+//         sem-forro/
+//           foto-1.png
+//           video.mp4
+//
+// O sistema já fica preparado para:
+// Wave
+// Ilhós
+// Prega Macho
+//
+// Gaze de Linho
+// Linho Damasco
+//
+// Todas as cores
+// Todos os forros
 // ============================================================
 
-const FOTOS_CARROSSEL = {
+const PASTAS_MIDIA = {
 
-  "Gaze de Linho": {
-
-    "Branco": [
-      "imagens/galeria/gaze/branco/foto-1.png",
-      "imagens/galeria/gaze/branco/foto-2.png",
-      "imagens/galeria/gaze/branco/foto-3.png"
-    ],
-
-    "Bege": [
-      "imagens/galeria/gaze/bege/foto-1.png",
-      "imagens/galeria/gaze/bege/foto-2.png",
-      "imagens/galeria/gaze/bege/foto-3.png",
-      "imagens/galeria/gaze/bege/foto-4.png"
-    ],
-
-    "Cinza": [
-      "imagens/galeria/gaze/cinza/foto-1.png",
-      "imagens/galeria/gaze/cinza/foto-2.png",
-      "imagens/galeria/gaze/cinza/foto-3.png",
-      "imagens/galeria/gaze/cinza/foto-4.png",
-      "imagens/galeria/gaze/cinza/foto-5.png"
-    ],
-
-    "Off White": [
-      "imagens/galeria/gaze/offwhite/foto-1.png",
-      "imagens/galeria/gaze/offwhite/foto-2.png",
-      "imagens/galeria/gaze/offwhite/foto-3.png",
-      "imagens/galeria/gaze/offwhite/foto-4.png"
-    ],
-
-    "Natural": [
-      "imagens/galeria/gaze/natural/foto-1.png",
-      "imagens/galeria/gaze/natural/foto-2.png",
-      "imagens/galeria/gaze/natural/foto-3.png",
-      "imagens/galeria/gaze/natural/foto-4.png"
-    ]
-
+  tecidos: {
+    "Gaze de Linho": "gaze",
+    "Linho Damasco": "damasco"
   },
 
+  modelos: {
+    "Wave": "wave",
+    "Ilhós": "ilhos",
+    "Prega Macho": "prega-macho"
+  },
 
-  "Linho Damasco": {
+  cores: {
+    "Branco": "branco",
+    "Bege": "bege",
+    "Cinza": "cinza",
+    "Natural": "natural",
+    "Off White": "offwhite",
+    "Grafite": "grafite"
+  },
 
-    "Natural": [
-      "imagens/galeria/damasco/natural/foto-1.png",
-      "imagens/galeria/damasco/natural/foto-2.png",
-      "imagens/galeria/damasco/natural/foto-3.png"
-    ],
-
-    "Branco": [
-      "imagens/galeria/damasco/branco/foto-1.png",
-      "imagens/galeria/damasco/branco/foto-2.png",
-      "imagens/galeria/damasco/branco/foto-3.png",
-      "imagens/galeria/damasco/branco/foto-4.png"
-    ],
-
-    "Bege": [
-      "imagens/galeria/damasco/bege/foto-1.png",
-      "imagens/galeria/damasco/bege/foto-2.png",
-      "imagens/galeria/damasco/bege/foto-3.png",
-      "imagens/galeria/damasco/bege/foto-4.png"
-    ],
-
-    "Off White": [
-      "imagens/galeria/damasco/offwhite/foto-1.png",
-      "imagens/galeria/damasco/offwhite/foto-2.png",
-      "imagens/galeria/damasco/offwhite/foto-3.png",
-      "imagens/galeria/damasco/offwhite/foto-4.png"
-    ],
-
-    "Grafite": [
-      "imagens/galeria/damasco/grafite/foto-1.png",
-      "imagens/galeria/damasco/grafite/foto-2.png"
-    ]
-
+  forros: {
+    "Sem forro": "sem-forro",
+    "Forro leve": "forro-leve",
+    "Forro Peletizado 50%": "peletizado-50",
+    "Blackout 80%": "blackout-80",
+    "Blackout 100%": "blackout-100"
   }
 
 };
 
 
-let previewIndex = 0;
-
-
 // ============================================================
-// GALERIAS DAS CORES
+// CAPAS DAS CORES
+//
+// Continuam sendo utilizadas:
+// - nos cards das cores
+// - como fallback caso uma pasta ainda não tenha foto
 // ============================================================
 
 const GALERIAS_CORES = {
@@ -111,7 +84,7 @@ const GALERIAS_CORES = {
     "Branco": [
       {
         src: "imagens/capas/gaze-branco-capa.png",
-        legenda: "Visão geral"
+        legenda: "Gaze de Linho Branco"
       }
     ],
 
@@ -189,34 +162,262 @@ const GALERIAS_CORES = {
 
 
 // ============================================================
-// MONTA TODAS AS FOTOS DO TECIDO
+// CONTROLE DO CARROSSEL
 // ============================================================
 
-function obterFotosCarrossel() {
+let previewIndex = 0;
 
-  const tecido =
-    FOTOS_CARROSSEL?.[state.tecido] || {};
+let fotosCarrosselAtuais = [];
 
-  const fotos = [];
+let tokenAtualizacaoGaleria = 0;
 
 
-  Object.entries(tecido).forEach(
-    ([cor, imagens]) => {
+// ============================================================
+// CAMINHO DA PASTA ATUAL
+// ============================================================
 
-      imagens.forEach((src) => {
+function obterPastaMidia(
+  tecido,
+  modelo,
+  cor,
+  forro
+) {
 
-        fotos.push({
-          src,
-          cor
-        });
+  const tecidoPasta =
+    PASTAS_MIDIA.tecidos[tecido];
 
+  const modeloPasta =
+    PASTAS_MIDIA.modelos[modelo];
+
+  const corPasta =
+    PASTAS_MIDIA.cores[cor];
+
+  const forroPasta =
+    PASTAS_MIDIA.forros[forro];
+
+
+  if (
+    !tecidoPasta ||
+    !modeloPasta ||
+    !corPasta ||
+    !forroPasta
+  ) {
+    return "";
+  }
+
+
+  return (
+    "imagens/galeria/" +
+    tecidoPasta +
+    "/" +
+    modeloPasta +
+    "/" +
+    corPasta +
+    "/" +
+    forroPasta
+  );
+
+}
+
+
+// ============================================================
+// CAMINHO DA FOTO
+// ============================================================
+
+function obterCaminhoFoto(
+  tecido,
+  modelo,
+  cor,
+  forro,
+  numero = 1
+) {
+
+  const pasta =
+    obterPastaMidia(
+      tecido,
+      modelo,
+      cor,
+      forro
+    );
+
+
+  if (!pasta) {
+    return "";
+  }
+
+
+  return (
+    pasta +
+    "/foto-" +
+    numero +
+    ".png"
+  );
+
+}
+
+
+// ============================================================
+// CAMINHO DO VÍDEO
+// ============================================================
+
+function obterCaminhoVideo(
+  tecido,
+  modelo,
+  cor,
+  forro
+) {
+
+  const pasta =
+    obterPastaMidia(
+      tecido,
+      modelo,
+      cor,
+      forro
+    );
+
+
+  if (!pasta) {
+    return "";
+  }
+
+
+  return (
+    pasta +
+    "/video.mp4"
+  );
+
+}
+
+
+// ============================================================
+// VERIFICA SE UMA FOTO EXISTE
+// ============================================================
+
+function verificarImagem(src) {
+
+  return new Promise((resolve) => {
+
+    if (!src) {
+      resolve(false);
+      return;
+    }
+
+
+    const imagem =
+      new Image();
+
+
+    imagem.onload =
+      () => resolve(true);
+
+
+    imagem.onerror =
+      () => resolve(false);
+
+
+    imagem.src =
+      src;
+
+  });
+
+}
+
+
+// ============================================================
+// MONTA TODAS AS FOTOS DISPONÍVEIS DO TECIDO
+//
+// Mantém o comportamento que já tínhamos:
+//
+// o carrossel mostra TODAS AS CORES do tecido,
+// independentemente da cor selecionada.
+//
+// Agora respeita também:
+// MODELO + FORRO
+//
+// Procura até 5 fotos em cada cor.
+// Se uma foto não existir, ela simplesmente é ignorada.
+// ============================================================
+
+async function carregarFotosCarrossel() {
+
+  const token =
+    ++tokenAtualizacaoGaleria;
+
+
+  const cores =
+    CONFIG.cores?.[state.tecido] || [];
+
+
+  const candidatos = [];
+
+
+  cores.forEach((cor) => {
+
+    for (
+      let numero = 1;
+      numero <= 5;
+      numero++
+    ) {
+
+      const src =
+        obterCaminhoFoto(
+          state.tecido,
+          state.modelo,
+          cor,
+          state.forro,
+          numero
+        );
+
+
+      candidatos.push({
+        src,
+        cor
       });
 
     }
-  );
+
+  });
 
 
-  return fotos;
+  const verificacoes =
+    await Promise.all(
+      candidatos.map(
+        async (foto) => {
+
+          const existe =
+            await verificarImagem(
+              foto.src
+            );
+
+
+          return existe
+            ? foto
+            : null;
+
+        }
+      )
+    );
+
+
+  // Evita uma atualização antiga substituir
+  // uma seleção mais recente do cliente
+
+  if (
+    token !==
+    tokenAtualizacaoGaleria
+  ) {
+    return;
+  }
+
+
+  fotosCarrosselAtuais =
+    verificacoes.filter(Boolean);
+
+
+  previewIndex = 0;
+
+
+  atualizarPreview();
 
 }
 
@@ -227,18 +428,17 @@ function obterFotosCarrossel() {
 
 function obterFotoAtual() {
 
-  const fotos =
-    obterFotosCarrossel();
-
-
-  if (!fotos.length) {
+  if (
+    !fotosCarrosselAtuais.length
+  ) {
     return null;
   }
 
 
   if (
     previewIndex < 0 ||
-    previewIndex >= fotos.length
+    previewIndex >=
+      fotosCarrosselAtuais.length
   ) {
 
     previewIndex = 0;
@@ -246,7 +446,11 @@ function obterFotoAtual() {
   }
 
 
-  return fotos[previewIndex];
+  return (
+    fotosCarrosselAtuais[
+      previewIndex
+    ]
+  );
 
 }
 
@@ -257,7 +461,9 @@ function obterFotoAtual() {
 
 function brl(valor) {
 
-  return Number(valor || 0).toLocaleString(
+  return Number(
+    valor || 0
+  ).toLocaleString(
     "pt-BR",
     {
       style: "currency",
@@ -293,21 +499,29 @@ function dadosAtuais() {
 
   return {
 
-    modelo: state.modelo,
+    modelo:
+      state.modelo,
 
-    tecido: state.tecido,
+    tecido:
+      state.tecido,
 
-    cor: state.cor,
+    cor:
+      state.cor,
 
-    forro: state.forro,
+    forro:
+      state.forro,
 
-    trilho: state.trilho,
+    trilho:
+      state.trilho,
 
-    largura: val("largura"),
+    largura:
+      val("largura"),
 
-    altura: val("altura"),
+    altura:
+      val("altura"),
 
-    franzimento: val("franzimento")
+    franzimento:
+      val("franzimento")
 
   };
 
@@ -318,10 +532,17 @@ function dadosAtuais() {
 // CARDS
 // ============================================================
 
-function bindCards(groupId, key) {
+function bindCards(
+  groupId,
+  key
+) {
 
   document
-    .querySelectorAll("#" + groupId + " .card")
+    .querySelectorAll(
+      "#" +
+      groupId +
+      " .card"
+    )
     .forEach((el) => {
 
       el.addEventListener(
@@ -329,7 +550,11 @@ function bindCards(groupId, key) {
         () => {
 
           document
-            .querySelectorAll("#" + groupId + " .card")
+            .querySelectorAll(
+              "#" +
+              groupId +
+              " .card"
+            )
             .forEach((card) => {
 
               card.classList.remove(
@@ -348,11 +573,35 @@ function bindCards(groupId, key) {
             el.dataset.value;
 
 
-          if (key === "tecido") {
+          // ==================================================
+          // TROCOU O TECIDO
+          // ==================================================
+
+          if (
+            key ===
+            "tecido"
+          ) {
 
             atualizarCores();
 
+          }
+
+
+          // ==================================================
+          // TROCOU MODELO / TECIDO / FORRO
+          //
+          // Recarrega fotos automaticamente
+          // ==================================================
+
+          if (
+            key === "modelo" ||
+            key === "tecido" ||
+            key === "forro"
+          ) {
+
             previewIndex = 0;
+
+            carregarFotosCarrossel();
 
           }
 
@@ -385,7 +634,9 @@ function atualizarCores() {
 
 
   const cores =
-    CONFIG.cores?.[state.tecido] || [];
+    CONFIG.cores?.[
+      state.tecido
+    ] || [];
 
 
   if (
@@ -428,10 +679,14 @@ function atualizarCores() {
 
 
     const fotos =
-      GALERIAS_CORES?.[state.tecido]?.[cor] || [];
+      GALERIAS_CORES?.[
+        state.tecido
+      ]?.[cor] || [];
 
 
-    if (fotos.length) {
+    if (
+      fotos.length
+    ) {
 
       const imagem =
         document.createElement(
@@ -493,7 +748,9 @@ function atualizarCores() {
       () => {
 
         container
-          .querySelectorAll(".card")
+          .querySelectorAll(
+            ".card"
+          )
           .forEach((item) => {
 
             item.classList.remove(
@@ -523,6 +780,108 @@ function atualizarCores() {
     );
 
   });
+
+}
+
+
+// ============================================================
+// FALLBACK DA FOTO
+//
+// Se ainda não existir foto na pasta do forro,
+// mostra a capa da cor selecionada.
+// ============================================================
+
+function mostrarCapaFallback() {
+
+  const img =
+    document.getElementById(
+      "preview-img"
+    );
+
+  const previewTecido =
+    document.getElementById(
+      "preview-tecido"
+    );
+
+  const previewCor =
+    document.getElementById(
+      "preview-cor"
+    );
+
+  const dots =
+    document.getElementById(
+      "preview-dots"
+    );
+
+  const carousel =
+    document.getElementById(
+      "preview-carousel"
+    );
+
+
+  const capa =
+    GALERIAS_CORES?.[
+      state.tecido
+    ]?.[
+      state.cor
+    ]?.[0]?.src;
+
+
+  if (
+    img &&
+    capa
+  ) {
+
+    img.src =
+      capa;
+
+
+    img.alt =
+      `${state.tecido} ${state.cor}`;
+
+  }
+
+
+  if (
+    previewTecido
+  ) {
+
+    previewTecido.textContent =
+      state.tecido;
+
+  }
+
+
+  if (
+    previewCor
+  ) {
+
+    previewCor.textContent =
+      state.cor;
+
+  }
+
+
+  if (dots) {
+
+    dots.innerHTML =
+      "";
+
+  }
+
+
+  if (carousel) {
+
+    carousel.classList.add(
+      "single-image"
+    );
+
+  }
+
+
+  atualizarBotaoVideo(
+    state.cor
+  );
 
 }
 
@@ -564,59 +923,11 @@ function atualizarPreview() {
   }
 
 
-  const fotos =
-    obterFotosCarrossel();
+  if (
+    !fotosCarrosselAtuais.length
+  ) {
 
-
-  if (!fotos.length) {
-
-    const capa =
-      GALERIAS_CORES?.[state.tecido]?.[state.cor]?.[0]?.src;
-
-
-    if (capa) {
-
-      img.src =
-        capa;
-
-      img.alt =
-        `${state.tecido} ${state.cor}`;
-
-    }
-
-
-    if (previewTecido) {
-
-      previewTecido.textContent =
-        state.tecido;
-
-    }
-
-
-    if (previewCor) {
-
-      previewCor.textContent =
-        state.cor;
-
-    }
-
-
-    if (dots) {
-
-      dots.innerHTML =
-        "";
-
-    }
-
-
-    if (carousel) {
-
-      carousel.classList.add(
-        "single-image"
-      );
-
-    }
-
+    mostrarCapaFallback();
 
     return;
 
@@ -628,7 +939,11 @@ function atualizarPreview() {
 
 
   if (!fotoAtual) {
+
+    mostrarCapaFallback();
+
     return;
+
   }
 
 
@@ -640,7 +955,36 @@ function atualizarPreview() {
     `${state.tecido} ${fotoAtual.cor}`;
 
 
-  if (previewTecido) {
+  // Se por algum motivo a imagem desaparecer,
+  // usa a capa da cor
+
+  img.onerror =
+    () => {
+
+      const capa =
+        GALERIAS_CORES?.[
+          state.tecido
+        ]?.[
+          fotoAtual.cor
+        ]?.[0]?.src;
+
+
+      if (capa) {
+
+        img.onerror =
+          null;
+
+        img.src =
+          capa;
+
+      }
+
+    };
+
+
+  if (
+    previewTecido
+  ) {
 
     previewTecido.textContent =
       state.tecido;
@@ -648,7 +992,9 @@ function atualizarPreview() {
   }
 
 
-  if (previewCor) {
+  if (
+    previewCor
+  ) {
 
     previewCor.textContent =
       fotoAtual.cor;
@@ -660,7 +1006,7 @@ function atualizarPreview() {
 
     carousel.classList.toggle(
       "single-image",
-      fotos.length <= 1
+      fotosCarrosselAtuais.length <= 1
     );
 
   }
@@ -672,7 +1018,7 @@ function atualizarPreview() {
       "";
 
 
-    fotos.forEach(
+    fotosCarrosselAtuais.forEach(
       (foto, indice) => {
 
         const dot =
@@ -688,7 +1034,8 @@ function atualizarPreview() {
         dot.className =
           "preview-dot" +
           (
-            indice === previewIndex
+            indice ===
+            previewIndex
               ? " active"
               : ""
           );
@@ -723,6 +1070,11 @@ function atualizarPreview() {
 
   }
 
+
+  atualizarBotaoVideo(
+    fotoAtual.cor
+  );
+
 }
 
 
@@ -730,13 +1082,13 @@ function atualizarPreview() {
 // PASSAR FOTO
 // ============================================================
 
-function mudarPreview(direcao) {
+function mudarPreview(
+  direcao
+) {
 
-  const fotos =
-    obterFotosCarrossel();
-
-
-  if (!fotos.length) {
+  if (
+    !fotosCarrosselAtuais.length
+  ) {
     return;
   }
 
@@ -745,17 +1097,20 @@ function mudarPreview(direcao) {
     direcao;
 
 
-  if (previewIndex < 0) {
+  if (
+    previewIndex < 0
+  ) {
 
     previewIndex =
-      fotos.length - 1;
+      fotosCarrosselAtuais.length -
+      1;
 
   }
 
 
   if (
     previewIndex >=
-    fotos.length
+    fotosCarrosselAtuais.length
   ) {
 
     previewIndex =
@@ -770,7 +1125,680 @@ function mudarPreview(direcao) {
 
 
 // ============================================================
-// ZOOM
+// BOTÃO DE VÍDEO
+//
+// É criado automaticamente pelo JavaScript.
+// Não precisa alterar o index.html.
+// ============================================================
+
+function criarBotaoVideo() {
+
+  if (
+    document.getElementById(
+      "botao-video-produto"
+    )
+  ) {
+    return;
+  }
+
+
+  const carousel =
+    document.getElementById(
+      "preview-carousel"
+    );
+
+
+  if (!carousel) {
+    return;
+  }
+
+
+  const botao =
+    document.createElement(
+      "button"
+    );
+
+
+  botao.type =
+    "button";
+
+
+  botao.id =
+    "botao-video-produto";
+
+
+  botao.textContent =
+    "▶ Ver vídeo deste acabamento";
+
+
+  botao.style.display =
+    "none";
+
+
+  botao.style.width =
+    "100%";
+
+
+  botao.style.marginTop =
+    "12px";
+
+
+  botao.style.padding =
+    "12px 14px";
+
+
+  botao.style.border =
+    "1px solid #e7e0d8";
+
+
+  botao.style.borderRadius =
+    "10px";
+
+
+  botao.style.background =
+    "#ffffff";
+
+
+  botao.style.color =
+    "#211d18";
+
+
+  botao.style.fontWeight =
+    "600";
+
+
+  botao.style.cursor =
+    "pointer";
+
+
+  botao.addEventListener(
+    "click",
+    abrirVideoProduto
+  );
+
+
+  carousel.appendChild(
+    botao
+  );
+
+}
+
+
+// ============================================================
+// VERIFICA SE O VÍDEO EXISTE
+// ============================================================
+
+function verificarVideo(
+  src,
+  callback
+) {
+
+  if (!src) {
+
+    callback(false);
+
+    return;
+
+  }
+
+
+  const video =
+    document.createElement(
+      "video"
+    );
+
+
+  let finalizado =
+    false;
+
+
+  const concluir =
+    (existe) => {
+
+      if (finalizado) {
+        return;
+      }
+
+
+      finalizado =
+        true;
+
+
+      video.removeAttribute(
+        "src"
+      );
+
+
+      video.load();
+
+
+      callback(
+        existe
+      );
+
+  };
+
+
+  video.preload =
+    "metadata";
+
+
+  video.addEventListener(
+    "loadedmetadata",
+    () => concluir(true),
+    {
+      once: true
+    }
+  );
+
+
+  video.addEventListener(
+    "error",
+    () => concluir(false),
+    {
+      once: true
+    }
+  );
+
+
+  video.src =
+    src;
+
+
+  video.load();
+
+}
+
+
+// ============================================================
+// ATUALIZA BOTÃO DE VÍDEO
+// ============================================================
+
+let tokenVideo = 0;
+
+let videoAtual = null;
+
+let videoCorAtual = null;
+
+
+function atualizarBotaoVideo(
+  cor
+) {
+
+  criarBotaoVideo();
+
+
+  const botao =
+    document.getElementById(
+      "botao-video-produto"
+    );
+
+
+  if (!botao) {
+    return;
+  }
+
+
+  const token =
+    ++tokenVideo;
+
+
+  const src =
+    obterCaminhoVideo(
+      state.tecido,
+      state.modelo,
+      cor,
+      state.forro
+    );
+
+
+  videoAtual =
+    null;
+
+
+  videoCorAtual =
+    cor;
+
+
+  botao.style.display =
+    "none";
+
+
+  verificarVideo(
+    src,
+    (existe) => {
+
+      if (
+        token !==
+        tokenVideo
+      ) {
+        return;
+      }
+
+
+      if (!existe) {
+
+        botao.style.display =
+          "none";
+
+        return;
+
+      }
+
+
+      videoAtual =
+        src;
+
+
+      videoCorAtual =
+        cor;
+
+
+      botao.textContent =
+        `▶ Ver vídeo — ${state.forro}`;
+
+
+      botao.style.display =
+        "block";
+
+    }
+  );
+
+}
+
+
+// ============================================================
+// MODAL DE VÍDEO
+//
+// Também criado automaticamente.
+// Não precisa alterar index.html.
+// ============================================================
+
+function criarModalVideo() {
+
+  if (
+    document.getElementById(
+      "modal-video-produto"
+    )
+  ) {
+    return;
+  }
+
+
+  const modal =
+    document.createElement(
+      "div"
+    );
+
+
+  modal.id =
+    "modal-video-produto";
+
+
+  modal.style.display =
+    "none";
+
+
+  modal.style.position =
+    "fixed";
+
+
+  modal.style.inset =
+    "0";
+
+
+  modal.style.zIndex =
+    "20000";
+
+
+  modal.style.alignItems =
+    "center";
+
+
+  modal.style.justifyContent =
+    "center";
+
+
+  modal.style.padding =
+    "20px";
+
+
+  modal.style.background =
+    "rgba(0,0,0,.85)";
+
+
+  const conteudo =
+    document.createElement(
+      "div"
+    );
+
+
+  conteudo.style.position =
+    "relative";
+
+
+  conteudo.style.width =
+    "min(900px, 100%)";
+
+
+  conteudo.style.maxHeight =
+    "92vh";
+
+
+  const fechar =
+    document.createElement(
+      "button"
+    );
+
+
+  fechar.type =
+    "button";
+
+
+  fechar.textContent =
+    "×";
+
+
+  fechar.setAttribute(
+    "aria-label",
+    "Fechar vídeo"
+  );
+
+
+  fechar.style.position =
+    "absolute";
+
+
+  fechar.style.top =
+    "-15px";
+
+
+  fechar.style.right =
+    "-15px";
+
+
+  fechar.style.zIndex =
+    "3";
+
+
+  fechar.style.width =
+    "44px";
+
+
+  fechar.style.height =
+    "44px";
+
+
+  fechar.style.border =
+    "0";
+
+
+  fechar.style.borderRadius =
+    "50%";
+
+
+  fechar.style.background =
+    "#fff";
+
+
+  fechar.style.color =
+    "#211d18";
+
+
+  fechar.style.fontSize =
+    "28px";
+
+
+  fechar.style.cursor =
+    "pointer";
+
+
+  const video =
+    document.createElement(
+      "video"
+    );
+
+
+  video.id =
+    "video-produto";
+
+
+  video.controls =
+    true;
+
+
+  video.playsInline =
+    true;
+
+
+  video.style.display =
+    "block";
+
+
+  video.style.width =
+    "100%";
+
+
+  video.style.maxHeight =
+    "88vh";
+
+
+  video.style.background =
+    "#000";
+
+
+  video.style.borderRadius =
+    "12px";
+
+
+  const info =
+    document.createElement(
+      "div"
+    );
+
+
+  info.id =
+    "video-produto-info";
+
+
+  info.style.position =
+    "absolute";
+
+
+  info.style.left =
+    "14px";
+
+
+  info.style.bottom =
+    "14px";
+
+
+  info.style.padding =
+    "9px 12px";
+
+
+  info.style.background =
+    "rgba(255,255,255,.95)";
+
+
+  info.style.borderRadius =
+    "10px";
+
+
+  info.style.color =
+    "#211d18";
+
+
+  info.style.fontSize =
+    "12px";
+
+
+  info.style.pointerEvents =
+    "none";
+
+
+  fechar.addEventListener(
+    "click",
+    fecharVideoProduto
+  );
+
+
+  modal.addEventListener(
+    "click",
+    (evento) => {
+
+      if (
+        evento.target ===
+        modal
+      ) {
+
+        fecharVideoProduto();
+
+      }
+
+    }
+  );
+
+
+  conteudo.appendChild(
+    video
+  );
+
+
+  conteudo.appendChild(
+    info
+  );
+
+
+  conteudo.appendChild(
+    fechar
+  );
+
+
+  modal.appendChild(
+    conteudo
+  );
+
+
+  document.body.appendChild(
+    modal
+  );
+
+}
+
+
+// ============================================================
+// ABRIR VÍDEO
+// ============================================================
+
+function abrirVideoProduto() {
+
+  if (!videoAtual) {
+    return;
+  }
+
+
+  criarModalVideo();
+
+
+  const modal =
+    document.getElementById(
+      "modal-video-produto"
+    );
+
+  const video =
+    document.getElementById(
+      "video-produto"
+    );
+
+  const info =
+    document.getElementById(
+      "video-produto-info"
+    );
+
+
+  if (
+    !modal ||
+    !video
+  ) {
+    return;
+  }
+
+
+  video.src =
+    videoAtual;
+
+
+  if (info) {
+
+    info.innerHTML =
+      `<strong>${state.tecido}</strong><br>` +
+      `${videoCorAtual} · ${state.forro}`;
+
+  }
+
+
+  modal.style.display =
+    "flex";
+
+
+  document.body.style.overflow =
+    "hidden";
+
+
+  video.play().catch(
+    () => {}
+  );
+
+}
+
+
+// ============================================================
+// FECHAR VÍDEO
+// ============================================================
+
+function fecharVideoProduto() {
+
+  const modal =
+    document.getElementById(
+      "modal-video-produto"
+    );
+
+  const video =
+    document.getElementById(
+      "video-produto"
+    );
+
+
+  if (video) {
+
+    video.pause();
+
+    video.removeAttribute(
+      "src"
+    );
+
+    video.load();
+
+  }
+
+
+  if (modal) {
+
+    modal.style.display =
+      "none";
+
+  }
+
+
+  document.body.style.overflow =
+    "";
+
+}
+
+
+// ============================================================
+// ZOOM DA FOTO
 // ============================================================
 
 function atualizarImagemZoom() {
@@ -803,7 +1831,11 @@ function atualizarImagemZoom() {
   if (!fotoAtual) {
 
     const capa =
-      GALERIAS_CORES?.[state.tecido]?.[state.cor]?.[0]?.src;
+      GALERIAS_CORES?.[
+        state.tecido
+      ]?.[
+        state.cor
+      ]?.[0]?.src;
 
 
     if (capa) {
@@ -940,13 +1972,13 @@ function fecharZoomPreview() {
 // MUDAR FOTO NO ZOOM
 // ============================================================
 
-function mudarFotoZoom(direcao) {
+function mudarFotoZoom(
+  direcao
+) {
 
-  const fotos =
-    obterFotosCarrossel();
-
-
-  if (!fotos.length) {
+  if (
+    !fotosCarrosselAtuais.length
+  ) {
     return;
   }
 
@@ -955,17 +1987,20 @@ function mudarFotoZoom(direcao) {
     direcao;
 
 
-  if (previewIndex < 0) {
+  if (
+    previewIndex < 0
+  ) {
 
     previewIndex =
-      fotos.length - 1;
+      fotosCarrosselAtuais.length -
+      1;
 
   }
 
 
   if (
     previewIndex >=
-    fotos.length
+    fotosCarrosselAtuais.length
   ) {
 
     previewIndex =
@@ -975,7 +2010,6 @@ function mudarFotoZoom(direcao) {
 
 
   atualizarImagemZoom();
-
 
   atualizarPreview();
 
@@ -1015,14 +2049,16 @@ function abrirGaleriaCor() {
     !titulo ||
     !tecido
   ) {
-
     return;
-
   }
 
 
   const fotos =
-    GALERIAS_CORES?.[state.tecido]?.[state.cor] || [];
+    GALERIAS_CORES?.[
+      state.tecido
+    ]?.[
+      state.cor
+    ] || [];
 
 
   tecido.textContent =
@@ -1037,7 +2073,9 @@ function abrirGaleriaCor() {
     "";
 
 
-  if (!fotos.length) {
+  if (
+    !fotos.length
+  ) {
 
     galeria.innerHTML =
       `<p style="color:#746c63;">
@@ -1046,69 +2084,73 @@ function abrirGaleriaCor() {
 
   } else {
 
-    fotos.forEach((foto) => {
+    fotos.forEach(
+      (foto) => {
 
-      const bloco =
-        document.createElement(
-          "div"
-        );
-
-
-      bloco.className =
-        "modal-cor-foto";
-
-
-      const img =
-        document.createElement(
-          "img"
-        );
-
-
-      img.src =
-        foto.src;
-
-
-      img.alt =
-        `${state.tecido} ${state.cor}`;
-
-
-      img.loading =
-        "lazy";
-
-
-      bloco.appendChild(
-        img
-      );
-
-
-      if (foto.legenda) {
-
-        const legenda =
+        const bloco =
           document.createElement(
             "div"
           );
 
 
-        legenda.className =
-          "modal-cor-legenda";
+        bloco.className =
+          "modal-cor-foto";
 
 
-        legenda.textContent =
-          foto.legenda;
+        const img =
+          document.createElement(
+            "img"
+          );
+
+
+        img.src =
+          foto.src;
+
+
+        img.alt =
+          `${state.tecido} ${state.cor}`;
+
+
+        img.loading =
+          "lazy";
 
 
         bloco.appendChild(
-          legenda
+          img
+        );
+
+
+        if (
+          foto.legenda
+        ) {
+
+          const legenda =
+            document.createElement(
+              "div"
+            );
+
+
+          legenda.className =
+            "modal-cor-legenda";
+
+
+          legenda.textContent =
+            foto.legenda;
+
+
+          bloco.appendChild(
+            legenda
+          );
+
+        }
+
+
+        galeria.appendChild(
+          bloco
         );
 
       }
-
-
-      galeria.appendChild(
-        bloco
-      );
-
-    });
+    );
 
   }
 
@@ -1170,7 +2212,9 @@ function fecharGaleriaCor() {
 // BARRA
 // ============================================================
 
-function atualizarInfoBarra(altura) {
+function atualizarInfoBarra(
+  altura
+) {
 
   const info =
     document.getElementById(
@@ -1203,7 +2247,9 @@ function atualizarInfoBarra(altura) {
     );
 
 
-  if (regra.acrescimo) {
+  if (
+    regra.acrescimo
+  ) {
 
     info.textContent =
       `Para ${altura
@@ -1291,7 +2337,8 @@ function atualizarResumoBasico(
   if (sumCor) {
 
     sumCor.textContent =
-      dados.cor || "Selecione";
+      dados.cor ||
+      "Selecione";
 
   }
 
@@ -1321,10 +2368,6 @@ function atualizarResumoBasico(
       dados.franzimento
     ) || 1;
 
-
-  // ==========================================================
-  // CONSUMO DE TECIDO
-  // ==========================================================
 
   const consumoTecido =
     largura *
@@ -1360,13 +2403,16 @@ function atualizarResumoBasico(
 
   if (sumTrilho) {
 
-    if (!dados.trilho) {
+    if (
+      !dados.trilho
+    ) {
 
       sumTrilho.textContent =
         "Selecione uma opção";
 
     } else if (
-      dados.trilho === "Não"
+      dados.trilho ===
+      "Não"
     ) {
 
       sumTrilho.textContent =
@@ -1436,13 +2482,6 @@ function atualizarResumoBasico(
 
 // ============================================================
 // RESUMO DOS VALORES
-//
-// Estes elementos serão adicionados no index.html:
-//
-// preco-cortina
-// linha-preco-trilho
-// preco-trilho
-// preco = TOTAL
 // ============================================================
 
 function atualizarResumoValores(
@@ -1471,10 +2510,6 @@ function atualizarResumoValores(
     );
 
 
-  // ==========================================================
-  // CORTINA
-  // ==========================================================
-
   if (precoCortina) {
 
     if (
@@ -1497,16 +2532,15 @@ function atualizarResumoValores(
   }
 
 
-  // ==========================================================
-  // TRILHO / VARÃO
-  // ==========================================================
-
   if (
     !dados.trilho ||
-    dados.trilho === "Não"
+    dados.trilho ===
+      "Não"
   ) {
 
-    if (linhaPrecoTrilho) {
+    if (
+      linhaPrecoTrilho
+    ) {
 
       linhaPrecoTrilho.style.display =
         "none";
@@ -1515,7 +2549,9 @@ function atualizarResumoValores(
 
   } else {
 
-    if (linhaPrecoTrilho) {
+    if (
+      linhaPrecoTrilho
+    ) {
 
       linhaPrecoTrilho.style.display =
         "flex";
@@ -1523,7 +2559,9 @@ function atualizarResumoValores(
     }
 
 
-    if (nomePrecoTrilho) {
+    if (
+      nomePrecoTrilho
+    ) {
 
       nomePrecoTrilho.textContent =
         dados.trilho;
@@ -1531,7 +2569,9 @@ function atualizarResumoValores(
     }
 
 
-    if (precoTrilho) {
+    if (
+      precoTrilho
+    ) {
 
       precoTrilho.textContent =
         brl(
@@ -1553,9 +2593,6 @@ function atualizarOrcamento() {
 
   const dados =
     dadosAtuais();
-
-
-  atualizarPreview();
 
 
   const altura =
@@ -1611,7 +2648,9 @@ function atualizarOrcamento() {
   // ERRO
   // ==========================================================
 
-  if (resultado.erro) {
+  if (
+    resultado.erro
+  ) {
 
     preco.textContent =
       "Indisponível";
@@ -1647,7 +2686,9 @@ function atualizarOrcamento() {
   // SOB CONSULTA
   // ==========================================================
 
-  if (resultado.sobConsulta) {
+  if (
+    resultado.sobConsulta
+  ) {
 
     preco.textContent =
       "Sob consulta";
@@ -1698,19 +2739,11 @@ function atualizarOrcamento() {
   }
 
 
-  // ==========================================================
-  // VALORES SEPARADOS
-  // ==========================================================
-
   atualizarResumoValores(
     dados,
     resultado
   );
 
-
-  // ==========================================================
-  // TOTAL GERAL
-  // ==========================================================
 
   preco.textContent =
     brl(
@@ -1740,10 +2773,6 @@ function atualizarOrcamento() {
 
   }
 
-
-  // ==========================================================
-  // SALVA VALORES ATUAIS
-  // ==========================================================
 
   window.currentValorCortina =
     resultado.valorCortina;
@@ -1838,7 +2867,8 @@ function mensagemWhatsApp() {
 
 
   if (
-    dados.trilho === "Não"
+    dados.trilho ===
+    "Não"
   ) {
 
     trilhoTexto =
@@ -1892,8 +2922,8 @@ Cor: ${dados.cor}
 Forro: ${dados.forro}
 Ambiente: ${dados.largura} m x ${dados.altura} m
 Consumo de tecido: ${consumoTecido
-    .toFixed(2)
-    .replace(".", ",")} m x ${dados.altura} m
+  .toFixed(2)
+  .replace(".", ",")} m x ${dados.altura} m
 Franzimento: ${dados.franzimento}x
 Barra: ${barraTexto}
 
@@ -1915,7 +2945,8 @@ function abrirWhatsApp() {
 
   const numero =
     String(
-      CONFIG.whatsapp || ""
+      CONFIG.whatsapp ||
+      ""
     ).replace(
       /\D/g,
       ""
@@ -2318,6 +3349,8 @@ document.addEventListener(
 
       fecharZoomPreview();
 
+      fecharVideoProduto();
+
     }
 
   }
@@ -2325,7 +3358,13 @@ document.addEventListener(
 
 
 // ============================================================
-// PRIMEIRO CÁLCULO
+// INICIALIZAÇÃO
 // ============================================================
 
+criarBotaoVideo();
+
+criarModalVideo();
+
 atualizarOrcamento();
+
+carregarFotosCarrossel();
