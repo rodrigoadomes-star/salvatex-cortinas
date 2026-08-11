@@ -4159,19 +4159,39 @@ window.addEventListener(
 // INICIALIZAÇÃO
 // ============================================================
 
-criarBotaoVideo();
+async function iniciarAplicacaoSalvatex() {
+
+  if (window.CONFIG_READY) {
+
+    try {
+
+      await window.CONFIG_READY;
+
+    } catch (erro) {
+
+      console.warn(
+        "Não foi possível carregar a configuração remota.",
+        erro
+      );
+
+    }
+
+  }
 
 
-criarModalVideo();
+  criarBotaoVideo();
+
+  criarModalVideo();
+
+  atualizarCores();
+
+  atualizarOrcamento();
+
+  carregarFotosCarrossel();
+
+  atualizarContadorCarrinho();
+
+}
 
 
-atualizarCores();
-
-
-atualizarOrcamento();
-
-
-carregarFotosCarrossel();
-
-
-atualizarContadorCarrinho();
+iniciarAplicacaoSalvatex();

@@ -243,3 +243,33 @@ const CONFIG = {
   }
 
 };
+
+// ============================================================
+// CONFIGURAÇÃO REMOTA DO PAINEL ADMIN
+// ============================================================
+window.CONFIG = CONFIG;
+window.CONFIG_READY = (async () => {
+  try {
+    const resposta = await fetch('/api/store-config', { cache: 'no-store' });
+    if (!resposta.ok) return CONFIG;
+    const dados = await resposta.json();
+    if (!dados?.ok || !dados.config || typeof dados.config !== 'object') return CONFIG;
+
+    const mesclar = (alvo, fonte) => {
+      Object.entries(fonte).forEach(([chave, valor]) => {
+        if (valor && typeof valor === 'object' && !Array.isArray(valor) && alvo[chave] && typeof alvo[chave] === 'object' && !Array.isArray(alvo[chave])) {
+          mesclar(alvo[chave], valor);
+        } else {
+          alvo[chave] = valor;
+        }
+      });
+      return alvo;
+    };
+
+    mesclar(CONFIG, dados.config);
+    return CONFIG;
+  } catch (erro) {
+    console.warn('Configuração remota indisponível; usando configuração local.', erro);
+    return CONFIG;
+  }
+})();
