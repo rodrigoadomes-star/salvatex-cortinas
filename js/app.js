@@ -2115,7 +2115,7 @@ if (botaoComprar) {
 
   botaoComprar.addEventListener(
     "click",
-    abrirWhatsApp
+    adicionarAoCarrinho
   );
 
 }
