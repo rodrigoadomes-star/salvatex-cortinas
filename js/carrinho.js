@@ -1,240 +1,18 @@
 // ============================================================
-// CARRINHO - SALVATEX CORTINAS
+// CARRINHO - SALVATEX
+// ESTRUTURA GENÉRICA
 // ============================================================
 
-const CHAVE_CARRINHO =
-  "salvatexCarrinho";
-
-
-// ============================================================
-// CONFIGURAÇÕES DE FRETE
-// ============================================================
-
-const CONFIG_FRETE = {
-
-  minimoFreteGratisCortinas:
-    500,
-
-  producaoMin:
-    5,
-
-  producaoMax:
-    10,
-
-  entregaMin:
-    6,
-
-  entregaMax:
-    12
-
-};
+const CHAVE_PEDIDO =
+  "salvatex_pedido_atual";
 
 
 // ============================================================
-// ESTADO DO FRETE
-// ============================================================
-
-let estadoFrete = {
-
-  cep:
-    "",
-
-  calculado:
-    false,
-
-  gratis:
-    false,
-
-  valor:
-    null
-
-};
-
-
-// ============================================================
-// BRL
-// ============================================================
-
-function brl(valor) {
-
-  return Number(
-    valor || 0
-  ).toLocaleString(
-    "pt-BR",
-    {
-      style:
-        "currency",
-
-      currency:
-        "BRL"
-    }
-  );
-
-}
-
-
-// ============================================================
-// MEDIDA
-// ============================================================
-
-function formatarMedida(
-  valor
-) {
-
-  return Number(
-    valor || 0
-  )
-    .toFixed(2)
-    .replace(".", ",");
-
-}
-
-
-// ============================================================
-// LER CARRINHO
-// ============================================================
-
-function obterCarrinho() {
-
-  try {
-
-    const dados =
-      localStorage.getItem(
-        CHAVE_CARRINHO
-      );
-
-
-    if (!dados) {
-
-      return [];
-
-    }
-
-
-    const carrinho =
-      JSON.parse(
-        dados
-      );
-
-
-    return Array.isArray(
-      carrinho
-    )
-      ? carrinho
-      : [];
-
-  } catch (erro) {
-
-    console.error(
-      "Erro ao carregar carrinho:",
-      erro
-    );
-
-
-    return [];
-
-  }
-
-}
-
-
-// ============================================================
-// SALVAR CARRINHO
-// ============================================================
-
-function salvarCarrinho(
-  carrinho
-) {
-
-  localStorage.setItem(
-    CHAVE_CARRINHO,
-    JSON.stringify(
-      carrinho
-    )
-  );
-
-}
-
-
-// ============================================================
-// REMOVER ITEM
-// ============================================================
-
-function removerItemCarrinho(
-  id
-) {
-
-  const carrinho =
-    obterCarrinho();
-
-
-  const novoCarrinho =
-    carrinho.filter(
-      (item) =>
-        String(item.id) !==
-        String(id)
-    );
-
-
-  salvarCarrinho(
-    novoCarrinho
-  );
-
-
-  resetarFrete();
-
-
-  renderizarCarrinho();
-
-}
-
-
-// ============================================================
-// RESETAR FRETE
-// ============================================================
-
-function resetarFrete() {
-
-  estadoFrete = {
-
-    cep:
-      "",
-
-    calculado:
-      false,
-
-    gratis:
-      false,
-
-    valor:
-      null
-
-  };
-
-
-  const cep =
-    document.getElementById(
-      "cep-frete"
-    );
-
-
-  if (cep) {
-
-    cep.value =
-      "";
-
-  }
-
-}
-
-
-// ============================================================
-// CRIA DETALHE
+// CRIAR DETALHE
 // ============================================================
 
 function criarDetalhe(
-  titulo,
-  valor
+  detalhe
 ) {
 
   const div =
@@ -250,7 +28,10 @@ function criarDetalhe(
 
 
   strong.textContent =
-    titulo +
+    (
+      detalhe.rotulo ||
+      "Detalhe"
+    ) +
     ": ";
 
 
@@ -261,7 +42,7 @@ function criarDetalhe(
 
 
   span.textContent =
-    valor ||
+    detalhe.valor ??
     "—";
 
 
@@ -281,37 +62,10 @@ function criarDetalhe(
 
 
 // ============================================================
-// PLACEHOLDER
+// CRIAR ITEM
 // ============================================================
 
-function criarPlaceholder(
-  texto
-) {
-
-  const elemento =
-    document.createElement(
-      "div"
-    );
-
-
-  elemento.className =
-    "carrinho-item-sem-imagem";
-
-
-  elemento.textContent =
-    texto;
-
-
-  return elemento;
-
-}
-
-
-// ============================================================
-// CORTINA
-// ============================================================
-
-function criarItemCortina(
+function criarItemCarrinho(
   item
 ) {
 
@@ -326,12 +80,10 @@ function criarItemCortina(
 
 
   // ==========================================================
-  // FOTO
+  // IMAGEM
   // ==========================================================
 
-  if (
-    item.imagem
-  ) {
+  if (item.imagem) {
 
     const imagem =
       document.createElement(
@@ -348,16 +100,28 @@ function criarItemCortina(
 
 
     imagem.alt =
-      `${item.tecido || "Cortina"} ${item.cor || ""}`;
+      item.nome;
 
 
     imagem.onerror =
       () => {
 
+        const placeholder =
+          document.createElement(
+            "div"
+          );
+
+
+        placeholder.className =
+          "carrinho-item-sem-imagem";
+
+
+        placeholder.textContent =
+          item.nome;
+
+
         imagem.replaceWith(
-          criarPlaceholder(
-            "Imagem da cortina"
-          )
+          placeholder
         );
 
       };
@@ -369,10 +133,25 @@ function criarItemCortina(
 
   } else {
 
+    const placeholder =
+      document.createElement(
+        "div"
+      );
+
+
+    placeholder.className =
+      "carrinho-item-sem-imagem";
+
+
+    placeholder.textContent =
+      SalvatexCarrinho
+        .nomeCategoria(
+          item.categoria
+        );
+
+
     artigo.appendChild(
-      criarPlaceholder(
-        "Imagem da cortina"
-      )
+      placeholder
     );
 
   }
@@ -391,6 +170,10 @@ function criarItemCortina(
   conteudo.className =
     "carrinho-item-conteudo";
 
+
+  // ==========================================================
+  // TOPO
+  // ==========================================================
 
   const topo =
     document.createElement(
@@ -413,10 +196,7 @@ function criarItemCortina(
 
 
   titulo.textContent =
-    item.tecido
-      ? "Cortina " +
-        item.tecido
-      : "Cortina sob medida";
+    item.nome;
 
 
   const preco =
@@ -430,9 +210,10 @@ function criarItemCortina(
 
 
   preco.textContent =
-    brl(
-      item.total
-    );
+    SalvatexCarrinho
+      .brl(
+        item.total
+      );
 
 
   topo.appendChild(
@@ -451,123 +232,118 @@ function criarItemCortina(
 
 
   // ==========================================================
-  // DETALHES
+  // CATEGORIA
   // ==========================================================
 
-  const detalhes =
+  const categoria =
     document.createElement(
       "div"
     );
 
 
-  detalhes.className =
-    "carrinho-item-detalhes";
+  categoria.style.marginTop =
+    "4px";
 
 
-  detalhes.appendChild(
-    criarDetalhe(
-      "Modelo",
-      item.modelo
-    )
-  );
+  categoria.style.fontSize =
+    "11px";
 
 
-  detalhes.appendChild(
-    criarDetalhe(
-      "Tecido",
-      item.tecido
-    )
-  );
+  categoria.style.color =
+    "#746c63";
 
 
-  detalhes.appendChild(
-    criarDetalhe(
-      "Cor",
-      item.cor
-    )
-  );
-
-
-  detalhes.appendChild(
-    criarDetalhe(
-      "Forro",
-      item.forro
-    )
-  );
-
-
-  detalhes.appendChild(
-    criarDetalhe(
-      "Ambiente",
-
-      formatarMedida(
-        item.larguraAmbiente ??
-        item.largura
-      ) +
-
-      " × " +
-
-      formatarMedida(
-        item.altura
-      ) +
-
-      " m"
-    )
-  );
-
-
-  detalhes.appendChild(
-    criarDetalhe(
-      "Consumo de tecido",
-
-      formatarMedida(
-        item.consumoTecido
-      ) +
-
-      " × " +
-
-      formatarMedida(
-        item.altura
-      ) +
-
-      " m"
-    )
-  );
-
-
-  detalhes.appendChild(
-    criarDetalhe(
-      "Franzimento",
-
-      String(
-        item.franzimento ||
-        ""
-      )
-        .replace(
-          ".",
-          ","
-        ) +
-
-      "x"
-    )
-  );
-
-
-  detalhes.appendChild(
-    criarDetalhe(
-      "Barra",
-
-      item.barra
-        ? item.barra +
-          " cm"
-        : "Sob consulta"
-    )
-  );
+  categoria.textContent =
+    SalvatexCarrinho
+      .nomeCategoria(
+        item.categoria
+      );
 
 
   conteudo.appendChild(
-    detalhes
+    categoria
   );
+
+
+  // ==========================================================
+  // DETALHES
+  // ==========================================================
+
+  if (
+    Array.isArray(
+      item.detalhes
+    ) &&
+    item.detalhes.length
+  ) {
+
+    const detalhes =
+      document.createElement(
+        "div"
+      );
+
+
+    detalhes.className =
+      "carrinho-item-detalhes";
+
+
+    item.detalhes.forEach(
+      (detalhe) => {
+
+        detalhes.appendChild(
+          criarDetalhe(
+            detalhe
+          )
+        );
+
+      }
+    );
+
+
+    conteudo.appendChild(
+      detalhes
+    );
+
+  }
+
+
+  // ==========================================================
+  // QUANTIDADE
+  // ==========================================================
+
+  if (
+    Number(
+      item.quantidade
+    ) > 1
+  ) {
+
+    const quantidade =
+      document.createElement(
+        "div"
+      );
+
+
+    quantidade.style.marginTop =
+      "10px";
+
+
+    quantidade.style.fontSize =
+      "12px";
+
+
+    quantidade.style.color =
+      "#746c63";
+
+
+    quantidade.textContent =
+      "Quantidade: " +
+      item.quantidade;
+
+
+    conteudo.appendChild(
+      quantidade
+    );
+
+  }
 
 
   // ==========================================================
@@ -599,16 +375,20 @@ function criarItemCortina(
 
 
   remover.textContent =
-    "Remover cortina";
+    "Remover";
 
 
   remover.addEventListener(
     "click",
     () => {
 
-      removerItemCarrinho(
-        item.id
-      );
+      SalvatexCarrinho
+        .removerItem(
+          item.id
+        );
+
+
+      renderizarCarrinho();
 
     }
   );
@@ -635,721 +415,153 @@ function criarItemCortina(
 
 
 // ============================================================
-// TRILHO / VARÃO
+// RESUMO DINÂMICO POR CATEGORIA
 // ============================================================
 
-function criarItemTrilho(
-  item
+function renderizarCategoriasResumo(
+  carrinho
 ) {
 
-  const artigo =
-    document.createElement(
-      "article"
+  const resumo =
+    document.getElementById(
+      "carrinho-resumo"
     );
 
 
-  artigo.className =
-    "carrinho-item";
+  if (!resumo) {
+    return;
+  }
 
 
-  artigo.appendChild(
-    criarPlaceholder(
-      "Trilho / Varão"
-    )
-  );
+  // Esconde linhas antigas fixas.
 
-
-  const conteudo =
-    document.createElement(
-      "div"
-    );
-
-
-  conteudo.className =
-    "carrinho-item-conteudo";
-
-
-  const topo =
-    document.createElement(
-      "div"
-    );
-
-
-  topo.className =
-    "carrinho-item-topo";
-
-
-  const titulo =
-    document.createElement(
-      "h3"
-    );
-
-
-  titulo.className =
-    "carrinho-item-titulo";
-
-
-  titulo.textContent =
-    item.produto ||
-    item.trilho ||
-    "Trilho / Varão";
-
-
-  const preco =
-    document.createElement(
-      "div"
-    );
-
-
-  preco.className =
-    "carrinho-item-preco";
-
-
-  preco.textContent =
-    brl(
-      item.total
-    );
-
-
-  topo.appendChild(
-    titulo
-  );
-
-
-  topo.appendChild(
-    preco
-  );
-
-
-  conteudo.appendChild(
-    topo
-  );
-
-
-  const detalhes =
-    document.createElement(
-      "div"
-    );
-
-
-  detalhes.className =
-    "carrinho-item-detalhes";
-
-
-  detalhes.appendChild(
-    criarDetalhe(
-      "Produto",
-
-      item.produto ||
-      item.trilho
-    )
-  );
-
-
-  detalhes.appendChild(
-    criarDetalhe(
-      "Medida",
-
-      formatarMedida(
-        item.largura
-      ) +
-
-      " m"
-    )
-  );
-
-
-  detalhes.appendChild(
-    criarDetalhe(
-      "Quantidade",
-
-      String(
-        item.quantidade ||
-        1
+  const linhaCortinas =
+    document
+      .getElementById(
+        "resumo-cortinas"
       )
-    )
-  );
-
-
-  conteudo.appendChild(
-    detalhes
-  );
-
-
-  const acoes =
-    document.createElement(
-      "div"
-    );
-
-
-  acoes.className =
-    "carrinho-item-acoes";
-
-
-  const remover =
-    document.createElement(
-      "button"
-    );
-
-
-  remover.type =
-    "button";
-
-
-  remover.className =
-    "carrinho-remover";
-
-
-  remover.textContent =
-    "Remover item";
-
-
-  remover.addEventListener(
-    "click",
-    () => {
-
-      removerItemCarrinho(
-        item.id
+      ?.closest(
+        ".carrinho-resumo-linha"
       );
 
-    }
-  );
 
+  if (linhaCortinas) {
 
-  acoes.appendChild(
-    remover
-  );
-
-
-  conteudo.appendChild(
-    acoes
-  );
-
-
-  artigo.appendChild(
-    conteudo
-  );
-
-
-  return artigo;
-
-}
-
-
-// ============================================================
-// ESCOLHE TIPO
-// ============================================================
-
-function criarItemCarrinho(
-  item
-) {
-
-  if (
-    item.tipo ===
-    "trilho"
-  ) {
-
-    return criarItemTrilho(
-      item
-    );
+    linhaCortinas.style.display =
+      "none";
 
   }
 
 
-  return criarItemCortina(
-    item
-  );
-
-}
-
-
-// ============================================================
-// TOTAIS
-// ============================================================
-
-function calcularTotais(
-  carrinho
-) {
-
-  let cortinas =
-    0;
+  const linhaTrilhos =
+    document.getElementById(
+      "resumo-linha-trilhos"
+    );
 
 
-  let trilhos =
-    0;
+  if (linhaTrilhos) {
+
+    linhaTrilhos.style.display =
+      "none";
+
+  }
 
 
-  carrinho.forEach(
-    (item) => {
+  resumo
+    .querySelectorAll(
+      ".resumo-categoria-dinamica"
+    )
+    .forEach(
+      (linha) =>
+        linha.remove()
+    );
 
-      const valor =
-        Number(
-          item.total ||
-          0
+
+  const divisor =
+    resumo.querySelector(
+      ".carrinho-resumo-divisor"
+    );
+
+
+  const totais =
+    SalvatexCarrinho
+      .calcularTotaisPorCategoria(
+        carrinho
+      );
+
+
+  Object.entries(
+    totais
+  ).forEach(
+    (
+      [
+        categoria,
+        valor
+      ]
+    ) => {
+
+      const linha =
+        document.createElement(
+          "div"
         );
 
 
-      if (
-        item.tipo ===
-        "trilho"
-      ) {
+      linha.className =
+        "carrinho-resumo-linha resumo-categoria-dinamica";
 
-        trilhos +=
-          valor;
+
+      const nome =
+        document.createElement(
+          "span"
+        );
+
+
+      nome.textContent =
+        SalvatexCarrinho
+          .nomeCategoria(
+            categoria
+          );
+
+
+      const preco =
+        document.createElement(
+          "strong"
+        );
+
+
+      preco.textContent =
+        SalvatexCarrinho
+          .brl(
+            valor
+          );
+
+
+      linha.appendChild(
+        nome
+      );
+
+
+      linha.appendChild(
+        preco
+      );
+
+
+      if (divisor) {
+
+        resumo.insertBefore(
+          linha,
+          divisor
+        );
 
       } else {
 
-        cortinas +=
-          valor;
+        resumo.appendChild(
+          linha
+        );
 
       }
 
     }
-  );
-
-
-  const subtotal =
-    cortinas +
-    trilhos;
-
-
-  return {
-
-    cortinas,
-
-    trilhos,
-
-    subtotal
-
-  };
-
-}
-
-
-// ============================================================
-// REGRA DE FRETE GRÁTIS
-//
-// IMPORTANTE:
-//
-// APENAS O VALOR DAS CORTINAS CONTA PARA OS R$ 500.
-//
-// TRILHO NÃO ENTRA NO CÁLCULO.
-//
-// SE AS CORTINAS ATINGIREM R$ 500,
-// O TRILHO COMPRADO JUNTO TAMBÉM RECEBE FRETE GRÁTIS.
-// ============================================================
-
-function verificarFreteGratis(
-  carrinho
-) {
-
-  const totais =
-    calcularTotais(
-      carrinho
-    );
-
-
-  const possuiCortina =
-    carrinho.some(
-      (item) =>
-        item.tipo !==
-        "trilho"
-    );
-
-
-  const gratis =
-    possuiCortina &&
-
-    totais.cortinas >=
-      CONFIG_FRETE
-        .minimoFreteGratisCortinas;
-
-
-  const falta =
-    Math.max(
-      0,
-
-      CONFIG_FRETE
-        .minimoFreteGratisCortinas -
-
-      totais.cortinas
-    );
-
-
-  return {
-
-    gratis,
-
-    falta,
-
-    totalCortinas:
-      totais.cortinas,
-
-    possuiCortina
-
-  };
-
-}
-
-
-// ============================================================
-// FORMATA CEP
-// ============================================================
-
-function formatarCep(
-  valor
-) {
-
-  const numeros =
-    String(
-      valor ||
-      ""
-    )
-      .replace(
-        /\D/g,
-        ""
-      )
-      .slice(
-        0,
-        8
-      );
-
-
-  if (
-    numeros.length <=
-    5
-  ) {
-
-    return numeros;
-
-  }
-
-
-  return (
-    numeros.slice(
-      0,
-      5
-    ) +
-
-    "-" +
-
-    numeros.slice(
-      5
-    )
-  );
-
-}
-
-
-// ============================================================
-// VALIDA CEP
-// ============================================================
-
-function cepValido(
-  cep
-) {
-
-  return /^\d{5}-?\d{3}$/.test(
-    cep
-  );
-
-}
-
-
-// ============================================================
-// ATUALIZA AVISO DE FRETE
-// ============================================================
-
-function atualizarAvisoFrete(
-  carrinho
-) {
-
-  const regra =
-    verificarFreteGratis(
-      carrinho
-    );
-
-
-  const gratis =
-    document.getElementById(
-      "frete-gratis-aviso"
-    );
-
-
-  const falta =
-    document.getElementById(
-      "frete-falta-aviso"
-    );
-
-
-  const textoFalta =
-    document.getElementById(
-      "frete-falta-texto"
-    );
-
-
-  const textoGratis =
-    document.getElementById(
-      "frete-gratis-texto"
-    );
-
-
-  if (
-    regra.gratis
-  ) {
-
-    if (gratis) {
-
-      gratis.style.display =
-        "block";
-
-    }
-
-
-    if (falta) {
-
-      falta.style.display =
-        "none";
-
-    }
-
-
-
-    return;
-
-  }
-
-
-  if (gratis) {
-
-    gratis.style.display =
-      "none";
-
-  }
-
-
-  if (
-    regra.possuiCortina &&
-    regra.falta > 0
-  ) {
-
-    if (falta) {
-
-      falta.style.display =
-        "block";
-
-    }
-
-
-    if (textoFalta) {
-
-      textoFalta.textContent =
-        "Faltam " +
-        brl(
-          regra.falta
-        ) +
-        " em cortinas para ganhar frete grátis.";
-
-    }
-
-  } else {
-
-    if (falta) {
-
-      falta.style.display =
-        "none";
-
-    }
-
-  }
-
-}
-
-
-// ============================================================
-// CALCULAR FRETE
-//
-// Por enquanto:
-//
-// - identifica automaticamente frete grátis;
-// - valida CEP;
-// - frete pago fica "A calcular".
-//
-// Depois substituiremos a parte do frete pago
-// pela API da transportadora.
-// ============================================================
-
-function calcularFrete() {
-
-  const carrinho =
-    obterCarrinho();
-
-
-  if (
-    !carrinho.length
-  ) {
-
-    return;
-
-  }
-
-
-  const input =
-    document.getElementById(
-      "cep-frete"
-    );
-
-
-  const erro =
-    document.getElementById(
-      "cep-erro"
-    );
-
-
-  const bloco =
-    document.getElementById(
-      "bloco-entrega"
-    );
-
-
-  const valorFrete =
-    document.getElementById(
-      "valor-frete"
-    );
-
-
-  const resumoFrete =
-    document.getElementById(
-      "resumo-frete"
-    );
-
-
-  if (!input) {
-
-    return;
-
-  }
-
-
-  const cep =
-    formatarCep(
-      input.value
-    );
-
-
-  input.value =
-    cep;
-
-
-  if (
-    !cepValido(
-      cep
-    )
-  ) {
-
-    if (erro) {
-
-      erro.textContent =
-        "Informe um CEP válido.";
-
-      erro.style.display =
-        "block";
-
-    }
-
-
-    return;
-
-  }
-
-
-  if (erro) {
-
-    erro.style.display =
-      "none";
-
-  }
-
-
-  const regra =
-    verificarFreteGratis(
-      carrinho
-    );
-
-
-  estadoFrete.cep =
-    cep;
-
-
-  estadoFrete.calculado =
-    true;
-
-
-  if (
-    regra.gratis
-  ) {
-
-    estadoFrete.gratis =
-      true;
-
-
-    estadoFrete.valor =
-      0;
-
-
-    if (valorFrete) {
-
-      valorFrete.textContent =
-        "Grátis";
-
-    }
-
-
-    if (resumoFrete) {
-
-      resumoFrete.textContent =
-        "Grátis";
-
-    }
-
-  } else {
-
-    estadoFrete.gratis =
-      false;
-
-
-    estadoFrete.valor =
-      null;
-
-
-    if (valorFrete) {
-
-      valorFrete.textContent =
-        "A calcular";
-
-    }
-
-
-    if (resumoFrete) {
-
-      resumoFrete.textContent =
-        "A calcular";
-
-    }
-
-  }
-
-
-  if (bloco) {
-
-    bloco.style.display =
-      "block";
-
-  }
-
-
-  atualizarResumoCarrinho(
-    carrinho
   );
 
 }
@@ -1363,49 +575,19 @@ function atualizarResumoCarrinho(
   carrinho
 ) {
 
-  const totais =
-    calcularTotais(
-      carrinho
-    );
-
-
-  const regraFrete =
-    verificarFreteGratis(
-      carrinho
-    );
-
-
-  const resumoCortinas =
-    document.getElementById(
-      "resumo-cortinas"
-    );
-
-
-  const resumoTrilhos =
-    document.getElementById(
-      "resumo-trilhos"
-    );
-
-
-  const linhaTrilhos =
-    document.getElementById(
-      "resumo-linha-trilhos"
-    );
-
-
-  const subtotal =
-    document.getElementById(
-      "carrinho-subtotal"
-    );
-
-
-  const resumoFrete =
-    document.getElementById(
-      "resumo-frete"
-    );
+  renderizarCategoriasResumo(
+    carrinho
+  );
 
 
   const total =
+    SalvatexCarrinho
+      .calcularTotal(
+        carrinho
+      );
+
+
+  const totalElemento =
     document.getElementById(
       "carrinho-total"
     );
@@ -1417,105 +599,13 @@ function atualizarResumoCarrinho(
     );
 
 
-  if (resumoCortinas) {
+  if (totalElemento) {
 
-    resumoCortinas.textContent =
-      brl(
-        totais.cortinas
-      );
-
-  }
-
-
-  if (resumoTrilhos) {
-
-    resumoTrilhos.textContent =
-      brl(
-        totais.trilhos
-      );
-
-  }
-
-
-  if (linhaTrilhos) {
-
-    linhaTrilhos.style.display =
-      totais.trilhos > 0
-        ? "flex"
-        : "none";
-
-  }
-
-
-  if (subtotal) {
-
-    subtotal.textContent =
-      brl(
-        totais.subtotal
-      );
-
-  }
-
-
-  // ==========================================================
-  // FRETE GRÁTIS PODE SER IDENTIFICADO
-  // ANTES MESMO DO CEP
-  // ==========================================================
-
-  if (
-    regraFrete.gratis
-  ) {
-
-    estadoFrete.gratis =
-      true;
-
-
-    estadoFrete.valor =
-      0;
-
-
-    if (resumoFrete) {
-
-      resumoFrete.textContent =
-        "Grátis";
-
-    }
-
-  } else if (
-    !estadoFrete.calculado
-  ) {
-
-    if (resumoFrete) {
-
-      resumoFrete.textContent =
-        "Informe o CEP";
-
-    }
-
-  }
-
-
-  let totalPedido =
-    totais.subtotal;
-
-
-  if (
-    typeof estadoFrete.valor ===
-    "number"
-  ) {
-
-    totalPedido +=
-      estadoFrete.valor;
-
-  }
-
-
-  if (total) {
-
-    total.textContent =
-      brl(
-        totalPedido
-      );
+    totalElemento.textContent =
+      SalvatexCarrinho
+        .brl(
+          total
+        );
 
   }
 
@@ -1530,27 +620,25 @@ function atualizarResumoCarrinho(
 
 
     parcelamento.textContent =
-      "ou " +
-      parcelas +
-      "x de " +
-      brl(
-        totalPedido /
-        parcelas
-      ) +
-      " sem juros";
+      total > 0
+        ? "ou " +
+          parcelas +
+          "x de " +
+          SalvatexCarrinho
+            .brl(
+              total /
+              parcelas
+            ) +
+          " sem juros"
+        : "";
 
   }
-
-
-  atualizarAvisoFrete(
-    carrinho
-  );
 
 }
 
 
 // ============================================================
-// CARRINHO VAZIO
+// VAZIO
 // ============================================================
 
 function mostrarCarrinhoVazio() {
@@ -1561,88 +649,64 @@ function mostrarCarrinhoVazio() {
     );
 
 
-  const vazio =
-    document.getElementById(
-      "carrinho-vazio"
-    );
-
-
-  if (layout) {
-
-    layout.style.display =
-      "none";
-
+  if (!layout) {
+    return;
   }
 
 
-  if (vazio) {
+  layout.innerHTML = `
 
-    vazio.hidden =
-      false;
+    <div class="carrinho-vazio">
 
-  }
+      <div class="carrinho-vazio-icone">
+        🛒
+      </div>
+
+      <h2>
+        Seu carrinho está vazio
+      </h2>
+
+      <p>
+        Configure um produto para adicioná-lo
+        ao carrinho.
+      </p>
+
+      <a
+        href="index.html"
+        class="carrinho-vazio-botao"
+      >
+        Configurar minha cortina
+      </a>
+
+    </div>
+
+  `;
+
+
+  layout.style.display =
+    "block";
 
 }
 
 
 // ============================================================
-// CARRINHO COM PRODUTOS
-// ============================================================
-
-function esconderCarrinhoVazio() {
-
-  const layout =
-    document.getElementById(
-      "carrinho-layout"
-    );
-
-
-  const vazio =
-    document.getElementById(
-      "carrinho-vazio"
-    );
-
-
-  if (layout) {
-
-    layout.style.display =
-      "grid";
-
-  }
-
-
-  if (vazio) {
-
-    vazio.hidden =
-      true;
-
-  }
-
-}
-
-
-// ============================================================
-// RENDERIZA
+// RENDERIZAR
 // ============================================================
 
 function renderizarCarrinho() {
 
   const carrinho =
-    obterCarrinho();
+    SalvatexCarrinho
+      .obterCarrinho();
 
 
-  if (
-    !carrinho.length
-  ) {
+  if (!carrinho.length) {
 
     mostrarCarrinhoVazio();
 
     return;
 
   }
-
-
-  esconderCarrinhoVazio();
 
 
   const container =
@@ -1652,9 +716,7 @@ function renderizarCarrinho() {
 
 
   if (!container) {
-
     return;
-
   }
 
 
@@ -1683,73 +745,17 @@ function renderizarCarrinho() {
 
 
 // ============================================================
-// CONTINUAR PARA ENTREGA
+// CONTINUAR PARA CHECKOUT
 // ============================================================
 
 function continuarParaEntrega() {
 
   const carrinho =
-    obterCarrinho();
+    SalvatexCarrinho
+      .obterCarrinho();
 
 
-  if (
-    !carrinho.length
-  ) {
-
-    return;
-
-  }
-
-
-  const regra =
-    verificarFreteGratis(
-      carrinho
-    );
-
-
-  const inputCep =
-    document.getElementById(
-      "cep-frete"
-    );
-
-
-  const cep =
-    inputCep
-      ? formatarCep(
-          inputCep.value
-        )
-      : "";
-
-
-  // ==========================================================
-  // CEP OBRIGATÓRIO
-  // ==========================================================
-
-  if (
-    !cepValido(
-      cep
-    )
-  ) {
-
-    alert(
-      "Informe o CEP de entrega antes de continuar."
-    );
-
-
-    if (inputCep) {
-
-      inputCep.focus();
-
-      inputCep.scrollIntoView({
-        behavior:
-          "smooth",
-
-        block:
-          "center"
-      });
-
-    }
-
+  if (!carrinho.length) {
 
     return;
 
@@ -1757,88 +763,42 @@ function continuarParaEntrega() {
 
 
   const totais =
-    calcularTotais(
-      carrinho
-    );
+    SalvatexCarrinho
+      .calcularTotaisPorCategoria(
+        carrinho
+      );
 
 
-  const frete = {
-
-    cep:
-      cep,
-
-    gratis:
-      regra.gratis,
-
-    valor:
-      regra.gratis
-        ? 0
-        : null,
-
-    status:
-      regra.gratis
-        ? "gratis"
-        : "aguardando_calculo",
-
-    producao: {
-      minimo:
-        CONFIG_FRETE.producaoMin,
-
-      maximo:
-        CONFIG_FRETE.producaoMax
-    },
-
-    entrega: {
-      minimo:
-        CONFIG_FRETE.entregaMin,
-
-      maximo:
-        CONFIG_FRETE.entregaMax
-    }
-
-  };
-
-
-  const pedido = {
-
-    itens:
-      carrinho,
-
-    subtotal:
-      totais.subtotal,
-
-    totalCortinas:
-      totais.cortinas,
-
-    totalTrilhos:
-      totais.trilhos,
-
-    frete:
-      frete,
-
-    total:
-      regra.gratis
-        ? totais.subtotal
-        : null,
-
-    criadoEm:
-      new Date()
-        .toISOString()
-
-  };
+  const total =
+    SalvatexCarrinho
+      .calcularTotal(
+        carrinho
+      );
 
 
   localStorage.setItem(
-    "salvatexPedidoAtual",
-    JSON.stringify(
-      pedido
-    )
+    CHAVE_PEDIDO,
+    JSON.stringify({
+
+      versao:
+        2,
+
+      itens:
+        carrinho,
+
+      totaisPorCategoria:
+        totais,
+
+      totalProdutos:
+        total,
+
+      criadoEm:
+        new Date()
+          .toISOString()
+
+    })
   );
 
-
-  // ==========================================================
-  // PRÓXIMA PÁGINA
-  // ==========================================================
 
   window.location.href =
     "checkout.html";
@@ -1847,73 +807,7 @@ function continuarParaEntrega() {
 
 
 // ============================================================
-// CEP
-// ============================================================
-
-const inputCep =
-  document.getElementById(
-    "cep-frete"
-  );
-
-
-if (inputCep) {
-
-  inputCep.addEventListener(
-    "input",
-    () => {
-
-      inputCep.value =
-        formatarCep(
-          inputCep.value
-        );
-
-    }
-  );
-
-
-  inputCep.addEventListener(
-    "keydown",
-    (evento) => {
-
-      if (
-        evento.key ===
-        "Enter"
-      ) {
-
-        calcularFrete();
-
-      }
-
-    }
-  );
-
-}
-
-
-// ============================================================
-// BOTÃO CALCULAR
-// ============================================================
-
-const botaoCalcularFrete =
-  document.getElementById(
-    "calcular-frete"
-  );
-
-
-if (
-  botaoCalcularFrete
-) {
-
-  botaoCalcularFrete.addEventListener(
-    "click",
-    calcularFrete
-  );
-
-}
-
-
-// ============================================================
-// FINALIZAR
+// BOTÃO
 // ============================================================
 
 const botaoFinalizar =
@@ -1922,9 +816,7 @@ const botaoFinalizar =
   );
 
 
-if (
-  botaoFinalizar
-) {
+if (botaoFinalizar) {
 
   botaoFinalizar.addEventListener(
     "click",
@@ -1935,7 +827,7 @@ if (
 
 
 // ============================================================
-// INICIALIZAÇÃO
+// INICIAR
 // ============================================================
 
 renderizarCarrinho();
