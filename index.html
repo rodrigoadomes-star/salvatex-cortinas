@@ -1,136 +1,1339 @@
-/* ==========================================================
-   AÇÕES DO CABEÇALHO
-   ========================================================== */
+<!DOCTYPE html>
+<html lang="pt-BR">
 
-.nav-acoes{
-  display:flex;
-  align-items:center;
-  gap:10px;
-  flex-shrink:0;
-}
+<head>
 
+  <meta charset="UTF-8">
 
-/* ==========================================================
-   CARRINHO NO TOPO
-   ========================================================== */
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
 
-.carrinho-link-topo{
-  position:relative;
+  <title>
+    Salvatex | Cortinas Sob Medida
+  </title>
 
-  display:flex;
-  align-items:center;
-  justify-content:center;
+  <meta
+    name="description"
+    content="Configure sua cortina sob medida e receba o valor em tempo real."
+  >
 
-  gap:7px;
+  <link
+    rel="stylesheet"
+    href="css/style.css"
+  >
 
-  min-height:38px;
-
-  padding:9px 13px;
-
-  background:#fff;
-
-  border:1px solid var(--line);
-  border-radius:999px;
-
-  font-size:12px;
-
-  transition:
-    border-color .2s ease,
-    background .2s ease,
-    transform .2s ease;
-}
-
-.carrinho-link-topo:hover{
-  border-color:var(--accent);
-
-  background:var(--soft);
-
-  transform:translateY(-1px);
-}
-
-.carrinho-icone{
-  display:flex;
-
-  align-items:center;
-  justify-content:center;
-
-  font-size:16px;
-
-  line-height:1;
-}
-
-.carrinho-texto{
-  white-space:nowrap;
-}
-
-.contador-carrinho{
-  position:absolute;
-
-  top:-7px;
-  right:-6px;
-
-  width:21px;
-  height:21px;
-
-  display:none;
-
-  align-items:center;
-  justify-content:center;
-
-  background:var(--ink);
-
-  color:#fff;
-
-  border:2px solid var(--paper);
-  border-radius:50%;
-
-  font-size:10px;
-  font-weight:700;
-
-  line-height:1;
-}
+</head>
 
 
-/* ==========================================================
-   MOBILE
-   ========================================================== */
+<body>
 
-@media(max-width:600px){
 
-  .nav{
-    justify-content:space-between;
-  }
+<!-- =========================================================
+     CABEÇALHO
+     ========================================================= -->
 
-  .nav-acoes{
-    margin-left:auto;
-  }
+<header class="topbar">
 
-  .nav-acoes .cta-small{
-    display:none;
-  }
+  <div class="shell nav">
 
-  .carrinho-link-topo{
-    width:42px;
-    height:42px;
+    <a
+      class="logo"
+      href="#"
+    >
+      SALVATEX
 
-    min-height:42px;
+      <small>
+        CORTINAS
+      </small>
 
-    padding:0;
+    </a>
 
-    border-radius:50%;
-  }
 
-  .carrinho-texto{
-    display:none;
-  }
+    <nav class="navlinks">
 
-  .carrinho-icone{
-    font-size:18px;
-  }
+      <a href="#configurador">
+        Cortinas sob medida
+      </a>
 
-  .contador-carrinho{
-    top:-5px;
-    right:-5px;
-  }
+      <a href="#tecidos">
+        Tecidos
+      </a>
 
-}
+      <a href="#vantagens">
+        Como funciona
+      </a>
+
+      <a href="#contato">
+        Contato
+      </a>
+
+    </nav>
+
+
+    <div class="nav-acoes">
+
+      <a
+        class="cta-small"
+        href="#configurador"
+      >
+        Montar minha cortina
+      </a>
+
+
+      <a
+        href="carrinho.html"
+        class="carrinho-link-topo"
+        aria-label="Abrir carrinho"
+      >
+
+        <span class="carrinho-icone">
+          🛒
+        </span>
+
+        <span class="carrinho-texto">
+          Carrinho
+        </span>
+
+        <span
+          id="contador-carrinho"
+          class="contador-carrinho"
+        >
+          0
+        </span>
+
+      </a>
+
+    </div>
+
+  </div>
+
+</header>
+
+
+<!-- =========================================================
+     BANNER
+     ========================================================= -->
+
+<section class="hero">
+
+  <div class="shell hero-copy">
+
+    <div class="kicker">
+      Feita para o seu ambiente
+    </div>
+
+
+    <h1>
+      Monte sua cortina
+      <br>
+      sob medida.
+    </h1>
+
+
+    <p>
+      Escolha medidas, tecido, forro e acabamento.
+      Veja uma estimativa instantânea e envie a
+      configuração para atendimento.
+    </p>
+
+
+    <div class="pill">
+      ✓ Atendimento especializado pelo WhatsApp
+    </div>
+
+  </div>
+
+</section>
+
+
+<!-- =========================================================
+     CONTEÚDO
+     ========================================================= -->
+
+<main class="shell">
+
+
+<!-- =========================================================
+     CONFIGURADOR
+     ========================================================= -->
+
+<section
+  id="configurador"
+  class="config-wrap"
+>
+
+  <div class="config">
+
+
+    <!-- =====================================================
+         LADO ESQUERDO
+         ===================================================== -->
+
+    <div class="builder">
+
+
+      <!-- ETAPAS -->
+
+      <div class="steps">
+
+        <div
+          class="step active"
+          data-n="1"
+        >
+          Cortina Pronta
+        </div>
+
+        <div
+          class="step"
+          data-n="2"
+        >
+          Tecido
+        </div>
+
+        <div
+          class="step"
+          data-n="3"
+        >
+          Forro
+        </div>
+
+        <div
+          class="step"
+          data-n="4"
+        >
+          Acabamento
+        </div>
+
+        <div
+          class="step"
+          data-n="5"
+        >
+          Resumo
+        </div>
+
+      </div>
+
+
+      <h2 class="section-title">
+        Configure sua cortina
+      </h2>
+
+
+      <p class="section-sub">
+        Escolha as características abaixo
+        para calcular sua cortina sob medida.
+      </p>
+
+
+      <!-- ===================================================
+           MEDIDAS
+           =================================================== -->
+
+      <div class="grid2">
+
+
+        <div class="field">
+
+          <label for="largura">
+            Largura do Ambiente
+          </label>
+
+          <div class="control">
+
+            <input
+              id="largura"
+              type="number"
+              min="0.5"
+              max="12"
+              step="0.01"
+              value="2.00"
+            >
+
+            <span class="unit">
+              m
+            </span>
+
+          </div>
+
+        </div>
+
+
+        <div class="field">
+
+          <label for="altura">
+            Altura da cortina
+          </label>
+
+          <div class="control">
+
+            <input
+              id="altura"
+              type="number"
+              min="0.5"
+              max="3.20"
+              step="0.01"
+              value="2.70"
+            >
+
+            <span class="unit">
+              m
+            </span>
+
+          </div>
+
+
+          <small class="field-help">
+            Acima de 3,20 m: orçamento sob consulta.
+          </small>
+
+        </div>
+
+
+      </div>
+
+
+      <!-- ===================================================
+           MODELO
+           =================================================== -->
+
+      <div class="choice-title">
+        Modelo da cortina
+      </div>
+
+
+      <div
+        class="cards two"
+        id="modelos"
+      >
+
+        <div
+          class="card selected"
+          data-value="Wave"
+        >
+
+          <strong>
+            Wave
+          </strong>
+
+          <span>
+            Visual contínuo, elegante e ideal
+            para trilho suíço.
+          </span>
+
+        </div>
+
+      </div>
+
+
+      <!-- ===================================================
+           TECIDO
+           =================================================== -->
+
+      <div class="choice-title">
+        Tecido
+      </div>
+
+
+      <div
+        class="cards"
+        id="tecidos-choice"
+      >
+
+        <div
+          class="card selected"
+          data-value="Gaze de Linho"
+        >
+
+          <strong>
+            Gaze de Linho
+          </strong>
+
+          <span>
+            Leve, moderno e com trama aparente.
+          </span>
+
+        </div>
+
+
+        <div
+          class="card"
+          data-value="Linho Damasco"
+        >
+
+          <strong>
+            Linho Damasco
+          </strong>
+
+          <span>
+            Caimento mais encorpado e
+            acabamento premium.
+          </span>
+
+        </div>
+
+      </div>
+
+
+      <!-- ===================================================
+           COR
+           =================================================== -->
+
+      <div class="choice-title">
+        Cor do tecido
+      </div>
+
+
+      <div
+        class="cards"
+        id="cores-choice"
+      ></div>
+
+
+      <button
+        type="button"
+        class="btn-conhecer-cor"
+        id="conhecer-cor"
+      >
+        Conhecer este tecido
+      </button>
+
+
+      <!-- ===================================================
+           FORRO
+           =================================================== -->
+
+      <div class="choice-title">
+        Forro
+      </div>
+
+
+      <div
+        class="cards"
+        id="forros"
+      >
+
+        <div
+          class="card"
+          data-value="Sem forro"
+        >
+
+          <strong>
+            Sem forro
+          </strong>
+
+          <span>
+            Mais leve e com maior entrada de luz.
+          </span>
+
+        </div>
+
+
+        <div
+          class="card selected"
+          data-value="Forro leve"
+        >
+
+          <strong>
+            Forro leve
+          </strong>
+
+          <span>
+            Mais privacidade sem escurecer
+            totalmente.
+          </span>
+
+        </div>
+
+
+        <div
+          class="card"
+          data-value="Forro Peletizado 50%"
+        >
+
+          <strong>
+            Forro Peletizado 50%
+          </strong>
+
+          <span>
+            Reduz a luminosidade mantendo o ambiente mais leve.
+          </span>
+
+        </div>
+
+
+        <div
+          class="card"
+          data-value="Blackout 80%"
+        >
+
+          <strong>
+            Blackout Tecido 80%
+          </strong>
+
+          <span>
+            Reduz bastante a luminosidade.
+          </span>
+
+        </div>
+
+
+        <div
+          class="card"
+          data-value="Blackout 100%"
+        >
+
+          <strong>
+            Blackout em Tecido 100%
+          </strong>
+
+          <span>
+            Maior bloqueio de luz.
+          </span>
+
+        </div>
+
+      </div>
+
+
+      <!-- ===================================================
+           FRANZIMENTO + BARRA
+           =================================================== -->
+
+      <div
+        class="grid2"
+        style="margin-top:26px"
+      >
+
+
+        <div class="field">
+
+          <label for="franzimento">
+            Franzimento
+          </label>
+
+
+          <div class="control">
+
+            <select id="franzimento">
+
+              <option value="2" selected>
+                2x — Menos Volumosa
+              </option>
+
+              <option value="2.5">
+                2,5x — Bem Franzido
+              </option>
+
+              <option value="3">
+                3x — Mais Volumosa
+              </option>
+
+            </select>
+
+          </div>
+
+        </div>
+
+
+        <div class="field">
+
+          <label>
+            Acabamento da barra
+          </label>
+
+
+          <div
+            class="barra-info"
+            id="barra-info"
+          >
+            A barra é definida automaticamente
+            pela altura informada.
+          </div>
+
+        </div>
+
+
+      </div>
+
+
+      <!-- ===================================================
+           TRILHO / VARÃO
+           =================================================== -->
+
+      <div class="choice-title">
+        Deseja incluir trilho ou varão?
+      </div>
+
+
+      <p class="trilho-descricao">
+        Selecione obrigatoriamente se deseja incluir
+        trilho ou varão no orçamento.
+      </p>
+
+
+      <div class="trilho-select-wrapper">
+
+        <select
+          id="trilho-select"
+          class="trilho-select"
+          required
+        >
+
+          <option
+            value=""
+            disabled
+            selected
+          >
+            Selecione...
+          </option>
+
+
+          <option value="Não">
+            Não quero trilho ou varão
+          </option>
+
+
+          <option value="Varão Wave Deslizante - Aço Escovado">
+            Varão Wave Deslizante - Aço Escovado (Parede)
+          </option>
+
+
+          <option value="Varão Wave Deslizante - Branco">
+            Varão Wave Deslizante - Branco (Parede)
+          </option>
+
+
+          <option value="Varão Wave Deslizante - Cromado">
+            Varão Wave Deslizante - Cromado (Parede)
+          </option>
+
+
+          <option value="Varão Wave Deslizante - Preto">
+            Varão Wave Deslizante - Preto (Parede)
+          </option>
+
+
+          <option value="Trilho Suíço - Branco">
+            Trilho Suíço - Branco (Teto)
+          </option>
+
+
+          <option value="Varão Wave Deslizante Duplo - Cromado">
+            Varão Wave Deslizante Duplo - Cromado (Parede)
+          </option>
+
+
+          <option value="Trilho Suíço Duplo - Branco">
+            Trilho Suíço Duplo - Branco (Teto)
+          </option>
+
+        </select>
+
+      </div>
+
+
+      <!-- ===================================================
+           ATUALIZAR
+           =================================================== -->
+
+      <div class="next">
+
+        <button
+          class="btn primary"
+          id="recalcular"
+          type="button"
+        >
+          Atualizar orçamento →
+        </button>
+
+      </div>
+
+
+    </div>
+
+
+    <!-- =====================================================
+         RESUMO
+         ===================================================== -->
+
+    <aside class="summary">
+
+
+      <h2>
+        Transforme seu ambiente!
+      </h2>
+
+
+      <!-- ===================================================
+           CARROSSEL
+           =================================================== -->
+
+      <div
+        class="preview-carousel"
+        id="preview-carousel"
+        aria-label="Galeria da cortina"
+      >
+
+
+        <div class="preview">
+
+
+          <img
+            id="preview-img"
+            src="imagens/galeria/gaze/branco/foto-1.png"
+            alt="Gaze de Linho Branco"
+          >
+
+
+          <div
+            class="preview-info"
+            id="preview-info"
+          >
+
+            <small id="preview-tecido">
+              Gaze de Linho
+            </small>
+
+            <strong id="preview-cor">
+              Branco
+            </strong>
+
+          </div>
+
+
+          <button
+            type="button"
+            class="preview-zoom"
+            id="preview-zoom"
+            aria-label="Ampliar foto"
+          >
+            ⤢
+          </button>
+
+
+        </div>
+
+
+        <button
+          class="preview-nav preview-prev"
+          id="preview-prev"
+          type="button"
+          aria-label="Foto anterior"
+        >
+          ‹
+        </button>
+
+
+        <button
+          class="preview-nav preview-next"
+          id="preview-next"
+          type="button"
+          aria-label="Próxima foto"
+        >
+          ›
+        </button>
+
+
+        <div
+          class="preview-dots"
+          id="preview-dots"
+        ></div>
+
+
+      </div>
+
+
+      <!-- ===================================================
+           RESUMO DO PRODUTO
+           =================================================== -->
+
+      <div class="item">
+
+        <b>Modelo</b>
+
+        <span id="sum-modelo">
+          Wave
+        </span>
+
+      </div>
+
+
+      <div class="item">
+
+        <b>Tecido</b>
+
+        <span id="sum-tecido">
+          Gaze de Linho
+        </span>
+
+      </div>
+
+
+      <div class="item">
+
+        <b>Cor</b>
+
+        <span id="sum-cor">
+          Branco
+        </span>
+
+      </div>
+
+
+      <div class="item">
+
+        <b>Forro</b>
+
+        <span id="sum-forro">
+          Forro leve
+        </span>
+
+      </div>
+
+
+      <div class="item">
+
+        <b>Consumo de Tecido</b>
+
+        <span id="sum-medidas">
+          4,00 × 2,70 m
+        </span>
+
+      </div>
+
+
+      <div class="item">
+
+        <b>Franzimento</b>
+
+        <span id="sum-franz">
+          2x
+        </span>
+
+      </div>
+
+
+      <div class="item">
+
+        <b>Trilho / Varão</b>
+
+        <span id="sum-trilho">
+          Selecione uma opção
+        </span>
+
+      </div>
+
+
+      <div class="item">
+
+        <b>Barra</b>
+
+        <span id="sum-barra">
+          15 cm
+        </span>
+
+      </div>
+
+
+      <div
+        class="barra-resumo"
+        id="barra-resumo"
+      ></div>
+
+
+      <!-- ===================================================
+           PREÇO / RESUMO DOS PRODUTOS
+           =================================================== -->
+
+      <div class="pricebox">
+
+        <small>
+          Resumo do orçamento
+        </small>
+
+
+        <!-- CORTINA -->
+
+        <div class="produto-preco-linha">
+
+          <div class="produto-preco-info">
+
+            <strong>
+              Cortina Wave sob medida
+            </strong>
+
+            <span>
+              Tecido, forro e acabamento selecionados
+            </span>
+
+          </div>
+
+
+          <div
+            class="produto-preco-valor"
+            id="preco-cortina"
+          >
+            R$ 0,00
+          </div>
+
+        </div>
+
+
+        <!-- TRILHO / VARÃO -->
+
+        <div
+          class="produto-preco-linha"
+          id="linha-preco-trilho"
+          style="display:none;"
+        >
+
+          <div class="produto-preco-info">
+
+            <strong id="nome-preco-trilho">
+              Trilho / Varão
+            </strong>
+
+            <span>
+              Produto adicional
+            </span>
+
+          </div>
+
+
+          <div
+            class="produto-preco-valor"
+            id="preco-trilho"
+          >
+            R$ 0,00
+          </div>
+
+        </div>
+
+
+        <!-- TOTAL -->
+
+        <div class="total-orcamento">
+
+          <span>
+            Total
+          </span>
+
+
+          <div
+            class="price"
+            id="preco"
+          >
+            R$ 0,00
+          </div>
+
+        </div>
+
+
+        <div
+          class="installments"
+          id="parcelas"
+        >
+          ou 10x de R$ 0,00 sem juros
+        </div>
+
+      </div>
+
+
+      <!-- ===================================================
+           BOTÕES
+           =================================================== -->
+
+      <button
+        class="btn primary"
+        id="comprar"
+        type="button"
+      >
+        Adicionar ao carrinho
+      </button>
+
+
+      <button
+        class="btn ghost"
+        id="whatsapp"
+        type="button"
+      >
+        Enviar configuração pelo WhatsApp
+      </button>
+
+
+      <div class="note">
+
+        Até 2,80 m, o tamanho da barra é definido
+        automaticamente conforme a altura.
+
+        De 2,81 m até 3,20 m, a cortina recebe
+        barra larga de 20 cm.
+
+        Alturas acima de 3,20 m são sob consulta.
+
+      </div>
+
+
+    </aside>
+
+
+  </div>
+
+</section>
+
+
+<!-- =========================================================
+     BENEFÍCIOS
+     ========================================================= -->
+
+<section
+  id="vantagens"
+  class="benefits"
+>
+
+
+  <div class="benefit">
+
+    <b>
+      Sob medida de verdade
+    </b>
+
+    <p>
+      Produção conforme as medidas do ambiente
+      e o acabamento escolhido.
+    </p>
+
+  </div>
+
+
+  <div class="benefit">
+
+    <b>
+      Tecidos selecionados
+    </b>
+
+    <p>
+      Opções para privacidade, leveza,
+      bloqueio de luz e acabamento premium.
+    </p>
+
+  </div>
+
+
+  <div class="benefit">
+
+    <b>
+      Instalação profissional
+    </b>
+
+    <p>
+      Atendimento especializado e confirmação
+      das medidas para instalação.
+    </p>
+
+  </div>
+
+
+  <div class="benefit">
+
+    <b>
+      Envio para todo o Brasil
+    </b>
+
+    <p>
+      Consulte também opções para pedidos
+      enviados para outras regiões.
+    </p>
+
+  </div>
+
+
+</section>
+
+
+<!-- =========================================================
+     TECIDOS
+     ========================================================= -->
+
+<section
+  id="tecidos"
+  class="fabrics"
+>
+
+
+  <div class="fabrics-head">
+
+
+    <div>
+
+      <div class="kicker">
+        Materiais
+      </div>
+
+
+      <h3>
+        Conheça os tecidos
+      </h3>
+
+    </div>
+
+
+    <span
+      style="
+        font-size:12px;
+        color:var(--muted);
+      "
+    >
+      Opções de acabamento
+    </span>
+
+
+  </div>
+
+
+  <div class="fabric-grid">
+
+
+    <div class="fabric">
+
+      <label>
+        Gaze de Linho
+        <br>
+        Branco
+      </label>
+
+    </div>
+
+
+    <div class="fabric">
+
+      <label>
+        Gaze de Linho
+        <br>
+        Natural
+      </label>
+
+    </div>
+
+
+    <div class="fabric">
+
+      <label>
+        Linho Damasco
+        <br>
+        Off White
+      </label>
+
+    </div>
+
+
+    <div class="fabric">
+
+      <label>
+        Linho Damasco
+        <br>
+        Bege
+      </label>
+
+    </div>
+
+
+  </div>
+
+
+</section>
+
+
+</main>
+
+
+<!-- =========================================================
+     MODAL — CONHECER TECIDO
+     ========================================================= -->
+
+<div
+  class="modal-cor"
+  id="modal-cor"
+  aria-hidden="true"
+>
+
+
+  <div
+    class="modal-cor-fundo"
+    id="modal-cor-fundo"
+  ></div>
+
+
+  <div class="modal-cor-conteudo">
+
+
+    <button
+      type="button"
+      class="modal-cor-fechar"
+      id="modal-cor-fechar"
+      aria-label="Fechar galeria"
+    >
+      ×
+    </button>
+
+
+    <div class="modal-cor-cabecalho">
+
+      <span
+        class="modal-cor-tecido"
+        id="modal-cor-tecido"
+      >
+        Gaze de Linho
+      </span>
+
+
+      <h2 id="modal-cor-titulo">
+        Branco
+      </h2>
+
+    </div>
+
+
+    <div
+      class="modal-cor-galeria"
+      id="modal-cor-galeria"
+    ></div>
+
+
+  </div>
+
+</div>
+
+
+<!-- =========================================================
+     MODAL — ZOOM
+     ========================================================= -->
+
+<div
+  class="zoom-foto"
+  id="zoom-foto"
+  aria-hidden="true"
+>
+
+
+  <div
+    class="zoom-foto-fundo"
+    id="zoom-foto-fundo"
+  ></div>
+
+
+  <div class="zoom-foto-conteudo">
+
+
+    <button
+      type="button"
+      class="zoom-foto-fechar"
+      id="zoom-foto-fechar"
+      aria-label="Fechar imagem ampliada"
+    >
+      ×
+    </button>
+
+
+    <button
+      type="button"
+      class="zoom-nav zoom-prev"
+      id="zoom-prev"
+      aria-label="Foto anterior"
+    >
+      ‹
+    </button>
+
+
+    <div class="zoom-imagem-wrapper">
+
+
+      <img
+        id="zoom-foto-img"
+        src=""
+        alt=""
+      >
+
+
+      <div
+        class="zoom-foto-info"
+        id="zoom-foto-info"
+      >
+
+        <small id="zoom-tecido">
+          Gaze de Linho
+        </small>
+
+        <strong id="zoom-cor">
+          Branco
+        </strong>
+
+      </div>
+
+
+    </div>
+
+
+    <button
+      type="button"
+      class="zoom-nav zoom-next"
+      id="zoom-next"
+      aria-label="Próxima foto"
+    >
+      ›
+    </button>
+
+
+  </div>
+
+</div>
+
+
+<!-- =========================================================
+     RODAPÉ
+     ========================================================= -->
+
+<footer
+  id="contato"
+  class="footer"
+>
+
+  <div class="shell">
+
+    SALVATEX CORTINAS ·
+    Cortinas sob medida ·
+    2026
+
+  </div>
+
+</footer>
+
+
+<!-- =========================================================
+     AVISO
+     ========================================================= -->
+
+<div
+  class="toast"
+  id="toast"
+>
+  Orçamento atualizado.
+</div>
+
+
+<!-- =========================================================
+     JAVASCRIPT
+     ========================================================= -->
+
+<script src="js/config.js"></script>
+
+<script src="js/calculo.js"></script>
+
+<script src="js/app.js"></script>
+
+
+</body>
+
+</html>
