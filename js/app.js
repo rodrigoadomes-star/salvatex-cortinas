@@ -50,8 +50,7 @@ const PASTAS_MIDIA = {
 
 // ============================================================
 // CAPAS DAS CORES
-// USADAS SOMENTE NOS CARDS DAS CORES
-// NÃO SÃO MAIS USADAS COMO FOTO DO CARROSSEL
+// USADAS NOS CARDS DAS CORES
 // ============================================================
 
 const GALERIAS_CORES = {
@@ -157,8 +156,6 @@ let videoCorAtual = "";
 
 // ============================================================
 // CACHE
-//
-// Ajuda a evitar imagens antigas depois de alterar o GitHub.
 // ============================================================
 
 function semCache(src) {
@@ -340,15 +337,6 @@ function verificarImagem(src) {
 
 // ============================================================
 // CARREGA AS FOTOS
-//
-// Regra:
-//
-// tecido + modelo + forro
-//
-// Carrega todas as cores que possuem fotos.
-//
-// A COR SELECIONADA aparece primeiro.
-// Depois as setas continuam passando pelas demais cores.
 // ============================================================
 
 async function carregarFotosCarrossel() {
@@ -376,8 +364,6 @@ async function carregarFotosCarrossel() {
     ] || [];
 
 
-  // Coloca a cor selecionada primeiro
-
   const coresOrdenadas = [
     corSelecionada,
     ...cores.filter(
@@ -392,8 +378,6 @@ async function carregarFotosCarrossel() {
 
   coresOrdenadas.forEach(
     (cor) => {
-
-      // Procura até 10 fotos por cor
 
       for (
         let numero = 1;
@@ -441,9 +425,6 @@ async function carregarFotosCarrossel() {
 
     );
 
-
-  // Usuário mudou de opção
-  // enquanto as imagens carregavam.
 
   if (
     token !==
@@ -504,17 +485,9 @@ function obterFotoAtual() {
 
 // ============================================================
 // PLACEHOLDER
-//
-// Não reaproveita mais uma foto antiga do produto.
 // ============================================================
 
 function gerarPlaceholder() {
-
-  const texto =
-    encodeURIComponent(
-      `${state.tecido} - ${state.cor}`
-    );
-
 
   const svg =
     `
@@ -530,13 +503,13 @@ function gerarPlaceholder() {
 
       <text
         x="50%"
-        y="47%"
+        y="46%"
         text-anchor="middle"
         font-family="Arial"
         font-size="28"
         fill="#746c63"
       >
-        ${texto}
+        ${state.tecido} - ${state.cor}
       </text>
 
       <text
@@ -682,8 +655,6 @@ function bindCards(
             el.dataset.value;
 
 
-          // Mudou tecido
-
           if (
             key === "tecido"
           ) {
@@ -695,9 +666,6 @@ function bindCards(
 
           atualizarOrcamento();
 
-
-          // Mudou qualquer informação
-          // que altera fotos
 
           if (
             key === "modelo" ||
@@ -921,10 +889,6 @@ function atualizarPreview() {
   }
 
 
-  // ==========================================================
-  // NÃO TEM FOTO
-  // ==========================================================
-
   if (
     !fotosCarrosselAtuais.length
   ) {
@@ -984,10 +948,6 @@ function atualizarPreview() {
   }
 
 
-  // ==========================================================
-  // TEM FOTO
-  // ==========================================================
-
   const fotoAtual =
     obterFotoAtual();
 
@@ -1036,10 +996,6 @@ function atualizarPreview() {
 
   }
 
-
-  // ==========================================================
-  // BOLINHAS
-  // ==========================================================
 
   if (dots) {
 
@@ -2291,34 +2247,26 @@ function atualizarResumoBasico(
 
 
   if (sumModelo) {
-
     sumModelo.textContent =
       dados.modelo;
-
   }
 
 
   if (sumTecido) {
-
     sumTecido.textContent =
       dados.tecido;
-
   }
 
 
   if (sumCor) {
-
     sumCor.textContent =
       dados.cor;
-
   }
 
 
   if (sumForro) {
-
     sumForro.textContent =
       dados.forro;
-
   }
 
 
@@ -2621,6 +2569,15 @@ function atualizarOrcamento() {
     window.currentTotal =
       null;
 
+    window.currentValorCortina =
+      null;
+
+    window.currentValorTrilho =
+      null;
+
+    window.currentSobConsulta =
+      false;
+
 
     return;
 
@@ -2707,7 +2664,7 @@ function atualizarOrcamento() {
   if (comprar) {
 
     comprar.textContent =
-      "Solicitar fechamento";
+      "Adicionar ao carrinho";
 
   }
 
@@ -2880,6 +2837,346 @@ function abrirWhatsApp() {
 
 
 // ============================================================
+// ADICIONAR AO CARRINHO
+// ============================================================
+
+function adicionarAoCarrinho() {
+
+  const dados =
+    dadosAtuais();
+
+
+  // ==========================================================
+  // COR
+  // ==========================================================
+
+  if (!dados.cor) {
+
+    alert(
+      "Selecione a cor da cortina."
+    );
+
+    return;
+
+  }
+
+
+  // ==========================================================
+  // TRILHO / VARÃO OBRIGATÓRIO
+  // O CLIENTE PRECISA ESCOLHER UM MODELO OU "NÃO"
+// ==========================================================
+
+  if (!dados.trilho) {
+
+    alert(
+      "Selecione uma opção de trilho/varão ou escolha Não."
+    );
+
+
+    const select =
+      document.getElementById(
+        "trilho-select"
+      );
+
+
+    if (select) {
+
+      select.focus();
+
+      select.scrollIntoView({
+        behavior: "smooth",
+        block: "center"
+      });
+
+    }
+
+
+    return;
+
+  }
+
+
+  // ==========================================================
+  // SOB CONSULTA
+  // ==========================================================
+
+  if (
+    window.currentSobConsulta
+  ) {
+
+    alert(
+      "Esta configuração precisa de orçamento personalizado."
+    );
+
+    return;
+
+  }
+
+
+  // ==========================================================
+  // VALOR DA CORTINA
+  // ==========================================================
+
+  if (
+    typeof window.currentValorCortina !==
+    "number"
+  ) {
+
+    alert(
+      "Não foi possível calcular esta cortina."
+    );
+
+    return;
+
+  }
+
+
+  const largura =
+    Number(
+      dados.largura
+    ) || 0;
+
+
+  const altura =
+    Number(
+      dados.altura
+    ) || 0;
+
+
+  const franzimento =
+    Number(
+      dados.franzimento
+    ) || 1;
+
+
+  const consumoTecido =
+    largura *
+    franzimento;
+
+
+  // ==========================================================
+  // FOTO DO ITEM
+  // ==========================================================
+
+  const fotoAtual =
+    obterFotoAtual();
+
+
+  const imagemProduto =
+    fotoAtual
+      ? fotoAtual.src
+      : "";
+
+
+  // ==========================================================
+  // ID DA CONFIGURAÇÃO
+  // CORTINA E TRILHO FICAM LIGADOS PELO MESMO GRUPO
+  // ==========================================================
+
+  const grupoId =
+    "config-" +
+    Date.now();
+
+
+  // ==========================================================
+  // CARRINHO EXISTENTE
+  // ==========================================================
+
+  let carrinho = [];
+
+
+  try {
+
+    const carrinhoSalvo =
+      localStorage.getItem(
+        "salvatexCarrinho"
+      );
+
+
+    if (carrinhoSalvo) {
+
+      carrinho =
+        JSON.parse(
+          carrinhoSalvo
+        );
+
+    }
+
+
+    if (
+      !Array.isArray(
+        carrinho
+      )
+    ) {
+
+      carrinho = [];
+
+    }
+
+  } catch (erro) {
+
+    carrinho = [];
+
+  }
+
+
+  // ==========================================================
+  // ITEM 1 — CORTINA
+  // ==========================================================
+
+  const itemCortina = {
+
+    id:
+      grupoId +
+      "-cortina",
+
+    grupoId:
+      grupoId,
+
+    tipo:
+      "cortina",
+
+    produto:
+      "Cortina sob medida",
+
+    modelo:
+      dados.modelo,
+
+    tecido:
+      dados.tecido,
+
+    cor:
+      dados.cor,
+
+    forro:
+      dados.forro,
+
+    larguraAmbiente:
+      largura,
+
+    altura:
+      altura,
+
+    franzimento:
+      franzimento,
+
+    consumoTecido:
+      consumoTecido,
+
+    barra:
+      window.currentBarra,
+
+    imagem:
+      imagemProduto,
+
+    quantidade:
+      1,
+
+    valorUnitario:
+      Number(
+        window.currentValorCortina
+      ),
+
+    total:
+      Number(
+        window.currentValorCortina
+      )
+
+  };
+
+
+  carrinho.push(
+    itemCortina
+  );
+
+
+  // ==========================================================
+  // ITEM 2 — TRILHO / VARÃO
+  // PRODUTO SEPARADO
+  // ==========================================================
+
+  if (
+    dados.trilho !== "Não"
+  ) {
+
+    if (
+      typeof window.currentValorTrilho !==
+      "number"
+    ) {
+
+      alert(
+        "Não foi possível calcular o trilho/varão selecionado."
+      );
+
+      return;
+
+    }
+
+
+    const itemTrilho = {
+
+      id:
+        grupoId +
+        "-trilho",
+
+      grupoId:
+        grupoId,
+
+      tipo:
+        "trilho",
+
+      produto:
+        dados.trilho,
+
+      largura:
+        largura,
+
+      quantidade:
+        1,
+
+      valorUnitario:
+        Number(
+          window.currentValorTrilho
+        ),
+
+      total:
+        Number(
+          window.currentValorTrilho
+        )
+
+    };
+
+
+    carrinho.push(
+      itemTrilho
+    );
+
+  }
+
+
+  // ==========================================================
+  // SALVA CARRINHO
+  // ==========================================================
+
+  localStorage.setItem(
+    "salvatexCarrinho",
+    JSON.stringify(
+      carrinho
+    )
+  );
+
+
+  // ==========================================================
+  // ABRE CARRINHO
+  // ==========================================================
+
+  window.location.href =
+    "carrinho.html";
+
+}
+
+
+// ============================================================
 // EVENTOS
 // ============================================================
 
@@ -3023,13 +3320,14 @@ if (botaoRecalcular) {
 
 
 // ============================================================
-// BOTÕES WHATSAPP
+// BOTÕES
 // ============================================================
 
 const botaoWhatsapp =
   document.getElementById(
     "whatsapp"
   );
+
 
 const botaoComprar =
   document.getElementById(
@@ -3051,7 +3349,7 @@ if (botaoComprar) {
 
   botaoComprar.addEventListener(
     "click",
-    abrirWhatsApp
+    adicionarAoCarrinho
   );
 
 }
