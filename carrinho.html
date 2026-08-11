@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+
+  <meta charset="UTF-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
+
+  <meta
+    name="description"
+    content="Carrinho de compras Salvatex Cortinas"
+  >
+
+  <title>
+    Carrinho | Salvatex Cortinas
+  </title>
+
+  <link
+    rel="stylesheet"
+    href="css/style.css"
+  >
+
+</head>
+
+
+<body>
+
+
+<main class="pagina-carrinho">
+
+
+  <!-- ========================================================
+       TOPO
+  ========================================================= -->
+
+  <header class="carrinho-topo">
+
+    <a
+      href="index.html"
+      class="carrinho-voltar"
+    >
+      ← Continuar configurando
+    </a>
+
+
+    <h1 class="carrinho-titulo">
+      Seu carrinho
+    </h1>
+
+
+    <p class="carrinho-subtitulo">
+      Confira os itens antes de continuar.
+    </p>
+
+  </header>
+
+
+
+  <!-- ========================================================
+       CARRINHO
+  ========================================================= -->
+
+  <div
+    id="carrinho-layout"
+    class="carrinho-layout"
+  >
+
+
+    <!-- ======================================================
+         ITENS
+    ======================================================= -->
+
+    <section
+      id="carrinho-itens"
+      class="carrinho-itens"
+      aria-label="Itens do carrinho"
+    >
+
+      <!--
+        Os produtos serão inseridos
+        automaticamente pelo js/carrinho.js
+      -->
+
+    </section>
+
+
+
+    <!-- ======================================================
+         RESUMO
+    ======================================================= -->
+
+    <aside
+      id="carrinho-resumo"
+      class="carrinho-resumo"
+    >
+
+
+      <h2 class="carrinho-resumo-titulo">
+        Resumo do pedido
+      </h2>
+
+
+
+      <!-- CORTINAS -->
+
+      <div class="carrinho-resumo-linha">
+
+        <span>
+          Cortinas
+        </span>
+
+        <strong id="resumo-cortinas">
+          R$ 0,00
+        </strong>
+
+      </div>
+
+
+
+      <!-- TRILHOS / VARÕES -->
+
+      <div
+        id="resumo-linha-trilhos"
+        class="carrinho-resumo-linha"
+      >
+
+        <span>
+          Trilhos / Varões
+        </span>
+
+        <strong id="resumo-trilhos">
+          R$ 0,00
+        </strong>
+
+      </div>
+
+
+
+      <!-- DIVISOR -->
+
+      <div
+        class="carrinho-resumo-divisor"
+        aria-hidden="true"
+      ></div>
+
+
+
+      <!-- TOTAL -->
+
+      <div class="carrinho-resumo-total">
+
+        <span>
+          Total
+        </span>
+
+        <strong id="carrinho-total">
+          R$ 0,00
+        </strong>
+
+      </div>
+
+
+
+      <!-- PARCELAMENTO -->
+
+      <div
+        id="carrinho-parcelamento"
+        class="carrinho-parcelamento"
+      >
+        ou 10x sem juros
+      </div>
+
+
+
+      <!-- CONTINUAR -->
+
+      <button
+        id="finalizar-pedido"
+        class="carrinho-finalizar"
+        type="button"
+      >
+        Continuar para entrega
+      </button>
+
+
+
+      <!-- ADICIONAR OUTRA -->
+
+      <a
+        href="index.html"
+        class="carrinho-continuar"
+      >
+        + Adicionar outra cortina
+      </a>
+
+
+    </aside>
+
+
+  </div>
+
+
+
+  <!-- ========================================================
+       CARRINHO VAZIO
+  ========================================================= -->
+
+  <section
+    id="carrinho-vazio"
+    class="carrinho-vazio"
+    hidden
+  >
+
+    <div class="carrinho-vazio-icone">
+      🛒
+    </div>
+
+
+    <h2>
+      Seu carrinho está vazio
+    </h2>
+
+
+    <p>
+      Configure sua cortina sob medida para adicioná-la ao carrinho.
+    </p>
+
+
+    <a
+      href="index.html"
+      class="carrinho-vazio-botao"
+    >
+      Configurar minha cortina
+    </a>
+
+  </section>
+
+
+</main>
+
+
+
+<!-- ==========================================================
+     JAVASCRIPT
+=========================================================== -->
+
+<script src="js/config.js"></script>
+
+<script src="js/carrinho.js"></script>
+
+
+</body>
+
+</html>
