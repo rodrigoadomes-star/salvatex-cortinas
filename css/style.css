@@ -2933,3 +2933,674 @@ body.modal-aberto{
   }
 
 }
+
+/* ==========================================================
+   CHECKOUT
+   ========================================================== */
+
+.pagina-checkout{
+  width:100%;
+  max-width:1180px;
+
+  margin:0 auto;
+
+  padding:46px 24px 80px;
+}
+
+
+/* ==========================================================
+   TOPO CHECKOUT
+   ========================================================== */
+
+.checkout-topo{
+  margin-bottom:30px;
+}
+
+.checkout-voltar{
+  display:inline-flex;
+
+  align-items:center;
+
+  margin-bottom:18px;
+
+  color:var(--muted);
+
+  font-size:13px;
+
+  transition:opacity .2s ease;
+}
+
+.checkout-voltar:hover{
+  opacity:.65;
+}
+
+.checkout-titulo{
+  margin:0;
+
+  font-family:Georgia,serif;
+
+  font-size:40px;
+  font-weight:400;
+
+  line-height:1.08;
+}
+
+.checkout-subtitulo{
+  margin:9px 0 0;
+
+  color:var(--muted);
+
+  font-size:14px;
+}
+
+
+/* ==========================================================
+   LAYOUT
+   ========================================================== */
+
+.checkout-layout{
+  width:100%;
+
+  display:grid;
+
+  grid-template-columns:
+    minmax(0,1fr)
+    minmax(320px,380px);
+
+  gap:28px;
+
+  align-items:start;
+}
+
+
+/* ==========================================================
+   FORMULÁRIO
+   ========================================================== */
+
+.checkout-formulario{
+  width:100%;
+
+  display:flex;
+
+  flex-direction:column;
+
+  gap:18px;
+}
+
+.checkout-bloco{
+  width:100%;
+
+  padding:28px;
+
+  background:#fff;
+
+  border:1px solid var(--line);
+  border-radius:18px;
+
+  box-shadow:
+    0 10px 30px rgba(33,29,24,.04);
+}
+
+.checkout-bloco h2{
+  margin:0 0 22px;
+
+  font-family:Georgia,serif;
+
+  font-size:24px;
+  font-weight:400;
+}
+
+
+/* ==========================================================
+   GRID DOS CAMPOS
+   ========================================================== */
+
+.checkout-grid{
+  display:grid;
+
+  grid-template-columns:
+    repeat(2,minmax(0,1fr));
+
+  gap:18px;
+}
+
+.checkout-field{
+  min-width:0;
+}
+
+.checkout-field-full{
+  grid-column:
+    1 / -1;
+}
+
+
+/* ==========================================================
+   CAMPOS
+   ========================================================== */
+
+.checkout-field label{
+  display:block;
+
+  margin-bottom:7px;
+
+  color:var(--ink);
+
+  font-size:11px;
+
+  text-transform:uppercase;
+
+  letter-spacing:.04em;
+}
+
+.checkout-field input,
+.checkout-field select,
+.checkout-field textarea{
+  width:100%;
+  min-width:0;
+
+  padding:14px 14px;
+
+  background:#fff;
+
+  color:var(--ink);
+
+  border:1px solid var(--line);
+  border-radius:11px;
+
+  outline:none;
+
+  font-size:14px;
+
+  transition:
+    border-color .2s ease,
+    box-shadow .2s ease;
+}
+
+.checkout-field textarea{
+  min-height:110px;
+
+  resize:vertical;
+
+  line-height:1.5;
+}
+
+.checkout-field input::placeholder,
+.checkout-field textarea::placeholder{
+  color:#aaa29a;
+}
+
+.checkout-field input:focus,
+.checkout-field select:focus,
+.checkout-field textarea:focus{
+  border-color:var(--accent);
+
+  box-shadow:
+    0 0 0 3px
+    rgba(110,83,59,.08);
+}
+
+.checkout-campo-erro{
+  border-color:#b95d52 !important;
+
+  box-shadow:
+    0 0 0 3px
+    rgba(185,93,82,.08) !important;
+}
+
+
+/* ==========================================================
+   PRAZOS
+   ========================================================== */
+
+.checkout-prazos{
+  background:var(--soft);
+}
+
+.checkout-prazo-linha{
+  display:flex;
+
+  justify-content:space-between;
+
+  gap:18px;
+
+  padding:11px 0;
+
+  border-bottom:
+    1px solid var(--line);
+
+  font-size:13px;
+}
+
+.checkout-prazo-linha:last-of-type{
+  border-bottom:0;
+}
+
+.checkout-prazo-linha span{
+  color:var(--muted);
+}
+
+.checkout-prazo-linha strong{
+  text-align:right;
+}
+
+.checkout-prazos p{
+  margin:14px 0 0;
+
+  color:var(--muted);
+
+  font-size:11px;
+
+  line-height:1.55;
+}
+
+
+/* ==========================================================
+   RESUMO CHECKOUT
+   ========================================================== */
+
+.checkout-resumo{
+  position:sticky;
+
+  top:95px;
+
+  width:100%;
+
+  padding:24px;
+
+  background:#f8f5f1;
+
+  border:1px solid var(--line);
+  border-radius:18px;
+
+  box-shadow:
+    0 14px 38px rgba(33,29,24,.06);
+}
+
+.checkout-resumo h2{
+  margin:0 0 20px;
+
+  font-family:Georgia,serif;
+
+  font-size:24px;
+  font-weight:400;
+}
+
+
+/* ==========================================================
+   ITENS DO PEDIDO
+   ========================================================== */
+
+.checkout-itens{
+  width:100%;
+
+  display:flex;
+
+  flex-direction:column;
+
+  gap:13px;
+}
+
+.checkout-item{
+  padding:13px 0;
+
+  border-bottom:
+    1px solid var(--line);
+}
+
+.checkout-item:last-child{
+  border-bottom:0;
+}
+
+.checkout-item-topo{
+  display:flex;
+
+  justify-content:space-between;
+
+  gap:14px;
+
+  align-items:flex-start;
+}
+
+.checkout-item-topo strong{
+  font-size:13px;
+}
+
+.checkout-item-produto{
+  margin-top:5px;
+
+  color:var(--ink);
+
+  font-size:12px;
+
+  font-weight:600;
+}
+
+.checkout-item-detalhe{
+  margin-top:3px;
+
+  color:var(--muted);
+
+  font-size:11px;
+
+  line-height:1.4;
+}
+
+
+/* ==========================================================
+   LINHAS DE RESUMO
+   ========================================================== */
+
+.checkout-resumo-divisor{
+  height:1px;
+
+  margin:19px 0;
+
+  background:var(--line);
+}
+
+.checkout-resumo-linha{
+  display:flex;
+
+  justify-content:space-between;
+
+  gap:18px;
+
+  margin-bottom:11px;
+
+  color:var(--muted);
+
+  font-size:13px;
+}
+
+.checkout-resumo-linha strong{
+  color:var(--ink);
+
+  white-space:nowrap;
+}
+
+
+/* ==========================================================
+   TOTAL
+   ========================================================== */
+
+.checkout-total{
+  display:flex;
+
+  justify-content:space-between;
+
+  gap:18px;
+
+  align-items:center;
+}
+
+.checkout-total span{
+  font-size:14px;
+
+  font-weight:600;
+}
+
+.checkout-total strong{
+  font-family:Georgia,serif;
+
+  font-size:29px;
+
+  font-weight:400;
+}
+
+.checkout-parcelamento{
+  margin-top:6px;
+
+  color:var(--muted);
+
+  font-size:11px;
+
+  text-align:right;
+}
+
+
+/* ==========================================================
+   AVISO FRETE
+   ========================================================== */
+
+.checkout-frete-aviso{
+  margin-top:16px;
+
+  padding:12px 13px;
+
+  background:#fff;
+
+  border:1px solid var(--line);
+  border-radius:10px;
+
+  color:var(--muted);
+
+  font-size:11px;
+
+  line-height:1.5;
+}
+
+
+/* ==========================================================
+   BOTÃO CONTINUAR
+   ========================================================== */
+
+.checkout-botao{
+  width:100%;
+
+  margin-top:20px;
+
+  padding:15px 18px;
+
+  background:var(--ink);
+
+  color:#fff;
+
+  border:0;
+  border-radius:12px;
+
+  font-size:13px;
+  font-weight:600;
+
+  cursor:pointer;
+
+  transition:
+    opacity .2s ease,
+    transform .2s ease;
+}
+
+.checkout-botao:hover{
+  opacity:.92;
+
+  transform:translateY(-1px);
+}
+
+.checkout-editar{
+  width:100%;
+
+  display:flex;
+
+  justify-content:center;
+  align-items:center;
+
+  margin-top:10px;
+
+  padding:13px 16px;
+
+  background:#fff;
+
+  border:1px solid var(--line);
+  border-radius:12px;
+
+  font-size:12px;
+
+  font-weight:600;
+}
+
+
+/* ==========================================================
+   CHECKOUT VAZIO
+   ========================================================== */
+
+.checkout-vazio{
+  max-width:650px;
+
+  margin:70px auto;
+
+  padding:45px 28px;
+
+  background:#fff;
+
+  border:1px solid var(--line);
+  border-radius:18px;
+
+  text-align:center;
+}
+
+.checkout-vazio h1{
+  margin:0 0 10px;
+
+  font-size:35px;
+}
+
+.checkout-vazio p{
+  margin:0 0 22px;
+
+  color:var(--muted);
+
+  line-height:1.55;
+}
+
+.checkout-vazio a{
+  display:inline-flex;
+
+  padding:13px 18px;
+
+  background:var(--ink);
+
+  color:#fff;
+
+  border-radius:11px;
+
+  font-size:12px;
+
+  font-weight:600;
+}
+
+
+/* ==========================================================
+   CHECKOUT TABLET
+   ========================================================== */
+
+@media(max-width:900px){
+
+  .checkout-layout{
+    grid-template-columns:1fr;
+  }
+
+  .checkout-resumo{
+    position:static;
+  }
+
+}
+
+/* ==========================================================
+   CHECKOUT CELULAR
+   ========================================================== */
+
+@media(max-width:600px){
+
+  .pagina-checkout{
+    padding:
+      28px 12px
+      60px;
+  }
+
+  .checkout-topo{
+    margin-bottom:22px;
+  }
+
+  .checkout-voltar{
+    margin-bottom:14px;
+
+    font-size:12px;
+  }
+
+  .checkout-titulo{
+    font-size:31px;
+  }
+
+  .checkout-subtitulo{
+    font-size:13px;
+  }
+
+  .checkout-layout{
+    grid-template-columns:1fr;
+
+    gap:18px;
+  }
+
+  .checkout-bloco{
+    padding:20px 16px;
+
+    border-radius:14px;
+  }
+
+  .checkout-bloco h2{
+    margin-bottom:18px;
+
+    font-size:21px;
+  }
+
+  .checkout-grid{
+    grid-template-columns:1fr;
+
+    gap:14px;
+  }
+
+  .checkout-field-full{
+    grid-column:auto;
+  }
+
+  .checkout-field input,
+  .checkout-field select,
+  .checkout-field textarea{
+    min-height:50px;
+
+    font-size:16px;
+  }
+
+  .checkout-field textarea{
+    min-height:110px;
+  }
+
+  .checkout-prazo-linha{
+    display:block;
+  }
+
+  .checkout-prazo-linha strong{
+    display:block;
+
+    margin-top:4px;
+
+    text-align:left;
+  }
+
+  .checkout-resumo{
+    position:static;
+
+    padding:20px 17px;
+
+    border-radius:14px;
+  }
+
+  .checkout-total strong{
+    font-size:27px;
+  }
+
+  .checkout-botao{
+    min-height:50px;
+
+    font-size:14px;
+  }
+
+}
