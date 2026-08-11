@@ -10,14 +10,14 @@
     content="width=device-width, initial-scale=1.0"
   >
 
+  <title>
+    Pagamento | Salvatex Cortinas
+  </title>
+
   <meta
     name="description"
     content="Pagamento Salvatex Cortinas"
   >
-
-  <title>
-    Pagamento | Salvatex Cortinas
-  </title>
 
   <link
     rel="stylesheet"
@@ -30,14 +30,48 @@
 <body>
 
 
+<!-- =========================================================
+     CABEÇALHO
+     ========================================================= -->
+
+<header class="topbar">
+
+  <div class="shell nav">
+
+    <a
+      class="logo"
+      href="index.html"
+    >
+      SALVATEX
+
+      <small>
+        CORTINAS
+      </small>
+
+    </a>
+
+
+    <div class="pagamento-etapa-topo">
+      Pagamento
+    </div>
+
+  </div>
+
+</header>
+
+
+<!-- =========================================================
+     PÁGINA
+     ========================================================= -->
+
 <main class="pagina-pagamento">
 
 
-  <!-- ========================================================
+  <!-- =======================================================
        TOPO
-  ========================================================= -->
+       ======================================================= -->
 
-  <header class="pagamento-topo">
+  <div class="pagamento-topo">
 
     <a
       href="checkout.html"
@@ -47,49 +81,67 @@
     </a>
 
 
+    <div class="pagamento-kicker">
+      Finalização do pedido
+    </div>
+
+
     <h1 class="pagamento-titulo">
       Pagamento
     </h1>
 
 
     <p class="pagamento-subtitulo">
-      Escolha como deseja pagar seu pedido.
+      Confira seu pedido e escolha como deseja pagar.
     </p>
 
-  </header>
+  </div>
 
 
-
-  <!-- ========================================================
+  <!-- =======================================================
        LAYOUT
-  ========================================================= -->
+       ======================================================= -->
 
   <div class="pagamento-layout">
 
 
-    <!-- ======================================================
-         FORMAS DE PAGAMENTO
-    ======================================================= -->
+    <!-- =====================================================
+         LADO ESQUERDO
+         ===================================================== -->
 
     <section class="pagamento-opcoes">
 
 
+      <!-- ===================================================
+           FORMA DE PAGAMENTO
+           =================================================== -->
+
       <div class="pagamento-bloco">
 
-        <h2>
-          Forma de pagamento
-        </h2>
+        <div class="pagamento-bloco-cabecalho">
+
+          <span class="pagamento-numero">
+            1
+          </span>
+
+          <div>
+
+            <h2>
+              Forma de pagamento
+            </h2>
+
+            <p class="pagamento-descricao">
+              Selecione uma das opções abaixo.
+            </p>
+
+          </div>
+
+        </div>
 
 
-        <p class="pagamento-descricao">
-          Selecione uma das opções abaixo.
-        </p>
-
-
-
-        <!-- ==================================================
+        <!-- =================================================
              CARTÃO
-        =================================================== -->
+             ================================================= -->
 
         <label class="pagamento-opcao">
 
@@ -99,15 +151,28 @@
             value="cartao"
           >
 
+
+          <span class="pagamento-radio-custom"></span>
+
+
           <div class="pagamento-opcao-conteudo">
 
             <div class="pagamento-opcao-topo">
 
-              <strong>
-                Cartão de crédito
-              </strong>
+              <div>
 
-              <span>
+                <strong>
+                  Cartão de crédito
+                </strong>
+
+                <small>
+                  Visa, Mastercard e outras bandeiras
+                </small>
+
+              </div>
+
+
+              <span class="pagamento-opcao-destaque">
                 Até 10x sem juros
               </span>
 
@@ -115,7 +180,8 @@
 
 
             <p>
-              O pagamento será processado em ambiente seguro.
+              O pagamento será processado em ambiente
+              seguro após a confirmação do pedido.
             </p>
 
           </div>
@@ -123,10 +189,9 @@
         </label>
 
 
-
-        <!-- ==================================================
+        <!-- =================================================
              PIX
-        =================================================== -->
+             ================================================= -->
 
         <label class="pagamento-opcao">
 
@@ -136,24 +201,37 @@
             value="pix"
           >
 
+
+          <span class="pagamento-radio-custom"></span>
+
+
           <div class="pagamento-opcao-conteudo">
 
             <div class="pagamento-opcao-topo">
 
-              <strong>
-                PIX
-              </strong>
+              <div>
 
-              <span>
-                Pagamento à vista
+                <strong>
+                  PIX
+                </strong>
+
+                <small>
+                  Pagamento à vista
+                </small>
+
+              </div>
+
+
+              <span class="pagamento-opcao-destaque">
+                Aprovação rápida
               </span>
 
             </div>
 
 
             <p>
-              Após continuar, o sistema poderá gerar o QR Code
-              para pagamento.
+              Após continuar, serão exibidas as
+              instruções para pagamento via PIX.
             </p>
 
           </div>
@@ -161,87 +239,165 @@
         </label>
 
 
-
-        <!-- ==================================================
-             INFORMAÇÃO DO GATEWAY
-        =================================================== -->
+        <!-- =================================================
+             INFORMAÇÃO
+             ================================================= -->
 
         <div
           id="pagamento-info"
           class="pagamento-info"
         >
-
           Selecione a forma de pagamento para continuar.
-
         </div>
-
 
       </div>
 
 
-
-      <!-- ====================================================
-           SEGURANÇA
-      ===================================================== -->
+      <!-- ===================================================
+           SEGURANÇA / PRAZOS
+           =================================================== -->
 
       <div class="pagamento-bloco pagamento-seguranca">
 
-        <h2>
-          Compra segura
-        </h2>
+        <div class="pagamento-bloco-cabecalho">
 
-
-        <div class="pagamento-seguranca-item">
-
-          <strong>
-            Pagamento protegido
-          </strong>
-
-          <span>
-            Seus dados de pagamento não serão armazenados diretamente
-            pela Salvatex.
+          <span class="pagamento-numero">
+            2
           </span>
+
+          <div>
+
+            <h2>
+              Informações do pedido
+            </h2>
+
+            <p class="pagamento-descricao">
+              Produção, entrega e segurança da compra.
+            </p>
+
+          </div>
 
         </div>
 
 
-        <div class="pagamento-seguranca-item">
+        <div class="pagamento-seguranca-grid">
 
-          <strong>
-            Produção sob medida
-          </strong>
 
-          <span>
-            O pedido entra em produção após a confirmação do pagamento.
-          </span>
+          <!-- PAGAMENTO -->
+
+          <div class="pagamento-seguranca-item">
+
+            <div class="pagamento-seguranca-icone">
+              ✓
+            </div>
+
+            <div>
+
+              <strong>
+                Pagamento protegido
+              </strong>
+
+              <span>
+                Seus dados de pagamento não são armazenados
+                diretamente pela Salvatex.
+              </span>
+
+            </div>
+
+          </div>
+
+
+          <!-- PRODUÇÃO -->
+
+          <div class="pagamento-seguranca-item">
+
+            <div class="pagamento-seguranca-icone">
+              ✂
+            </div>
+
+            <div>
+
+              <strong>
+                Produção sob medida
+              </strong>
+
+              <span>
+                A fabricação começa após a confirmação
+                do pagamento.
+              </span>
+
+            </div>
+
+          </div>
+
+
+          <!-- PRAZO PRODUÇÃO -->
+
+          <div class="pagamento-seguranca-item">
+
+            <div class="pagamento-seguranca-icone">
+              ◷
+            </div>
+
+            <div>
+
+              <strong>
+                Prazo de produção
+              </strong>
+
+              <span>
+                5 a 10 dias.
+              </span>
+
+            </div>
+
+          </div>
+
+
+          <!-- PRAZO ENTREGA -->
+
+          <div class="pagamento-seguranca-item">
+
+            <div class="pagamento-seguranca-icone">
+              ▢
+            </div>
+
+            <div>
+
+              <strong>
+                Prazo de entrega
+              </strong>
+
+              <span>
+                6 a 12 dias úteis após o envio.
+              </span>
+
+            </div>
+
+          </div>
+
 
         </div>
 
-
-        <div class="pagamento-seguranca-item">
-
-          <strong>
-            Prazo de produção
-          </strong>
-
-          <span>
-            5 a 10 dias úteis.
-          </span>
-
-        </div>
+      </div>
 
 
-        <div class="pagamento-seguranca-item">
+      <!-- ===================================================
+           OBSERVAÇÃO
+           =================================================== -->
 
-          <strong>
-            Prazo de entrega
-          </strong>
+      <div class="pagamento-aviso">
 
-          <span>
-            6 a 12 dias úteis após o envio.
-          </span>
+        <strong>
+          Importante
+        </strong>
 
-        </div>
+        <p>
+          As cortinas são confeccionadas sob medida conforme
+          as informações selecionadas no configurador.
+          Confira medidas, tecido, cor, forro e acabamento
+          antes de concluir o pagamento.
+        </p>
 
       </div>
 
@@ -249,21 +405,41 @@
     </section>
 
 
-
-    <!-- ======================================================
+    <!-- =====================================================
          RESUMO DO PEDIDO
-    ======================================================= -->
+         ===================================================== -->
 
     <aside class="pagamento-resumo">
 
 
-      <h2>
-        Resumo do pedido
-      </h2>
+      <div class="pagamento-resumo-cabecalho">
+
+        <div>
+
+          <span class="pagamento-resumo-kicker">
+            Seu pedido
+          </span>
+
+          <h2>
+            Resumo do pedido
+          </h2>
+
+        </div>
 
 
+        <a
+          href="carrinho.html"
+          class="pagamento-resumo-editar"
+        >
+          Editar
+        </a>
 
-      <!-- CLIENTE -->
+      </div>
+
+
+      <!-- ===================================================
+           CLIENTE
+           =================================================== -->
 
       <div
         id="pagamento-cliente"
@@ -271,25 +447,24 @@
       ></div>
 
 
-
-      <!-- ITENS -->
+      <!-- ===================================================
+           ITENS
+           =================================================== -->
 
       <div
         id="pagamento-itens"
         class="pagamento-itens"
       >
-
         <!-- Inserido pelo pagamento.js -->
-
       </div>
-
 
 
       <div class="pagamento-resumo-divisor"></div>
 
 
-
-      <!-- CORTINAS -->
+      <!-- ===================================================
+           CORTINAS
+           =================================================== -->
 
       <div class="pagamento-resumo-linha">
 
@@ -304,8 +479,9 @@
       </div>
 
 
-
-      <!-- TRILHOS -->
+      <!-- ===================================================
+           TRILHOS
+           =================================================== -->
 
       <div
         id="pagamento-linha-trilhos"
@@ -323,8 +499,9 @@
       </div>
 
 
-
-      <!-- FRETE -->
+      <!-- ===================================================
+           FRETE
+           =================================================== -->
 
       <div class="pagamento-resumo-linha">
 
@@ -339,12 +516,18 @@
       </div>
 
 
+      <div
+        id="pagamento-frete-aviso"
+        class="pagamento-frete-aviso"
+      ></div>
+
 
       <div class="pagamento-resumo-divisor"></div>
 
 
-
-      <!-- TOTAL -->
+      <!-- ===================================================
+           TOTAL
+           =================================================== -->
 
       <div class="pagamento-total">
 
@@ -359,8 +542,9 @@
       </div>
 
 
-
-      <!-- PARCELAMENTO -->
+      <!-- ===================================================
+           PARCELAMENTO
+           =================================================== -->
 
       <div
         id="pagamento-parcelamento"
@@ -370,27 +554,31 @@
       </div>
 
 
-
-      <!-- ====================================================
-           FINALIZAR
-      ===================================================== -->
+      <!-- ===================================================
+           BOTÃO
+           =================================================== -->
 
       <button
         id="pagamento-finalizar"
         type="button"
         class="pagamento-botao"
+        disabled
       >
-        Finalizar pagamento
+        Selecione a forma de pagamento
       </button>
-
 
 
       <a
         href="checkout.html"
         class="pagamento-editar"
       >
-        Editar dados do pedido
+        Editar dados de entrega
       </a>
+
+
+      <div class="pagamento-resumo-seguranca">
+        🔒 Ambiente protegido para finalizar seu pedido
+      </div>
 
 
     </aside>
@@ -402,10 +590,26 @@
 </main>
 
 
+<!-- =========================================================
+     RODAPÉ
+     ========================================================= -->
 
-<!-- ==========================================================
+<footer class="footer">
+
+  <div class="shell">
+
+    SALVATEX CORTINAS ·
+    Cortinas sob medida ·
+    2026
+
+  </div>
+
+</footer>
+
+
+<!-- =========================================================
      JAVASCRIPT
-=========================================================== -->
+     ========================================================= -->
 
 <script src="js/config.js"></script>
 
