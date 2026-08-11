@@ -1114,13 +1114,6 @@ function atualizarAvisoFrete(
     }
 
 
-    if (textoGratis) {
-
-      textoGratis.textContent =
-        "As cortinas do pedido atingiram R$ 500. Trilhos ou varões comprados junto também recebem o benefício.";
-
-    }
-
 
     return;
 
