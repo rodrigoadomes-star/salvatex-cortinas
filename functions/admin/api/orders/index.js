@@ -5,7 +5,7 @@ export async function onRequestGet(context) {
   let sql=`SELECT id, order_number, customer_name, customer_email, customer_phone, status, stage, subtotal_cents, freight_cents, discount_cents, total_cents, created_at, updated_at FROM orders WHERE store_id='salvatex'`;
   const binds=[];
   if(status){binds.push(status); sql+=` AND status=?${binds.length}`;}
-  if(q){binds.push(`%${q}%`); sql+=` AND (order_number LIKE ?${binds.length} OR customer_name LIKE ?${binds.length} OR customer_email LIKE ?${binds.length})`;}
+  if(q){binds.push(`%${q}%`); sql+=` AND (order_number LIKE ?${binds.length} OR customer_name LIKE ?${binds.length} OR customer_email LIKE ?${binds.length} OR customer_phone LIKE ?${binds.length})`;}
   sql+=` ORDER BY created_at DESC LIMIT ${limit}`;
   const stmt=context.env.DB.prepare(sql); const rows=binds.length?await stmt.bind(...binds).all():await stmt.all();
   return json({ok:true, orders:rows.results||[]});
