@@ -2,11 +2,57 @@
 // CARRINHO - SALVATEX CORTINAS
 // ============================================================
 
-const CHAVE_CARRINHO = "salvatexCarrinho";
+const CHAVE_CARRINHO =
+  "salvatexCarrinho";
 
 
 // ============================================================
-// FORMATAÇÃO BRL
+// CONFIGURAÇÕES DE FRETE
+// ============================================================
+
+const CONFIG_FRETE = {
+
+  minimoFreteGratisCortinas:
+    500,
+
+  producaoMin:
+    5,
+
+  producaoMax:
+    10,
+
+  entregaMin:
+    6,
+
+  entregaMax:
+    12
+
+};
+
+
+// ============================================================
+// ESTADO DO FRETE
+// ============================================================
+
+let estadoFrete = {
+
+  cep:
+    "",
+
+  calculado:
+    false,
+
+  gratis:
+    false,
+
+  valor:
+    null
+
+};
+
+
+// ============================================================
+// BRL
 // ============================================================
 
 function brl(valor) {
@@ -16,8 +62,11 @@ function brl(valor) {
   ).toLocaleString(
     "pt-BR",
     {
-      style: "currency",
-      currency: "BRL"
+      style:
+        "currency",
+
+      currency:
+        "BRL"
     }
   );
 
@@ -25,10 +74,12 @@ function brl(valor) {
 
 
 // ============================================================
-// FORMATA MEDIDA
+// MEDIDA
 // ============================================================
 
-function formatarMedida(valor) {
+function formatarMedida(
+  valor
+) {
 
   return Number(
     valor || 0
@@ -106,22 +157,6 @@ function salvarCarrinho(
 
 
 // ============================================================
-// LIMPAR CARRINHO
-// ============================================================
-
-function limparCarrinho() {
-
-  localStorage.removeItem(
-    CHAVE_CARRINHO
-  );
-
-
-  renderizarCarrinho();
-
-}
-
-
-// ============================================================
 // REMOVER ITEM
 // ============================================================
 
@@ -146,7 +181,49 @@ function removerItemCarrinho(
   );
 
 
+  resetarFrete();
+
+
   renderizarCarrinho();
+
+}
+
+
+// ============================================================
+// RESETAR FRETE
+// ============================================================
+
+function resetarFrete() {
+
+  estadoFrete = {
+
+    cep:
+      "",
+
+    calculado:
+      false,
+
+    gratis:
+      false,
+
+    valor:
+      null
+
+  };
+
+
+  const cep =
+    document.getElementById(
+      "cep-frete"
+    );
+
+
+  if (cep) {
+
+    cep.value =
+      "";
+
+  }
 
 }
 
@@ -173,7 +250,8 @@ function criarDetalhe(
 
 
   strong.textContent =
-    titulo + ": ";
+    titulo +
+    ": ";
 
 
   const span =
@@ -183,7 +261,8 @@ function criarDetalhe(
 
 
   span.textContent =
-    valor || "—";
+    valor ||
+    "—";
 
 
   div.appendChild(
@@ -209,27 +288,27 @@ function criarPlaceholder(
   texto
 ) {
 
-  const placeholder =
+  const elemento =
     document.createElement(
       "div"
     );
 
 
-  placeholder.className =
+  elemento.className =
     "carrinho-item-sem-imagem";
 
 
-  placeholder.textContent =
+  elemento.textContent =
     texto;
 
 
-  return placeholder;
+  return elemento;
 
 }
 
 
 // ============================================================
-// CRIAR ITEM — CORTINA
+// CORTINA
 // ============================================================
 
 function criarItemCortina(
@@ -247,10 +326,12 @@ function criarItemCortina(
 
 
   // ==========================================================
-  // IMAGEM
+  // FOTO
   // ==========================================================
 
-  if (item.imagem) {
+  if (
+    item.imagem
+  ) {
 
     const imagem =
       document.createElement(
@@ -311,10 +392,6 @@ function criarItemCortina(
     "carrinho-item-conteudo";
 
 
-  // ==========================================================
-  // TOPO
-  // ==========================================================
-
   const topo =
     document.createElement(
       "div"
@@ -337,7 +414,8 @@ function criarItemCortina(
 
   titulo.textContent =
     item.tecido
-      ? `Cortina ${item.tecido}`
+      ? "Cortina " +
+        item.tecido
       : "Cortina sob medida";
 
 
@@ -421,14 +499,18 @@ function criarItemCortina(
   detalhes.appendChild(
     criarDetalhe(
       "Ambiente",
+
       formatarMedida(
         item.larguraAmbiente ??
         item.largura
       ) +
+
       " × " +
+
       formatarMedida(
         item.altura
       ) +
+
       " m"
     )
   );
@@ -437,13 +519,17 @@ function criarItemCortina(
   detalhes.appendChild(
     criarDetalhe(
       "Consumo de tecido",
+
       formatarMedida(
         item.consumoTecido
       ) +
+
       " × " +
+
       formatarMedida(
         item.altura
       ) +
+
       " m"
     )
   );
@@ -452,10 +538,16 @@ function criarItemCortina(
   detalhes.appendChild(
     criarDetalhe(
       "Franzimento",
+
       String(
-        item.franzimento || ""
+        item.franzimento ||
+        ""
       )
-        .replace(".", ",") +
+        .replace(
+          ".",
+          ","
+        ) +
+
       "x"
     )
   );
@@ -464,6 +556,7 @@ function criarItemCortina(
   detalhes.appendChild(
     criarDetalhe(
       "Barra",
+
       item.barra
         ? item.barra +
           " cm"
@@ -478,7 +571,7 @@ function criarItemCortina(
 
 
   // ==========================================================
-  // AÇÕES
+  // REMOVER
   // ==========================================================
 
   const acoes =
@@ -542,7 +635,7 @@ function criarItemCortina(
 
 
 // ============================================================
-// CRIAR ITEM — TRILHO / VARÃO
+// TRILHO / VARÃO
 // ============================================================
 
 function criarItemTrilho(
@@ -559,22 +652,12 @@ function criarItemTrilho(
     "carrinho-item";
 
 
-  // ==========================================================
-  // PLACEHOLDER
-  //
-  // Depois podemos colocar foto própria de cada trilho/varão.
-  // ==========================================================
-
   artigo.appendChild(
     criarPlaceholder(
       "Trilho / Varão"
     )
   );
 
-
-  // ==========================================================
-  // CONTEÚDO
-  // ==========================================================
 
   const conteudo =
     document.createElement(
@@ -585,10 +668,6 @@ function criarItemTrilho(
   conteudo.className =
     "carrinho-item-conteudo";
 
-
-  // ==========================================================
-  // TOPO
-  // ==========================================================
 
   const topo =
     document.createElement(
@@ -647,10 +726,6 @@ function criarItemTrilho(
   );
 
 
-  // ==========================================================
-  // DETALHES
-  // ==========================================================
-
   const detalhes =
     document.createElement(
       "div"
@@ -664,6 +739,7 @@ function criarItemTrilho(
   detalhes.appendChild(
     criarDetalhe(
       "Produto",
+
       item.produto ||
       item.trilho
     )
@@ -673,9 +749,11 @@ function criarItemTrilho(
   detalhes.appendChild(
     criarDetalhe(
       "Medida",
+
       formatarMedida(
         item.largura
       ) +
+
       " m"
     )
   );
@@ -684,8 +762,10 @@ function criarItemTrilho(
   detalhes.appendChild(
     criarDetalhe(
       "Quantidade",
+
       String(
-        item.quantidade || 1
+        item.quantidade ||
+        1
       )
     )
   );
@@ -695,10 +775,6 @@ function criarItemTrilho(
     detalhes
   );
 
-
-  // ==========================================================
-  // AÇÕES
-  // ==========================================================
 
   const acoes =
     document.createElement(
@@ -761,7 +837,7 @@ function criarItemTrilho(
 
 
 // ============================================================
-// CRIAR ITEM
+// ESCOLHE TIPO
 // ============================================================
 
 function criarItemCarrinho(
@@ -788,7 +864,700 @@ function criarItemCarrinho(
 
 
 // ============================================================
-// MOSTRAR CARRINHO VAZIO
+// TOTAIS
+// ============================================================
+
+function calcularTotais(
+  carrinho
+) {
+
+  let cortinas =
+    0;
+
+
+  let trilhos =
+    0;
+
+
+  carrinho.forEach(
+    (item) => {
+
+      const valor =
+        Number(
+          item.total ||
+          0
+        );
+
+
+      if (
+        item.tipo ===
+        "trilho"
+      ) {
+
+        trilhos +=
+          valor;
+
+      } else {
+
+        cortinas +=
+          valor;
+
+      }
+
+    }
+  );
+
+
+  const subtotal =
+    cortinas +
+    trilhos;
+
+
+  return {
+
+    cortinas,
+
+    trilhos,
+
+    subtotal
+
+  };
+
+}
+
+
+// ============================================================
+// REGRA DE FRETE GRÁTIS
+//
+// IMPORTANTE:
+//
+// APENAS O VALOR DAS CORTINAS CONTA PARA OS R$ 500.
+//
+// TRILHO NÃO ENTRA NO CÁLCULO.
+//
+// SE AS CORTINAS ATINGIREM R$ 500,
+// O TRILHO COMPRADO JUNTO TAMBÉM RECEBE FRETE GRÁTIS.
+// ============================================================
+
+function verificarFreteGratis(
+  carrinho
+) {
+
+  const totais =
+    calcularTotais(
+      carrinho
+    );
+
+
+  const possuiCortina =
+    carrinho.some(
+      (item) =>
+        item.tipo !==
+        "trilho"
+    );
+
+
+  const gratis =
+    possuiCortina &&
+
+    totais.cortinas >=
+      CONFIG_FRETE
+        .minimoFreteGratisCortinas;
+
+
+  const falta =
+    Math.max(
+      0,
+
+      CONFIG_FRETE
+        .minimoFreteGratisCortinas -
+
+      totais.cortinas
+    );
+
+
+  return {
+
+    gratis,
+
+    falta,
+
+    totalCortinas:
+      totais.cortinas,
+
+    possuiCortina
+
+  };
+
+}
+
+
+// ============================================================
+// FORMATA CEP
+// ============================================================
+
+function formatarCep(
+  valor
+) {
+
+  const numeros =
+    String(
+      valor ||
+      ""
+    )
+      .replace(
+        /\D/g,
+        ""
+      )
+      .slice(
+        0,
+        8
+      );
+
+
+  if (
+    numeros.length <=
+    5
+  ) {
+
+    return numeros;
+
+  }
+
+
+  return (
+    numeros.slice(
+      0,
+      5
+    ) +
+
+    "-" +
+
+    numeros.slice(
+      5
+    )
+  );
+
+}
+
+
+// ============================================================
+// VALIDA CEP
+// ============================================================
+
+function cepValido(
+  cep
+) {
+
+  return /^\d{5}-?\d{3}$/.test(
+    cep
+  );
+
+}
+
+
+// ============================================================
+// ATUALIZA AVISO DE FRETE
+// ============================================================
+
+function atualizarAvisoFrete(
+  carrinho
+) {
+
+  const regra =
+    verificarFreteGratis(
+      carrinho
+    );
+
+
+  const gratis =
+    document.getElementById(
+      "frete-gratis-aviso"
+    );
+
+
+  const falta =
+    document.getElementById(
+      "frete-falta-aviso"
+    );
+
+
+  const textoFalta =
+    document.getElementById(
+      "frete-falta-texto"
+    );
+
+
+  const textoGratis =
+    document.getElementById(
+      "frete-gratis-texto"
+    );
+
+
+  if (
+    regra.gratis
+  ) {
+
+    if (gratis) {
+
+      gratis.style.display =
+        "block";
+
+    }
+
+
+    if (falta) {
+
+      falta.style.display =
+        "none";
+
+    }
+
+
+    if (textoGratis) {
+
+      textoGratis.textContent =
+        "As cortinas do pedido atingiram R$ 500. Trilhos ou varões comprados junto também recebem o benefício.";
+
+    }
+
+
+    return;
+
+  }
+
+
+  if (gratis) {
+
+    gratis.style.display =
+      "none";
+
+  }
+
+
+  if (
+    regra.possuiCortina &&
+    regra.falta > 0
+  ) {
+
+    if (falta) {
+
+      falta.style.display =
+        "block";
+
+    }
+
+
+    if (textoFalta) {
+
+      textoFalta.textContent =
+        "Faltam " +
+        brl(
+          regra.falta
+        ) +
+        " em cortinas para ganhar frete grátis.";
+
+    }
+
+  } else {
+
+    if (falta) {
+
+      falta.style.display =
+        "none";
+
+    }
+
+  }
+
+}
+
+
+// ============================================================
+// CALCULAR FRETE
+//
+// Por enquanto:
+//
+// - identifica automaticamente frete grátis;
+// - valida CEP;
+// - frete pago fica "A calcular".
+//
+// Depois substituiremos a parte do frete pago
+// pela API da transportadora.
+// ============================================================
+
+function calcularFrete() {
+
+  const carrinho =
+    obterCarrinho();
+
+
+  if (
+    !carrinho.length
+  ) {
+
+    return;
+
+  }
+
+
+  const input =
+    document.getElementById(
+      "cep-frete"
+    );
+
+
+  const erro =
+    document.getElementById(
+      "cep-erro"
+    );
+
+
+  const bloco =
+    document.getElementById(
+      "bloco-entrega"
+    );
+
+
+  const valorFrete =
+    document.getElementById(
+      "valor-frete"
+    );
+
+
+  const resumoFrete =
+    document.getElementById(
+      "resumo-frete"
+    );
+
+
+  if (!input) {
+
+    return;
+
+  }
+
+
+  const cep =
+    formatarCep(
+      input.value
+    );
+
+
+  input.value =
+    cep;
+
+
+  if (
+    !cepValido(
+      cep
+    )
+  ) {
+
+    if (erro) {
+
+      erro.textContent =
+        "Informe um CEP válido.";
+
+      erro.style.display =
+        "block";
+
+    }
+
+
+    return;
+
+  }
+
+
+  if (erro) {
+
+    erro.style.display =
+      "none";
+
+  }
+
+
+  const regra =
+    verificarFreteGratis(
+      carrinho
+    );
+
+
+  estadoFrete.cep =
+    cep;
+
+
+  estadoFrete.calculado =
+    true;
+
+
+  if (
+    regra.gratis
+  ) {
+
+    estadoFrete.gratis =
+      true;
+
+
+    estadoFrete.valor =
+      0;
+
+
+    if (valorFrete) {
+
+      valorFrete.textContent =
+        "Grátis";
+
+    }
+
+
+    if (resumoFrete) {
+
+      resumoFrete.textContent =
+        "Grátis";
+
+    }
+
+  } else {
+
+    estadoFrete.gratis =
+      false;
+
+
+    estadoFrete.valor =
+      null;
+
+
+    if (valorFrete) {
+
+      valorFrete.textContent =
+        "A calcular";
+
+    }
+
+
+    if (resumoFrete) {
+
+      resumoFrete.textContent =
+        "A calcular";
+
+    }
+
+  }
+
+
+  if (bloco) {
+
+    bloco.style.display =
+      "block";
+
+  }
+
+
+  atualizarResumoCarrinho(
+    carrinho
+  );
+
+}
+
+
+// ============================================================
+// RESUMO
+// ============================================================
+
+function atualizarResumoCarrinho(
+  carrinho
+) {
+
+  const totais =
+    calcularTotais(
+      carrinho
+    );
+
+
+  const regraFrete =
+    verificarFreteGratis(
+      carrinho
+    );
+
+
+  const resumoCortinas =
+    document.getElementById(
+      "resumo-cortinas"
+    );
+
+
+  const resumoTrilhos =
+    document.getElementById(
+      "resumo-trilhos"
+    );
+
+
+  const linhaTrilhos =
+    document.getElementById(
+      "resumo-linha-trilhos"
+    );
+
+
+  const subtotal =
+    document.getElementById(
+      "carrinho-subtotal"
+    );
+
+
+  const resumoFrete =
+    document.getElementById(
+      "resumo-frete"
+    );
+
+
+  const total =
+    document.getElementById(
+      "carrinho-total"
+    );
+
+
+  const parcelamento =
+    document.getElementById(
+      "carrinho-parcelamento"
+    );
+
+
+  if (resumoCortinas) {
+
+    resumoCortinas.textContent =
+      brl(
+        totais.cortinas
+      );
+
+  }
+
+
+  if (resumoTrilhos) {
+
+    resumoTrilhos.textContent =
+      brl(
+        totais.trilhos
+      );
+
+  }
+
+
+  if (linhaTrilhos) {
+
+    linhaTrilhos.style.display =
+      totais.trilhos > 0
+        ? "flex"
+        : "none";
+
+  }
+
+
+  if (subtotal) {
+
+    subtotal.textContent =
+      brl(
+        totais.subtotal
+      );
+
+  }
+
+
+  // ==========================================================
+  // FRETE GRÁTIS PODE SER IDENTIFICADO
+  // ANTES MESMO DO CEP
+  // ==========================================================
+
+  if (
+    regraFrete.gratis
+  ) {
+
+    estadoFrete.gratis =
+      true;
+
+
+    estadoFrete.valor =
+      0;
+
+
+    if (resumoFrete) {
+
+      resumoFrete.textContent =
+        "Grátis";
+
+    }
+
+  } else if (
+    !estadoFrete.calculado
+  ) {
+
+    if (resumoFrete) {
+
+      resumoFrete.textContent =
+        "Informe o CEP";
+
+    }
+
+  }
+
+
+  let totalPedido =
+    totais.subtotal;
+
+
+  if (
+    typeof estadoFrete.valor ===
+    "number"
+  ) {
+
+    totalPedido +=
+      estadoFrete.valor;
+
+  }
+
+
+  if (total) {
+
+    total.textContent =
+      brl(
+        totalPedido
+      );
+
+  }
+
+
+  if (parcelamento) {
+
+    const parcelas =
+      Number(
+        CONFIG?.parcelas ||
+        10
+      );
+
+
+    parcelamento.textContent =
+      "ou " +
+      parcelas +
+      "x de " +
+      brl(
+        totalPedido /
+        parcelas
+      ) +
+      " sem juros";
+
+  }
+
+
+  atualizarAvisoFrete(
+    carrinho
+  );
+
+}
+
+
+// ============================================================
+// CARRINHO VAZIO
 // ============================================================
 
 function mostrarCarrinhoVazio() {
@@ -824,7 +1593,7 @@ function mostrarCarrinhoVazio() {
 
 
 // ============================================================
-// ESCONDER CARRINHO VAZIO
+// CARRINHO COM PRODUTOS
 // ============================================================
 
 function esconderCarrinhoVazio() {
@@ -860,192 +1629,7 @@ function esconderCarrinhoVazio() {
 
 
 // ============================================================
-// CALCULAR TOTAIS
-// ============================================================
-
-function calcularTotais(
-  carrinho
-) {
-
-  let cortinas = 0;
-
-  let trilhos = 0;
-
-  let total = 0;
-
-
-  carrinho.forEach(
-    (item) => {
-
-      const valor =
-        Number(
-          item.total || 0
-        );
-
-
-      if (
-        item.tipo ===
-        "trilho"
-      ) {
-
-        trilhos +=
-          valor;
-
-      } else {
-
-        cortinas +=
-          valor;
-
-      }
-
-
-      total +=
-        valor;
-
-    }
-  );
-
-
-  return {
-    cortinas,
-    trilhos,
-    total
-  };
-
-}
-
-
-// ============================================================
-// ATUALIZAR RESUMO
-// ============================================================
-
-function atualizarResumoCarrinho(
-  carrinho
-) {
-
-  const totais =
-    calcularTotais(
-      carrinho
-    );
-
-
-  const resumoCortinas =
-    document.getElementById(
-      "resumo-cortinas"
-    );
-
-
-  const resumoTrilhos =
-    document.getElementById(
-      "resumo-trilhos"
-    );
-
-
-  const linhaTrilhos =
-    document.getElementById(
-      "resumo-linha-trilhos"
-    );
-
-
-  const totalElemento =
-    document.getElementById(
-      "carrinho-total"
-    );
-
-
-  const parcelamento =
-    document.getElementById(
-      "carrinho-parcelamento"
-    );
-
-
-  if (
-    resumoCortinas
-  ) {
-
-    resumoCortinas.textContent =
-      brl(
-        totais.cortinas
-      );
-
-  }
-
-
-  if (
-    resumoTrilhos
-  ) {
-
-    resumoTrilhos.textContent =
-      brl(
-        totais.trilhos
-      );
-
-  }
-
-
-  if (
-    linhaTrilhos
-  ) {
-
-    linhaTrilhos.style.display =
-      totais.trilhos > 0
-        ? "flex"
-        : "none";
-
-  }
-
-
-  if (
-    totalElemento
-  ) {
-
-    totalElemento.textContent =
-      brl(
-        totais.total
-      );
-
-  }
-
-
-  if (
-    parcelamento
-  ) {
-
-    const parcelas =
-      Number(
-        CONFIG?.parcelas ||
-        10
-      );
-
-
-    if (
-      totais.total > 0
-    ) {
-
-      parcelamento.textContent =
-        "ou " +
-        parcelas +
-        "x de " +
-        brl(
-          totais.total /
-          parcelas
-        ) +
-        " sem juros";
-
-    } else {
-
-      parcelamento.textContent =
-        "";
-
-    }
-
-  }
-
-}
-
-
-// ============================================================
-// RENDERIZAR CARRINHO
+// RENDERIZA
 // ============================================================
 
 function renderizarCarrinho() {
@@ -1075,7 +1659,9 @@ function renderizarCarrinho() {
 
 
   if (!container) {
+
     return;
+
   }
 
 
@@ -1104,206 +1690,6 @@ function renderizarCarrinho() {
 
 
 // ============================================================
-// MONTAR MENSAGEM DO PEDIDO
-// ============================================================
-
-function montarMensagemPedido() {
-
-  const carrinho =
-    obterCarrinho();
-
-
-  if (
-    !carrinho.length
-  ) {
-
-    return "";
-
-  }
-
-
-  const totais =
-    calcularTotais(
-      carrinho
-    );
-
-
-  let mensagem =
-    "Olá! Gostaria de finalizar este pedido:\n\n";
-
-
-  let numeroCortina =
-    0;
-
-
-  carrinho.forEach(
-    (item) => {
-
-      // ======================================================
-      // CORTINA
-      // ======================================================
-
-      if (
-        item.tipo !==
-        "trilho"
-      ) {
-
-        numeroCortina++;
-
-
-        mensagem +=
-          "CORTINA " +
-          numeroCortina +
-          "\n";
-
-
-        mensagem +=
-          "Modelo: " +
-          (
-            item.modelo ||
-            "—"
-          ) +
-          "\n";
-
-
-        mensagem +=
-          "Tecido: " +
-          (
-            item.tecido ||
-            "—"
-          ) +
-          "\n";
-
-
-        mensagem +=
-          "Cor: " +
-          (
-            item.cor ||
-            "—"
-          ) +
-          "\n";
-
-
-        mensagem +=
-          "Forro: " +
-          (
-            item.forro ||
-            "—"
-          ) +
-          "\n";
-
-
-        mensagem +=
-          "Ambiente: " +
-          formatarMedida(
-            item.larguraAmbiente ??
-            item.largura
-          ) +
-          " m x " +
-          formatarMedida(
-            item.altura
-          ) +
-          " m\n";
-
-
-        mensagem +=
-          "Consumo: " +
-          formatarMedida(
-            item.consumoTecido
-          ) +
-          " m x " +
-          formatarMedida(
-            item.altura
-          ) +
-          " m\n";
-
-
-        mensagem +=
-          "Franzimento: " +
-          String(
-            item.franzimento ||
-            "—"
-          ).replace(
-            ".",
-            ","
-          ) +
-          "x\n";
-
-
-        mensagem +=
-          "Barra: " +
-          (
-            item.barra
-              ? item.barra +
-                " cm"
-              : "Sob consulta"
-          ) +
-          "\n";
-
-
-        mensagem +=
-          "Valor: " +
-          brl(
-            item.total
-          ) +
-          "\n\n";
-
-
-        return;
-
-      }
-
-
-      // ======================================================
-      // TRILHO / VARÃO
-      // ======================================================
-
-      mensagem +=
-        "TRILHO / VARÃO\n";
-
-
-      mensagem +=
-        "Produto: " +
-        (
-          item.produto ||
-          item.trilho ||
-          "—"
-        ) +
-        "\n";
-
-
-      mensagem +=
-        "Medida: " +
-        formatarMedida(
-          item.largura
-        ) +
-        " m\n";
-
-
-      mensagem +=
-        "Valor: " +
-        brl(
-          item.total
-        ) +
-        "\n\n";
-
-    }
-  );
-
-
-  mensagem +=
-    "TOTAL DO PEDIDO: " +
-    brl(
-      totais.total
-    );
-
-
-  return mensagem;
-
-}
-
-
-// ============================================================
 // CONTINUAR PARA ENTREGA
 // ============================================================
 
@@ -1322,30 +1708,143 @@ function continuarParaEntrega() {
   }
 
 
+  const regra =
+    verificarFreteGratis(
+      carrinho
+    );
+
+
+  const inputCep =
+    document.getElementById(
+      "cep-frete"
+    );
+
+
+  const cep =
+    inputCep
+      ? formatarCep(
+          inputCep.value
+        )
+      : "";
+
+
+  // ==========================================================
+  // CEP OBRIGATÓRIO
+  // ==========================================================
+
+  if (
+    !cepValido(
+      cep
+    )
+  ) {
+
+    alert(
+      "Informe o CEP de entrega antes de continuar."
+    );
+
+
+    if (inputCep) {
+
+      inputCep.focus();
+
+      inputCep.scrollIntoView({
+        behavior:
+          "smooth",
+
+        block:
+          "center"
+      });
+
+    }
+
+
+    return;
+
+  }
+
+
   const totais =
     calcularTotais(
       carrinho
     );
 
 
+  const frete = {
+
+    cep:
+      cep,
+
+    gratis:
+      regra.gratis,
+
+    valor:
+      regra.gratis
+        ? 0
+        : null,
+
+    status:
+      regra.gratis
+        ? "gratis"
+        : "aguardando_calculo",
+
+    producao: {
+      minimo:
+        CONFIG_FRETE.producaoMin,
+
+      maximo:
+        CONFIG_FRETE.producaoMax
+    },
+
+    entrega: {
+      minimo:
+        CONFIG_FRETE.entregaMin,
+
+      maximo:
+        CONFIG_FRETE.entregaMax
+    }
+
+  };
+
+
+  const pedido = {
+
+    itens:
+      carrinho,
+
+    subtotal:
+      totais.subtotal,
+
+    totalCortinas:
+      totais.cortinas,
+
+    totalTrilhos:
+      totais.trilhos,
+
+    frete:
+      frete,
+
+    total:
+      regra.gratis
+        ? totais.subtotal
+        : null,
+
+    criadoEm:
+      new Date()
+        .toISOString()
+
+  };
+
+
   localStorage.setItem(
     "salvatexPedidoAtual",
-    JSON.stringify({
-      itens:
-        carrinho,
-
-      subtotal:
-        totais.total,
-
-      criadoEm:
-        new Date()
-          .toISOString()
-    })
+    JSON.stringify(
+      pedido
+    )
   );
 
 
   // ==========================================================
-  // CHECKOUT SERÁ O PRÓXIMO PASSO
+  // PRÓXIMA PÁGINA
   // ==========================================================
 
   window.location.href =
@@ -1355,7 +1854,73 @@ function continuarParaEntrega() {
 
 
 // ============================================================
-// BOTÃO CONTINUAR
+// CEP
+// ============================================================
+
+const inputCep =
+  document.getElementById(
+    "cep-frete"
+  );
+
+
+if (inputCep) {
+
+  inputCep.addEventListener(
+    "input",
+    () => {
+
+      inputCep.value =
+        formatarCep(
+          inputCep.value
+        );
+
+    }
+  );
+
+
+  inputCep.addEventListener(
+    "keydown",
+    (evento) => {
+
+      if (
+        evento.key ===
+        "Enter"
+      ) {
+
+        calcularFrete();
+
+      }
+
+    }
+  );
+
+}
+
+
+// ============================================================
+// BOTÃO CALCULAR
+// ============================================================
+
+const botaoCalcularFrete =
+  document.getElementById(
+    "calcular-frete"
+  );
+
+
+if (
+  botaoCalcularFrete
+) {
+
+  botaoCalcularFrete.addEventListener(
+    "click",
+    calcularFrete
+  );
+
+}
+
+
+// ============================================================
+// FINALIZAR
 // ============================================================
 
 const botaoFinalizar =
