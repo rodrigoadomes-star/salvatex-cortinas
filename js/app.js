@@ -12,28 +12,7 @@ const state = {
 
 
 // ============================================================
-// CONFIGURAÇÃO DAS PASTAS DE MÍDIA
-//
-// Estrutura utilizada:
-//
-// imagens/galeria/
-//   gaze/
-//     wave/
-//       branco/
-//         sem-forro/
-//           foto-1.png
-//           video.mp4
-//
-// O sistema já fica preparado para:
-// Wave
-// Ilhós
-// Prega Macho
-//
-// Gaze de Linho
-// Linho Damasco
-//
-// Todas as cores
-// Todos os forros
+// MAPEAMENTO DAS PASTAS
 // ============================================================
 
 const PASTAS_MIDIA = {
@@ -46,7 +25,7 @@ const PASTAS_MIDIA = {
   modelos: {
     "Wave": "wave",
     "Ilhós": "ilhos",
-    "Prega Macho": "prega-macho"
+    "Prega Macho": "pregamacho"
   },
 
   cores: {
@@ -71,10 +50,8 @@ const PASTAS_MIDIA = {
 
 // ============================================================
 // CAPAS DAS CORES
-//
-// Continuam sendo utilizadas:
-// - nos cards das cores
-// - como fallback caso uma pasta ainda não tenha foto
+// USADAS SOMENTE NOS CARDS DAS CORES
+// NÃO SÃO MAIS USADAS COMO FOTO DO CARROSSEL
 // ============================================================
 
 const GALERIAS_CORES = {
@@ -121,13 +98,6 @@ const GALERIAS_CORES = {
 
   "Linho Damasco": {
 
-    "Natural": [
-      {
-        src: "imagens/capas/damasco-natural-capa.png",
-        legenda: "Linho Damasco Natural"
-      }
-    ],
-
     "Branco": [
       {
         src: "imagens/capas/damasco-branco-capa.png",
@@ -139,6 +109,13 @@ const GALERIAS_CORES = {
       {
         src: "imagens/capas/damasco-bege-capa.png",
         legenda: "Linho Damasco Bege"
+      }
+    ],
+
+    "Natural": [
+      {
+        src: "imagens/capas/damasco-natural-capa.png",
+        legenda: "Linho Damasco Natural"
       }
     ],
 
@@ -171,9 +148,42 @@ let fotosCarrosselAtuais = [];
 
 let tokenAtualizacaoGaleria = 0;
 
+let tokenVideo = 0;
+
+let videoAtual = null;
+
+let videoCorAtual = "";
+
 
 // ============================================================
-// CAMINHO DA PASTA ATUAL
+// CACHE
+//
+// Ajuda a evitar imagens antigas depois de alterar o GitHub.
+// ============================================================
+
+function semCache(src) {
+
+  if (!src) {
+    return "";
+  }
+
+  const separador =
+    src.includes("?")
+      ? "&"
+      : "?";
+
+  return (
+    src +
+    separador +
+    "v=" +
+    Date.now()
+  );
+
+}
+
+
+// ============================================================
+// CAMINHO DA PASTA
 // ============================================================
 
 function obterPastaMidia(
@@ -202,7 +212,9 @@ function obterPastaMidia(
     !corPasta ||
     !forroPasta
   ) {
+
     return "";
+
   }
 
 
@@ -229,7 +241,7 @@ function obterCaminhoFoto(
   modelo,
   cor,
   forro,
-  numero = 1
+  numero
 ) {
 
   const pasta =
@@ -290,7 +302,7 @@ function obterCaminhoVideo(
 
 
 // ============================================================
-// VERIFICA SE UMA FOTO EXISTE
+// VERIFICA SE IMAGEM EXISTE
 // ============================================================
 
 function verificarImagem(src) {
@@ -298,8 +310,11 @@ function verificarImagem(src) {
   return new Promise((resolve) => {
 
     if (!src) {
+
       resolve(false);
+
       return;
+
     }
 
 
@@ -316,7 +331,7 @@ function verificarImagem(src) {
 
 
     imagem.src =
-      src;
+      semCache(src);
 
   });
 
@@ -324,18 +339,16 @@ function verificarImagem(src) {
 
 
 // ============================================================
-// MONTA TODAS AS FOTOS DISPONÍVEIS DO TECIDO
+// CARREGA AS FOTOS
 //
-// Mantém o comportamento que já tínhamos:
+// Regra:
 //
-// o carrossel mostra TODAS AS CORES do tecido,
-// independentemente da cor selecionada.
+// tecido + modelo + forro
 //
-// Agora respeita também:
-// MODELO + FORRO
+// Carrega todas as cores que possuem fotos.
 //
-// Procura até 5 fotos em cada cor.
-// Se uma foto não existir, ela simplesmente é ignorada.
+// A COR SELECIONADA aparece primeiro.
+// Depois as setas continuam passando pelas demais cores.
 // ============================================================
 
 async function carregarFotosCarrossel() {
@@ -344,43 +357,72 @@ async function carregarFotosCarrossel() {
     ++tokenAtualizacaoGaleria;
 
 
+  const tecidoAtual =
+    state.tecido;
+
+  const modeloAtual =
+    state.modelo;
+
+  const forroAtual =
+    state.forro;
+
+  const corSelecionada =
+    state.cor;
+
+
   const cores =
-    CONFIG.cores?.[state.tecido] || [];
+    CONFIG.cores?.[
+      tecidoAtual
+    ] || [];
+
+
+  // Coloca a cor selecionada primeiro
+
+  const coresOrdenadas = [
+    corSelecionada,
+    ...cores.filter(
+      (cor) =>
+        cor !== corSelecionada
+    )
+  ];
 
 
   const candidatos = [];
 
 
-  cores.forEach((cor) => {
+  coresOrdenadas.forEach(
+    (cor) => {
 
-    for (
-      let numero = 1;
-      numero <= 5;
-      numero++
-    ) {
+      // Procura até 10 fotos por cor
 
-      const src =
-        obterCaminhoFoto(
-          state.tecido,
-          state.modelo,
-          cor,
-          state.forro,
-          numero
-        );
+      for (
+        let numero = 1;
+        numero <= 10;
+        numero++
+      ) {
 
+        candidatos.push({
+          src:
+            obterCaminhoFoto(
+              tecidoAtual,
+              modeloAtual,
+              cor,
+              forroAtual,
+              numero
+            ),
 
-      candidatos.push({
-        src,
-        cor
-      });
+          cor
+        });
+
+      }
 
     }
+  );
 
-  });
 
-
-  const verificacoes =
+  const resultados =
     await Promise.all(
+
       candidatos.map(
         async (foto) => {
 
@@ -396,22 +438,25 @@ async function carregarFotosCarrossel() {
 
         }
       )
+
     );
 
 
-  // Evita uma atualização antiga substituir
-  // uma seleção mais recente do cliente
+  // Usuário mudou de opção
+  // enquanto as imagens carregavam.
 
   if (
     token !==
     tokenAtualizacaoGaleria
   ) {
+
     return;
+
   }
 
 
   fotosCarrosselAtuais =
-    verificacoes.filter(Boolean);
+    resultados.filter(Boolean);
 
 
   previewIndex = 0;
@@ -431,7 +476,9 @@ function obterFotoAtual() {
   if (
     !fotosCarrosselAtuais.length
   ) {
+
     return null;
+
   }
 
 
@@ -456,7 +503,67 @@ function obterFotoAtual() {
 
 
 // ============================================================
-// FORMATAÇÃO DE VALOR
+// PLACEHOLDER
+//
+// Não reaproveita mais uma foto antiga do produto.
+// ============================================================
+
+function gerarPlaceholder() {
+
+  const texto =
+    encodeURIComponent(
+      `${state.tecido} - ${state.cor}`
+    );
+
+
+  const svg =
+    `
+    <svg xmlns="http://www.w3.org/2000/svg"
+         width="900"
+         height="700">
+
+      <rect
+        width="100%"
+        height="100%"
+        fill="#f3eee8"
+      />
+
+      <text
+        x="50%"
+        y="47%"
+        text-anchor="middle"
+        font-family="Arial"
+        font-size="28"
+        fill="#746c63"
+      >
+        ${texto}
+      </text>
+
+      <text
+        x="50%"
+        y="54%"
+        text-anchor="middle"
+        font-family="Arial"
+        font-size="20"
+        fill="#9a9188"
+      >
+        Foto deste acabamento em breve
+      </text>
+
+    </svg>
+    `;
+
+
+  return (
+    "data:image/svg+xml;charset=UTF-8," +
+    encodeURIComponent(svg)
+  );
+
+}
+
+
+// ============================================================
+// FORMATAÇÃO BRL
 // ============================================================
 
 function brl(valor) {
@@ -475,7 +582,7 @@ function brl(valor) {
 
 
 // ============================================================
-// PEGA VALOR DO CAMPO
+// VALOR DO CAMPO
 // ============================================================
 
 function val(id) {
@@ -529,7 +636,7 @@ function dadosAtuais() {
 
 
 // ============================================================
-// CARDS
+// CARDS DE MODELO / TECIDO / FORRO
 // ============================================================
 
 function bindCards(
@@ -547,7 +654,7 @@ function bindCards(
 
       el.addEventListener(
         "click",
-        () => {
+        async () => {
 
           document
             .querySelectorAll(
@@ -555,13 +662,15 @@ function bindCards(
               groupId +
               " .card"
             )
-            .forEach((card) => {
+            .forEach(
+              (card) => {
 
-              card.classList.remove(
-                "selected"
-              );
+                card.classList.remove(
+                  "selected"
+                );
 
-            });
+              }
+            );
 
 
           el.classList.add(
@@ -573,13 +682,10 @@ function bindCards(
             el.dataset.value;
 
 
-          // ==================================================
-          // TROCOU O TECIDO
-          // ==================================================
+          // Mudou tecido
 
           if (
-            key ===
-            "tecido"
+            key === "tecido"
           ) {
 
             atualizarCores();
@@ -587,11 +693,11 @@ function bindCards(
           }
 
 
-          // ==================================================
-          // TROCOU MODELO / TECIDO / FORRO
-          //
-          // Recarrega fotos automaticamente
-          // ==================================================
+          atualizarOrcamento();
+
+
+          // Mudou qualquer informação
+          // que altera fotos
 
           if (
             key === "modelo" ||
@@ -601,12 +707,9 @@ function bindCards(
 
             previewIndex = 0;
 
-            carregarFotosCarrossel();
+            await carregarFotosCarrossel();
 
           }
-
-
-          atualizarOrcamento();
 
         }
       );
@@ -646,9 +749,7 @@ function atualizarCores() {
   ) {
 
     state.cor =
-      cores.length
-        ? cores[0]
-        : "";
+      cores[0] || "";
 
   }
 
@@ -657,297 +758,127 @@ function atualizarCores() {
     "";
 
 
-  cores.forEach((cor) => {
+  cores.forEach(
+    (cor) => {
 
-    const card =
-      document.createElement(
-        "div"
-      );
-
-
-    card.className =
-      "card card-cor" +
-      (
-        state.cor === cor
-          ? " selected"
-          : ""
-      );
-
-
-    card.dataset.value =
-      cor;
-
-
-    const fotos =
-      GALERIAS_CORES?.[
-        state.tecido
-      ]?.[cor] || [];
-
-
-    // ========================================================
-    // FOTO DA CAPA DA COR
-    // ========================================================
-
-    if (
-      fotos.length
-    ) {
-
-      const imagem =
+      const card =
         document.createElement(
-          "img"
+          "div"
         );
 
 
-      imagem.className =
-        "card-cor-img";
-
-
-      imagem.src =
-        fotos[0].src;
-
-
-      imagem.alt =
-        `${state.tecido} ${cor}`;
-
-
-      imagem.loading =
-        "lazy";
-
-
-      imagem.addEventListener(
-        "error",
-        () => {
-
-          imagem.style.display =
-            "none";
-
-        }
-      );
-
-
-      card.appendChild(
-        imagem
-      );
-
-    }
-
-
-    // ========================================================
-    // NOME DA COR
-    // ========================================================
-
-    const strong =
-      document.createElement(
-        "strong"
-      );
-
-
-    strong.textContent =
-      cor;
-
-
-    card.appendChild(
-      strong
-    );
-
-
-    // ========================================================
-    // CLIQUE NA COR
-    // ========================================================
-
-    card.addEventListener(
-      "click",
-      async () => {
-
-        container
-          .querySelectorAll(
-            ".card"
-          )
-          .forEach((item) => {
-
-            item.classList.remove(
-              "selected"
-            );
-
-          });
-
-
-        card.classList.add(
-          "selected"
+      card.className =
+        "card card-cor" +
+        (
+          state.cor === cor
+            ? " selected"
+            : ""
         );
 
 
-        state.cor =
-          cor;
+      card.dataset.value =
+        cor;
 
 
-        // ====================================================
-        // ATUALIZA PREÇO / RESUMO
-        // ====================================================
-
-        atualizarOrcamento();
-
-
-        // ====================================================
-        // GARANTE QUE AS FOTOS DO TECIDO / MODELO / FORRO
-        // ESTEJAM CARREGADAS
-        // ====================================================
-
-        await carregarFotosCarrossel();
+      const capa =
+        GALERIAS_CORES?.[
+          state.tecido
+        ]?.[
+          cor
+        ]?.[0]?.src;
 
 
-        // ====================================================
-        // PROCURA A PRIMEIRA FOTO DA COR SELECIONADA
-        // ====================================================
+      if (capa) {
 
-        const indiceCor =
-          fotosCarrosselAtuais.findIndex(
-            (foto) =>
-              foto.cor ===
-              state.cor
+        const imagem =
+          document.createElement(
+            "img"
           );
 
 
-        // ====================================================
-        // SE EXISTIR FOTO DA COR
-        // PULA O CARROSSEL PARA ELA
-        // ====================================================
-
-        if (
-          indiceCor >= 0
-        ) {
-
-          previewIndex =
-            indiceCor;
+        imagem.className =
+          "card-cor-img";
 
 
-          atualizarPreview();
-
-        } else {
-
-          // ==================================================
-          // SE NÃO EXISTIR FOTO DESTA COMBINAÇÃO,
-          // MOSTRA A CAPA DA COR
-          // ==================================================
-
-          previewIndex =
-            0;
+        imagem.src =
+          capa;
 
 
-          mostrarCapaFallback();
+        imagem.alt =
+          `${state.tecido} ${cor}`;
 
-        }
+
+        imagem.loading =
+          "lazy";
+
+
+        card.appendChild(
+          imagem
+        );
 
       }
-    );
 
 
-    container.appendChild(
-      card
-    );
-
-  });
-
-}
+      const strong =
+        document.createElement(
+          "strong"
+        );
 
 
-// ============================================================
-// FALLBACK DA FOTO
-//
-// Se ainda não existir foto na pasta do forro,
-// mostra a capa da cor selecionada.
-// ============================================================
-
-function mostrarCapaFallback() {
-
-  const img =
-    document.getElementById(
-      "preview-img"
-    );
-
-  const previewTecido =
-    document.getElementById(
-      "preview-tecido"
-    );
-
-  const previewCor =
-    document.getElementById(
-      "preview-cor"
-    );
-
-  const dots =
-    document.getElementById(
-      "preview-dots"
-    );
-
-  const carousel =
-    document.getElementById(
-      "preview-carousel"
-    );
+      strong.textContent =
+        cor;
 
 
-  const capa =
-    GALERIAS_CORES?.[
-      state.tecido
-    ]?.[
-      state.cor
-    ]?.[0]?.src;
+      card.appendChild(
+        strong
+      );
 
 
-  if (
-    img &&
-    capa
-  ) {
+      card.addEventListener(
+        "click",
+        async () => {
 
-    img.src =
-      capa;
+          container
+            .querySelectorAll(
+              ".card"
+            )
+            .forEach(
+              (item) => {
 
+                item.classList.remove(
+                  "selected"
+                );
 
-    img.alt =
-      `${state.tecido} ${state.cor}`;
-
-  }
-
-
-  if (
-    previewTecido
-  ) {
-
-    previewTecido.textContent =
-      state.tecido;
-
-  }
+              }
+            );
 
 
-  if (
-    previewCor
-  ) {
-
-    previewCor.textContent =
-      state.cor;
-
-  }
+          card.classList.add(
+            "selected"
+          );
 
 
-  if (dots) {
-
-    dots.innerHTML =
-      "";
-
-  }
+          state.cor =
+            cor;
 
 
-  if (carousel) {
-
-    carousel.classList.add(
-      "single-image"
-    );
-
-  }
+          atualizarOrcamento();
 
 
-  atualizarBotaoVideo(
-    state.cor
+          previewIndex = 0;
+
+
+          await carregarFotosCarrossel();
+
+        }
+      );
+
+
+      container.appendChild(
+        card
+      );
+
+    }
   );
 
 }
@@ -990,68 +921,97 @@ function atualizarPreview() {
   }
 
 
+  // ==========================================================
+  // NÃO TEM FOTO
+  // ==========================================================
+
   if (
     !fotosCarrosselAtuais.length
   ) {
 
-    mostrarCapaFallback();
+    img.onerror =
+      null;
+
+
+    img.src =
+      gerarPlaceholder();
+
+
+    img.alt =
+      `${state.tecido} ${state.cor}`;
+
+
+    if (previewTecido) {
+
+      previewTecido.textContent =
+        state.tecido;
+
+    }
+
+
+    if (previewCor) {
+
+      previewCor.textContent =
+        state.cor;
+
+    }
+
+
+    if (dots) {
+
+      dots.innerHTML =
+        "";
+
+    }
+
+
+    if (carousel) {
+
+      carousel.classList.add(
+        "single-image"
+      );
+
+    }
+
+
+    atualizarBotaoVideo(
+      state.cor
+    );
+
 
     return;
 
   }
 
+
+  // ==========================================================
+  // TEM FOTO
+  // ==========================================================
 
   const fotoAtual =
     obterFotoAtual();
 
 
   if (!fotoAtual) {
-
-    mostrarCapaFallback();
-
     return;
-
   }
 
 
+  img.onerror =
+    null;
+
+
   img.src =
-    fotoAtual.src;
+    semCache(
+      fotoAtual.src
+    );
 
 
   img.alt =
     `${state.tecido} ${fotoAtual.cor}`;
 
 
-  // Se por algum motivo a imagem desaparecer,
-  // usa a capa da cor
-
-  img.onerror =
-    () => {
-
-      const capa =
-        GALERIAS_CORES?.[
-          state.tecido
-        ]?.[
-          fotoAtual.cor
-        ]?.[0]?.src;
-
-
-      if (capa) {
-
-        img.onerror =
-          null;
-
-        img.src =
-          capa;
-
-      }
-
-    };
-
-
-  if (
-    previewTecido
-  ) {
+  if (previewTecido) {
 
     previewTecido.textContent =
       state.tecido;
@@ -1059,9 +1019,7 @@ function atualizarPreview() {
   }
 
 
-  if (
-    previewCor
-  ) {
+  if (previewCor) {
 
     previewCor.textContent =
       fotoAtual.cor;
@@ -1078,6 +1036,10 @@ function atualizarPreview() {
 
   }
 
+
+  // ==========================================================
+  // BOLINHAS
+  // ==========================================================
 
   if (dots) {
 
@@ -1156,7 +1118,9 @@ function mudarPreview(
   if (
     !fotosCarrosselAtuais.length
   ) {
+
     return;
+
   }
 
 
@@ -1193,9 +1157,6 @@ function mudarPreview(
 
 // ============================================================
 // BOTÃO DE VÍDEO
-//
-// É criado automaticamente pelo JavaScript.
-// Não precisa alterar o index.html.
 // ============================================================
 
 function criarBotaoVideo() {
@@ -1205,7 +1166,9 @@ function criarBotaoVideo() {
       "botao-video-produto"
     )
   ) {
+
     return;
+
   }
 
 
@@ -1226,56 +1189,50 @@ function criarBotaoVideo() {
     );
 
 
-  botao.type =
-    "button";
-
-
   botao.id =
     "botao-video-produto";
+
+
+  botao.type =
+    "button";
 
 
   botao.textContent =
     "▶ Ver vídeo deste acabamento";
 
 
-  botao.style.display =
-    "none";
+  Object.assign(
+    botao.style,
+    {
 
+      display: "none",
 
-  botao.style.width =
-    "100%";
+      width: "100%",
 
+      marginTop: "12px",
 
-  botao.style.marginTop =
-    "12px";
+      padding: "12px 14px",
 
+      border:
+        "1px solid #e7e0d8",
 
-  botao.style.padding =
-    "12px 14px";
+      borderRadius:
+        "10px",
 
+      background:
+        "#ffffff",
 
-  botao.style.border =
-    "1px solid #e7e0d8";
+      color:
+        "#211d18",
 
+      fontWeight:
+        "600",
 
-  botao.style.borderRadius =
-    "10px";
+      cursor:
+        "pointer"
 
-
-  botao.style.background =
-    "#ffffff";
-
-
-  botao.style.color =
-    "#211d18";
-
-
-  botao.style.fontWeight =
-    "600";
-
-
-  botao.style.cursor =
-    "pointer";
+    }
+  );
 
 
   botao.addEventListener(
@@ -1292,103 +1249,104 @@ function criarBotaoVideo() {
 
 
 // ============================================================
-// VERIFICA SE O VÍDEO EXISTE
+// VERIFICA VÍDEO
 // ============================================================
 
 function verificarVideo(
-  src,
-  callback
+  src
 ) {
 
-  if (!src) {
+  return new Promise(
+    (resolve) => {
 
-    callback(false);
+      if (!src) {
 
-    return;
+        resolve(false);
 
-  }
-
-
-  const video =
-    document.createElement(
-      "video"
-    );
-
-
-  let finalizado =
-    false;
-
-
-  const concluir =
-    (existe) => {
-
-      if (finalizado) {
         return;
+
       }
 
 
-      finalizado =
-        true;
+      const video =
+        document.createElement(
+          "video"
+        );
 
 
-      video.removeAttribute(
-        "src"
+      const sucesso =
+        () => {
+
+          limpar();
+
+          resolve(true);
+
+        };
+
+
+      const erro =
+        () => {
+
+          limpar();
+
+          resolve(false);
+
+        };
+
+
+      const limpar =
+        () => {
+
+          video.removeEventListener(
+            "loadedmetadata",
+            sucesso
+          );
+
+          video.removeEventListener(
+            "error",
+            erro
+          );
+
+          video.removeAttribute(
+            "src"
+          );
+
+        };
+
+
+      video.preload =
+        "metadata";
+
+
+      video.addEventListener(
+        "loadedmetadata",
+        sucesso
       );
+
+
+      video.addEventListener(
+        "error",
+        erro
+      );
+
+
+      video.src =
+        semCache(src);
 
 
       video.load();
 
-
-      callback(
-        existe
-      );
-
-  };
-
-
-  video.preload =
-    "metadata";
-
-
-  video.addEventListener(
-    "loadedmetadata",
-    () => concluir(true),
-    {
-      once: true
     }
   );
-
-
-  video.addEventListener(
-    "error",
-    () => concluir(false),
-    {
-      once: true
-    }
-  );
-
-
-  video.src =
-    src;
-
-
-  video.load();
 
 }
 
 
 // ============================================================
-// ATUALIZA BOTÃO DE VÍDEO
+// ATUALIZA BOTÃO DO VÍDEO
 // ============================================================
 
-let tokenVideo = 0;
-
-let videoAtual = null;
-
-let videoCorAtual = null;
-
-
-function atualizarBotaoVideo(
+async function atualizarBotaoVideo(
   cor
 ) {
 
@@ -1410,6 +1368,14 @@ function atualizarBotaoVideo(
     ++tokenVideo;
 
 
+  botao.style.display =
+    "none";
+
+
+  videoAtual =
+    null;
+
+
   const src =
     obterCaminhoVideo(
       state.tecido,
@@ -1419,66 +1385,49 @@ function atualizarBotaoVideo(
     );
 
 
+  const existe =
+    await verificarVideo(
+      src
+    );
+
+
+  if (
+    token !==
+    tokenVideo
+  ) {
+
+    return;
+
+  }
+
+
+  if (!existe) {
+
+    return;
+
+  }
+
+
   videoAtual =
-    null;
+    src;
 
 
   videoCorAtual =
     cor;
 
 
+  botao.textContent =
+    `▶ Ver vídeo — ${state.forro}`;
+
+
   botao.style.display =
-    "none";
-
-
-  verificarVideo(
-    src,
-    (existe) => {
-
-      if (
-        token !==
-        tokenVideo
-      ) {
-        return;
-      }
-
-
-      if (!existe) {
-
-        botao.style.display =
-          "none";
-
-        return;
-
-      }
-
-
-      videoAtual =
-        src;
-
-
-      videoCorAtual =
-        cor;
-
-
-      botao.textContent =
-        `▶ Ver vídeo — ${state.forro}`;
-
-
-      botao.style.display =
-        "block";
-
-    }
-  );
+    "block";
 
 }
 
 
 // ============================================================
-// MODAL DE VÍDEO
-//
-// Também criado automaticamente.
-// Não precisa alterar index.html.
+// MODAL DO VÍDEO
 // ============================================================
 
 function criarModalVideo() {
@@ -1488,7 +1437,9 @@ function criarModalVideo() {
       "modal-video-produto"
     )
   ) {
+
     return;
+
   }
 
 
@@ -1502,36 +1453,29 @@ function criarModalVideo() {
     "modal-video-produto";
 
 
-  modal.style.display =
-    "none";
+  Object.assign(
+    modal.style,
+    {
 
+      display: "none",
 
-  modal.style.position =
-    "fixed";
+      position: "fixed",
 
+      inset: "0",
 
-  modal.style.inset =
-    "0";
+      zIndex: "20000",
 
+      alignItems: "center",
 
-  modal.style.zIndex =
-    "20000";
+      justifyContent: "center",
 
+      padding: "20px",
 
-  modal.style.alignItems =
-    "center";
+      background:
+        "rgba(0,0,0,.85)"
 
-
-  modal.style.justifyContent =
-    "center";
-
-
-  modal.style.padding =
-    "20px";
-
-
-  modal.style.background =
-    "rgba(0,0,0,.85)";
+    }
+  );
 
 
   const conteudo =
@@ -1540,84 +1484,21 @@ function criarModalVideo() {
     );
 
 
-  conteudo.style.position =
-    "relative";
+  Object.assign(
+    conteudo.style,
+    {
 
+      position:
+        "relative",
 
-  conteudo.style.width =
-    "min(900px, 100%)";
+      width:
+        "min(900px, 100%)",
 
+      maxHeight:
+        "92vh"
 
-  conteudo.style.maxHeight =
-    "92vh";
-
-
-  const fechar =
-    document.createElement(
-      "button"
-    );
-
-
-  fechar.type =
-    "button";
-
-
-  fechar.textContent =
-    "×";
-
-
-  fechar.setAttribute(
-    "aria-label",
-    "Fechar vídeo"
+    }
   );
-
-
-  fechar.style.position =
-    "absolute";
-
-
-  fechar.style.top =
-    "-15px";
-
-
-  fechar.style.right =
-    "-15px";
-
-
-  fechar.style.zIndex =
-    "3";
-
-
-  fechar.style.width =
-    "44px";
-
-
-  fechar.style.height =
-    "44px";
-
-
-  fechar.style.border =
-    "0";
-
-
-  fechar.style.borderRadius =
-    "50%";
-
-
-  fechar.style.background =
-    "#fff";
-
-
-  fechar.style.color =
-    "#211d18";
-
-
-  fechar.style.fontSize =
-    "28px";
-
-
-  fechar.style.cursor =
-    "pointer";
 
 
   const video =
@@ -1638,24 +1519,25 @@ function criarModalVideo() {
     true;
 
 
-  video.style.display =
-    "block";
+  Object.assign(
+    video.style,
+    {
 
+      display: "block",
 
-  video.style.width =
-    "100%";
+      width: "100%",
 
+      maxHeight:
+        "88vh",
 
-  video.style.maxHeight =
-    "88vh";
+      background:
+        "#000",
 
+      borderRadius:
+        "12px"
 
-  video.style.background =
-    "#000";
-
-
-  video.style.borderRadius =
-    "12px";
+    }
+  );
 
 
   const info =
@@ -1668,40 +1550,97 @@ function criarModalVideo() {
     "video-produto-info";
 
 
-  info.style.position =
-    "absolute";
+  Object.assign(
+    info.style,
+    {
+
+      position:
+        "absolute",
+
+      left:
+        "14px",
+
+      bottom:
+        "14px",
+
+      padding:
+        "9px 12px",
+
+      background:
+        "rgba(255,255,255,.95)",
+
+      borderRadius:
+        "10px",
+
+      color:
+        "#211d18",
+
+      fontSize:
+        "12px",
+
+      pointerEvents:
+        "none"
+
+    }
+  );
 
 
-  info.style.left =
-    "14px";
+  const fechar =
+    document.createElement(
+      "button"
+    );
 
 
-  info.style.bottom =
-    "14px";
+  fechar.type =
+    "button";
 
 
-  info.style.padding =
-    "9px 12px";
+  fechar.textContent =
+    "×";
 
 
-  info.style.background =
-    "rgba(255,255,255,.95)";
+  Object.assign(
+    fechar.style,
+    {
 
+      position:
+        "absolute",
 
-  info.style.borderRadius =
-    "10px";
+      top:
+        "-15px",
 
+      right:
+        "-15px",
 
-  info.style.color =
-    "#211d18";
+      zIndex:
+        "3",
 
+      width:
+        "44px",
 
-  info.style.fontSize =
-    "12px";
+      height:
+        "44px",
 
+      border:
+        "0",
 
-  info.style.pointerEvents =
-    "none";
+      borderRadius:
+        "50%",
+
+      background:
+        "#fff",
+
+      color:
+        "#211d18",
+
+      fontSize:
+        "28px",
+
+      cursor:
+        "pointer"
+
+    }
+  );
 
 
   fechar.addEventListener(
@@ -1788,12 +1727,16 @@ function abrirVideoProduto() {
     !modal ||
     !video
   ) {
+
     return;
+
   }
 
 
   video.src =
-    videoAtual;
+    semCache(
+      videoAtual
+    );
 
 
   if (info) {
@@ -1865,7 +1808,7 @@ function fecharVideoProduto() {
 
 
 // ============================================================
-// ZOOM DA FOTO
+// ZOOM
 // ============================================================
 
 function atualizarImagemZoom() {
@@ -1897,24 +1840,12 @@ function atualizarImagemZoom() {
 
   if (!fotoAtual) {
 
-    const capa =
-      GALERIAS_CORES?.[
-        state.tecido
-      ]?.[
-        state.cor
-      ]?.[0]?.src;
+    imagemGrande.src =
+      gerarPlaceholder();
 
 
-    if (capa) {
-
-      imagemGrande.src =
-        capa;
-
-
-      imagemGrande.alt =
-        `${state.tecido} ${state.cor}`;
-
-    }
+    imagemGrande.alt =
+      `${state.tecido} ${state.cor}`;
 
 
     if (zoomTecido) {
@@ -1939,7 +1870,9 @@ function atualizarImagemZoom() {
 
 
   imagemGrande.src =
-    fotoAtual.src;
+    semCache(
+      fotoAtual.src
+    );
 
 
   imagemGrande.alt =
@@ -2036,49 +1969,19 @@ function fecharZoomPreview() {
 
 
 // ============================================================
-// MUDAR FOTO NO ZOOM
+// PASSAR FOTO NO ZOOM
 // ============================================================
 
 function mudarFotoZoom(
   direcao
 ) {
 
-  if (
-    !fotosCarrosselAtuais.length
-  ) {
-    return;
-  }
-
-
-  previewIndex +=
-    direcao;
-
-
-  if (
-    previewIndex < 0
-  ) {
-
-    previewIndex =
-      fotosCarrosselAtuais.length -
-      1;
-
-  }
-
-
-  if (
-    previewIndex >=
-    fotosCarrosselAtuais.length
-  ) {
-
-    previewIndex =
-      0;
-
-  }
+  mudarPreview(
+    direcao
+  );
 
 
   atualizarImagemZoom();
-
-  atualizarPreview();
 
 }
 
@@ -2116,7 +2019,9 @@ function abrirGaleriaCor() {
     !titulo ||
     !tecido
   ) {
+
     return;
+
   }
 
 
@@ -2336,7 +2241,7 @@ function atualizarInfoBarra(
 
 
 // ============================================================
-// RESUMO BÁSICO
+// RESUMO
 // ============================================================
 
 function atualizarResumoBasico(
@@ -2404,8 +2309,7 @@ function atualizarResumoBasico(
   if (sumCor) {
 
     sumCor.textContent =
-      dados.cor ||
-      "Selecione";
+      dados.cor;
 
   }
 
@@ -2461,8 +2365,10 @@ function atualizarResumoBasico(
     sumFranz.textContent =
       String(
         dados.franzimento
-      )
-        .replace(".", ",") +
+      ).replace(
+        ".",
+        ","
+      ) +
       "x";
 
   }
@@ -2548,7 +2454,7 @@ function atualizarResumoBasico(
 
 
 // ============================================================
-// RESUMO DOS VALORES
+// VALORES SEPARADOS
 // ============================================================
 
 function atualizarResumoValores(
@@ -2579,22 +2485,13 @@ function atualizarResumoValores(
 
   if (precoCortina) {
 
-    if (
+    precoCortina.textContent =
       typeof resultado.valorCortina ===
       "number"
-    ) {
-
-      precoCortina.textContent =
-        brl(
-          resultado.valorCortina
-        );
-
-    } else {
-
-      precoCortina.textContent =
-        "Sob consulta";
-
-    }
+        ? brl(
+            resultado.valorCortina
+          )
+        : "Sob consulta";
 
   }
 
@@ -2605,47 +2502,41 @@ function atualizarResumoValores(
       "Não"
   ) {
 
-    if (
-      linhaPrecoTrilho
-    ) {
+    if (linhaPrecoTrilho) {
 
       linhaPrecoTrilho.style.display =
         "none";
 
     }
 
-  } else {
 
-    if (
-      linhaPrecoTrilho
-    ) {
+    return;
 
-      linhaPrecoTrilho.style.display =
-        "flex";
-
-    }
+  }
 
 
-    if (
-      nomePrecoTrilho
-    ) {
+  if (linhaPrecoTrilho) {
 
-      nomePrecoTrilho.textContent =
-        dados.trilho;
+    linhaPrecoTrilho.style.display =
+      "flex";
 
-    }
+  }
 
 
-    if (
-      precoTrilho
-    ) {
+  if (nomePrecoTrilho) {
 
-      precoTrilho.textContent =
-        brl(
-          resultado.valorTrilho
-        );
+    nomePrecoTrilho.textContent =
+      dados.trilho;
 
-    }
+  }
+
+
+  if (precoTrilho) {
+
+    precoTrilho.textContent =
+      brl(
+        resultado.valorTrilho
+      );
 
   }
 
@@ -2711,10 +2602,6 @@ function atualizarOrcamento() {
   );
 
 
-  // ==========================================================
-  // ERRO
-  // ==========================================================
-
   if (
     resultado.erro
   ) {
@@ -2734,24 +2621,11 @@ function atualizarOrcamento() {
     window.currentTotal =
       null;
 
-    window.currentValorCortina =
-      null;
-
-    window.currentValorTrilho =
-      null;
-
-    window.currentSobConsulta =
-      false;
-
 
     return;
 
   }
 
-
-  // ==========================================================
-  // SOB CONSULTA
-  // ==========================================================
 
   if (
     resultado.sobConsulta
@@ -2796,9 +2670,6 @@ function atualizarOrcamento() {
 
     window.currentBarra =
       null;
-
-    window.currentAcrescimoAltura =
-      false;
 
 
     return;
@@ -2860,10 +2731,6 @@ function atualizarOrcamento() {
   window.currentBarra =
     resultado.barra;
 
-
-  window.currentAcrescimoAltura =
-    resultado.acrescimoAltura;
-
 }
 
 
@@ -2894,43 +2761,17 @@ function mensagemWhatsApp() {
     franzimento;
 
 
-  let barraTexto =
-    "Sob consulta";
-
-
-  if (
-    window.currentBarra
-  ) {
-
-    barraTexto =
-      `${window.currentBarra} cm`;
-
-  }
-
-
-  let valorCortina =
-    "Sob consulta";
-
-
-  if (
+  const valorCortina =
     typeof window.currentValorCortina ===
     "number"
-  ) {
-
-    valorCortina =
-      brl(
-        window.currentValorCortina
-      );
-
-  }
+      ? brl(
+          window.currentValorCortina
+        )
+      : "Sob consulta";
 
 
   let trilhoTexto =
     "Não selecionado";
-
-
-  let valorTrilhoTexto =
-    "";
 
 
   if (
@@ -2954,31 +2795,24 @@ function mensagemWhatsApp() {
       "number"
     ) {
 
-      valorTrilhoTexto =
-        ` - ${brl(
+      trilhoTexto +=
+        " - " +
+        brl(
           window.currentValorTrilho
-        )}`;
+        );
 
     }
 
   }
 
 
-  let total =
-    "Sob consulta";
-
-
-  if (
+  const total =
     typeof window.currentTotal ===
     "number"
-  ) {
-
-    total =
-      brl(
-        window.currentTotal
-      );
-
-  }
+      ? brl(
+          window.currentTotal
+        )
+      : "Sob consulta";
 
 
   return `Olá! Montei uma cortina no site:
@@ -2992,10 +2826,14 @@ Consumo de tecido: ${consumoTecido
   .toFixed(2)
   .replace(".", ",")} m x ${dados.altura} m
 Franzimento: ${dados.franzimento}x
-Barra: ${barraTexto}
+Barra: ${
+  window.currentBarra
+    ? window.currentBarra + " cm"
+    : "Sob consulta"
+}
 
 Cortina: ${valorCortina}
-Trilho / Varão: ${trilhoTexto}${valorTrilhoTexto}
+Trilho / Varão: ${trilhoTexto}
 
 Total: ${total}
 
@@ -3042,7 +2880,7 @@ function abrirWhatsApp() {
 
 
 // ============================================================
-// EVENTOS DOS CARDS
+// EVENTOS
 // ============================================================
 
 bindCards(
@@ -3050,12 +2888,10 @@ bindCards(
   "modelo"
 );
 
-
 bindCards(
   "tecidos-choice",
   "tecido"
 );
-
 
 bindCards(
   "forros",
@@ -3064,7 +2900,7 @@ bindCards(
 
 
 // ============================================================
-// SELETOR DE TRILHO / VARÃO
+// TRILHO
 // ============================================================
 
 const trilhoSelect =
@@ -3092,29 +2928,33 @@ if (trilhoSelect) {
 
 
 // ============================================================
-// CORES INICIAIS
+// CORES
 // ============================================================
 
 atualizarCores();
 
 
 // ============================================================
-// CAMPOS DE MEDIDA
+// CAMPOS
 // ============================================================
 
 [
   "largura",
   "altura",
   "franzimento"
-].forEach((id) => {
+].forEach(
+  (id) => {
 
-  const elemento =
-    document.getElementById(
-      id
-    );
+    const elemento =
+      document.getElementById(
+        id
+      );
 
 
-  if (elemento) {
+    if (!elemento) {
+      return;
+    }
+
 
     elemento.addEventListener(
       "input",
@@ -3128,12 +2968,11 @@ atualizarCores();
     );
 
   }
-
-});
+);
 
 
 // ============================================================
-// BOTÃO ATUALIZAR
+// RECALCULAR
 // ============================================================
 
 const botaoRecalcular =
@@ -3184,12 +3023,17 @@ if (botaoRecalcular) {
 
 
 // ============================================================
-// WHATSAPP
+// BOTÕES WHATSAPP
 // ============================================================
 
 const botaoWhatsapp =
   document.getElementById(
     "whatsapp"
+  );
+
+const botaoComprar =
+  document.getElementById(
+    "comprar"
   );
 
 
@@ -3201,12 +3045,6 @@ if (botaoWhatsapp) {
   );
 
 }
-
-
-const botaoComprar =
-  document.getElementById(
-    "comprar"
-  );
 
 
 if (botaoComprar) {
@@ -3238,7 +3076,8 @@ if (previewPrev) {
 
   previewPrev.addEventListener(
     "click",
-    () => mudarPreview(-1)
+    () =>
+      mudarPreview(-1)
   );
 
 }
@@ -3248,7 +3087,8 @@ if (previewNext) {
 
   previewNext.addEventListener(
     "click",
-    () => mudarPreview(1)
+    () =>
+      mudarPreview(1)
   );
 
 }
@@ -3333,7 +3173,8 @@ if (zoomPrev) {
 
   zoomPrev.addEventListener(
     "click",
-    () => mudarFotoZoom(-1)
+    () =>
+      mudarFotoZoom(-1)
   );
 
 }
@@ -3343,7 +3184,8 @@ if (zoomNext) {
 
   zoomNext.addEventListener(
     "click",
-    () => mudarFotoZoom(1)
+    () =>
+      mudarFotoZoom(1)
   );
 
 }
@@ -3400,7 +3242,7 @@ if (modalCorFundo) {
 
 
 // ============================================================
-// ESC FECHA MODAIS
+// ESC
 // ============================================================
 
 document.addEventListener(
@@ -3408,17 +3250,20 @@ document.addEventListener(
   (evento) => {
 
     if (
-      evento.key ===
+      evento.key !==
       "Escape"
     ) {
 
-      fecharGaleriaCor();
-
-      fecharZoomPreview();
-
-      fecharVideoProduto();
+      return;
 
     }
+
+
+    fecharGaleriaCor();
+
+    fecharZoomPreview();
+
+    fecharVideoProduto();
 
   }
 );
