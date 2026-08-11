@@ -2,18 +2,13 @@
 // PAGAMENTO - SALVATEX CORTINAS
 // ============================================================
 
+
 // ============================================================
 // CHAVES DO SISTEMA
-//
-// Mantemos compatibilidade com os dois nomes usados
-// anteriormente durante o desenvolvimento.
 // ============================================================
 
-const CHAVE_PEDIDO_PRINCIPAL =
+const CHAVE_PEDIDO =
   "salvatex_pedido_atual";
-
-const CHAVE_PEDIDO_ALTERNATIVA =
-  "salvatexPedidoAtual";
 
 const CHAVE_CARRINHO =
   "salvatexCarrinho";
@@ -27,14 +22,15 @@ const PAGAMENTO_CONFIG = {
 
   parcelas:
     Number(
-      CONFIG?.parcelas || 10
+      CONFIG?.parcelas ||
+      10
     ),
 
   freteGratisMinimo:
     500,
 
   producao:
-    "5 a 10 dias úteis",
+    "5 a 10 dias",
 
   entrega:
     "6 a 12 dias úteis após o envio"
@@ -76,22 +72,29 @@ function brl(valor) {
 // FORMATAR MEDIDA
 // ============================================================
 
-function formatarMedida(valor) {
+function formatarMedida(
+  valor
+) {
 
   return Number(
     valor || 0
   )
     .toFixed(2)
-    .replace(".", ",");
+    .replace(
+      ".",
+      ","
+    );
 
 }
 
 
 // ============================================================
-// LER JSON DO LOCALSTORAGE
+// LER JSON
 // ============================================================
 
-function lerJSON(chave) {
+function lerJSON(
+  chave
+) {
 
   try {
 
@@ -112,6 +115,7 @@ function lerJSON(chave) {
       valor
     );
 
+
   } catch (erro) {
 
     console.error(
@@ -129,59 +133,76 @@ function lerJSON(chave) {
 
 
 // ============================================================
+// SALVAR PEDIDO
+// ============================================================
+
+function salvarPedido(
+  pedido
+) {
+
+  try {
+
+    localStorage.setItem(
+      CHAVE_PEDIDO,
+      JSON.stringify(
+        pedido
+      )
+    );
+
+
+    pedidoAtual =
+      pedido;
+
+
+    return true;
+
+
+  } catch (erro) {
+
+    console.error(
+      "Erro ao salvar pedido:",
+      erro
+    );
+
+
+    return false;
+
+  }
+
+}
+
+
+// ============================================================
 // OBTER PEDIDO
 // ============================================================
 
 function obterPedido() {
 
   // ==========================================================
-  // PRIMEIRA CHAVE
+  // PEDIDO VINDO DO CHECKOUT
   // ==========================================================
 
-  const pedidoPrincipal =
+  const pedido =
     lerJSON(
-      CHAVE_PEDIDO_PRINCIPAL
+      CHAVE_PEDIDO
     );
 
 
   if (
-    pedidoPrincipal &&
+    pedido &&
     Array.isArray(
-      pedidoPrincipal.itens
+      pedido.itens
     ) &&
-    pedidoPrincipal.itens.length
+    pedido.itens.length
   ) {
 
-    return pedidoPrincipal;
+    return pedido;
 
   }
 
 
   // ==========================================================
-  // SEGUNDA CHAVE
-  // ==========================================================
-
-  const pedidoAlternativo =
-    lerJSON(
-      CHAVE_PEDIDO_ALTERNATIVA
-    );
-
-
-  if (
-    pedidoAlternativo &&
-    Array.isArray(
-      pedidoAlternativo.itens
-    ) &&
-    pedidoAlternativo.itens.length
-  ) {
-
-    return pedidoAlternativo;
-
-  }
-
-
-  // ==========================================================
-  // FALLBACK DIRETO DO CARRINHO
+  // FALLBACK DO CARRINHO
   // ==========================================================
 
   const carrinho =
@@ -217,13 +238,30 @@ function obterPedido() {
 
 
 // ============================================================
-// IDENTIFICAR TIPO DO ITEM
+// IDENTIFICAR ITEM
 // ============================================================
 
-function itemEhTrilho(item) {
+function itemEhCortina(
+  item
+) {
 
   return (
-    item.tipo === "trilho"
+    item &&
+    item.tipo ===
+      "cortina"
+  );
+
+}
+
+
+function itemEhTrilho(
+  item
+) {
+
+  return (
+    item &&
+    item.tipo ===
+      "trilho"
   );
 
 }
@@ -233,11 +271,15 @@ function itemEhTrilho(item) {
 // CALCULAR TOTAIS
 // ============================================================
 
-function calcularTotais(itens) {
+function calcularTotais(
+  itens
+) {
 
   let cortinas = 0;
 
   let trilhos = 0;
+
+  let produtos = 0;
 
 
   itens.forEach(
@@ -245,23 +287,37 @@ function calcularTotais(itens) {
 
       const valor =
         Number(
-          item.total || 0
+          item.total ||
+          0
         );
 
 
       if (
-        itemEhTrilho(item)
+        itemEhCortina(
+          item
+        )
       ) {
-
-        trilhos +=
-          valor;
-
-      } else {
 
         cortinas +=
           valor;
 
       }
+
+
+      if (
+        itemEhTrilho(
+          item
+        )
+      ) {
+
+        trilhos +=
+          valor;
+
+      }
+
+
+      produtos +=
+        valor;
 
     }
   );
@@ -273,11 +329,45 @@ function calcularTotais(itens) {
 
     trilhos,
 
-    produtos:
-      cortinas +
-      trilhos
+    produtos
 
   };
+
+}
+
+
+// ============================================================
+// VERIFICAR SE EXISTE CORTINA
+// ============================================================
+
+function pedidoTemCortina(
+  itens
+) {
+
+  return itens.some(
+    (item) =>
+      itemEhCortina(
+        item
+      )
+  );
+
+}
+
+
+// ============================================================
+// VERIFICAR SE EXISTE TRILHO
+// ============================================================
+
+function pedidoTemTrilho(
+  itens
+) {
+
+  return itens.some(
+    (item) =>
+      itemEhTrilho(
+        item
+      )
+  );
 
 }
 
@@ -287,12 +377,16 @@ function calcularTotais(itens) {
 //
 // REGRA:
 //
-// Apenas cortinas contam para atingir R$ 500.
+// R$ 500 OU MAIS EM CORTINAS
+// = FRETE GRÁTIS.
 //
-// Se atingir R$ 500 em cortinas:
-// frete grátis inclusive para trilho/varão comprado junto.
+// Trilho/varão comprado junto acompanha
+// o frete grátis.
 //
-// Trilho sozinho não recebe frete grátis.
+// Trilho sozinho não possui frete grátis.
+//
+// Se não for grátis, o valor será calculado
+// posteriormente pela Salvatex.
 // ============================================================
 
 function obterFrete(
@@ -300,8 +394,79 @@ function obterFrete(
 ) {
 
   const itens =
-    pedido.itens || [];
+    pedido.itens ||
+    [];
 
+
+  // ==========================================================
+  // UTILIZA PRIMEIRO O QUE O CHECKOUT SALVOU
+  // ==========================================================
+
+  if (
+    pedido.frete
+  ) {
+
+    if (
+      pedido.frete.gratis ===
+      true
+    ) {
+
+      return {
+
+        gratis:
+          true,
+
+        valor:
+          0,
+
+        status:
+          "gratis",
+
+        texto:
+          "Grátis",
+
+        aviso:
+          pedido.frete.aviso ||
+          "Seu pedido possui frete grátis."
+
+      };
+
+    }
+
+
+    if (
+      pedido.frete.status ===
+      "aguardando_calculo"
+    ) {
+
+      return {
+
+        gratis:
+          false,
+
+        valor:
+          null,
+
+        status:
+          "aguardando_calculo",
+
+        texto:
+          "A calcular",
+
+        aviso:
+          pedido.frete.aviso ||
+          "O valor do frete será calculado conforme o CEP de entrega."
+
+      };
+
+    }
+
+  }
+
+
+  // ==========================================================
+  // FALLBACK PELA REGRA
+  // ==========================================================
 
   const totais =
     calcularTotais(
@@ -309,44 +474,20 @@ function obterFrete(
     );
 
 
-  const possuiCortina =
-    itens.some(
-      (item) =>
-        !itemEhTrilho(item)
+  const temCortina =
+    pedidoTemCortina(
+      itens
     );
 
 
-  // ==========================================================
-  // SE O CHECKOUT JÁ SALVOU FRETE GRÁTIS
-  // ==========================================================
+  const temTrilho =
+    pedidoTemTrilho(
+      itens
+    );
+
 
   if (
-    pedido.frete &&
-    pedido.frete.gratis === true
-  ) {
-
-    return {
-
-      gratis:
-        true,
-
-      valor:
-        0,
-
-      texto:
-        "Grátis"
-
-    };
-
-  }
-
-
-  // ==========================================================
-  // CONFERE PELA REGRA
-  // ==========================================================
-
-  if (
-    possuiCortina &&
+    temCortina &&
     totais.cortinas >=
       PAGAMENTO_CONFIG
         .freteGratisMinimo
@@ -360,17 +501,48 @@ function obterFrete(
       valor:
         0,
 
+      status:
+        "gratis",
+
       texto:
-        "Grátis"
+        "Grátis",
+
+      aviso:
+        temTrilho
+          ? "Frete grátis para as cortinas e o trilho/varão deste pedido."
+          : "Seu pedido possui frete grátis."
 
     };
 
   }
 
 
-  // ==========================================================
-  // FRETE PAGO
-  // ==========================================================
+  if (
+    temTrilho &&
+    !temCortina
+  ) {
+
+    return {
+
+      gratis:
+        false,
+
+      valor:
+        null,
+
+      status:
+        "aguardando_calculo",
+
+      texto:
+        "A calcular",
+
+      aviso:
+        "O frete do trilho/varão será calculado conforme o CEP de entrega."
+
+    };
+
+  }
+
 
   return {
 
@@ -380,8 +552,14 @@ function obterFrete(
     valor:
       null,
 
+    status:
+      "aguardando_calculo",
+
     texto:
-      "Calculado após o pedido"
+      "A calcular",
+
+    aviso:
+      "O valor do frete será calculado conforme o CEP de entrega."
 
   };
 
@@ -487,7 +665,7 @@ function criarResumoCortina(
 
 
   // ==========================================================
-  // PRODUTO
+  // TECIDO + COR
   // ==========================================================
 
   const produto =
@@ -522,7 +700,9 @@ function criarResumoCortina(
   // MODELO
   // ==========================================================
 
-  if (item.modelo) {
+  if (
+    item.modelo
+  ) {
 
     bloco.appendChild(
       criarLinhaDetalhe(
@@ -538,7 +718,9 @@ function criarResumoCortina(
   // FORRO
   // ==========================================================
 
-  if (item.forro) {
+  if (
+    item.forro
+  ) {
 
     bloco.appendChild(
       criarLinhaDetalhe(
@@ -556,15 +738,16 @@ function criarResumoCortina(
 
   const largura =
     Number(
-      item.larguraAmbiente ??
-      item.largura ??
+      item.larguraAmbiente ||
+      item.largura ||
       0
     );
 
 
   const altura =
     Number(
-      item.altura || 0
+      item.altura ||
+      0
     );
 
 
@@ -594,19 +777,39 @@ function criarResumoCortina(
   // FRANZIMENTO
   // ==========================================================
 
-  if (item.franzimento) {
+  if (
+    item.franzimento
+  ) {
 
     bloco.appendChild(
       criarLinhaDetalhe(
         "Franzimento: " +
         String(
           item.franzimento
-        )
-          .replace(
-            ".",
-            ","
-          ) +
+        ).replace(
+          ".",
+          ","
+        ) +
         "x"
+      )
+    );
+
+  }
+
+
+  // ==========================================================
+  // BARRA
+  // ==========================================================
+
+  if (
+    item.barra
+  ) {
+
+    bloco.appendChild(
+      criarLinhaDetalhe(
+        "Barra: " +
+        item.barra +
+        " cm"
       )
     );
 
@@ -658,7 +861,6 @@ function criarResumoTrilho(
 
   nome.textContent =
     item.produto ||
-    item.trilho ||
     "Trilho / Varão";
 
 
@@ -690,20 +892,48 @@ function criarResumoTrilho(
 
 
   // ==========================================================
+  // IDENTIFICAÇÃO
+  // ==========================================================
+
+  const produto =
+    document.createElement(
+      "div"
+    );
+
+
+  produto.className =
+    "pagamento-item-produto";
+
+
+  produto.textContent =
+    "Trilho / Varão";
+
+
+  bloco.appendChild(
+    produto
+  );
+
+
+  // ==========================================================
   // MEDIDA
   // ==========================================================
 
-  if (
+  const largura =
     Number(
-      item.largura || 0
-    ) > 0
+      item.largura ||
+      0
+    );
+
+
+  if (
+    largura > 0
   ) {
 
     bloco.appendChild(
       criarLinhaDetalhe(
         "Medida: " +
         formatarMedida(
-          item.largura
+          largura
         ) +
         " m"
       )
@@ -750,12 +980,18 @@ function renderizarItens(
     (item) => {
 
       if (
-        itemEhTrilho(item)
+        itemEhCortina(
+          item
+        )
       ) {
 
+        numeroCortina++;
+
+
         container.appendChild(
-          criarResumoTrilho(
-            item
+          criarResumoCortina(
+            item,
+            numeroCortina
           )
         );
 
@@ -765,15 +1001,19 @@ function renderizarItens(
       }
 
 
-      numeroCortina++;
-
-
-      container.appendChild(
-        criarResumoCortina(
-          item,
-          numeroCortina
+      if (
+        itemEhTrilho(
+          item
         )
-      );
+      ) {
+
+        container.appendChild(
+          criarResumoTrilho(
+            item
+          )
+        );
+
+      }
 
     }
   );
@@ -803,22 +1043,41 @@ function renderizarCliente(
 
 
   const cliente =
-    pedido.cliente || {};
+    pedido.cliente ||
+    {};
 
 
-  if (!cliente.nome) {
+  container.innerHTML =
+    "";
 
-    container.innerHTML =
-      "";
+
+  if (
+    !cliente.nome
+  ) {
+
+    const aviso =
+      document.createElement(
+        "span"
+      );
+
+
+    aviso.textContent =
+      "Dados de entrega não informados.";
+
+
+    container.appendChild(
+      aviso
+    );
+
 
     return;
 
   }
 
 
-  container.innerHTML =
-    "";
-
+  // ==========================================================
+  // NOME
+  // ==========================================================
 
   const titulo =
     document.createElement(
@@ -839,7 +1098,8 @@ function renderizarCliente(
   // ENDEREÇO
   // ==========================================================
 
-  const partesEndereco = [];
+  const partesEndereco =
+    [];
 
 
   if (
@@ -900,8 +1160,12 @@ function renderizarCliente(
         cliente.cidade,
         cliente.estado
       ]
-        .filter(Boolean)
-        .join(" - ")
+        .filter(
+          Boolean
+        )
+        .join(
+          " - "
+        )
     );
 
   }
@@ -937,6 +1201,59 @@ function renderizarCliente(
 
     container.appendChild(
       endereco
+    );
+
+  }
+
+
+  // ==========================================================
+  // CONTATO
+  // ==========================================================
+
+  const contatos =
+    [];
+
+
+  if (
+    cliente.telefone
+  ) {
+
+    contatos.push(
+      cliente.telefone
+    );
+
+  }
+
+
+  if (
+    cliente.email
+  ) {
+
+    contatos.push(
+      cliente.email
+    );
+
+  }
+
+
+  if (
+    contatos.length
+  ) {
+
+    const contato =
+      document.createElement(
+        "span"
+      );
+
+
+    contato.textContent =
+      contatos.join(
+        " · "
+      );
+
+
+    container.appendChild(
+      contato
     );
 
   }
@@ -993,6 +1310,12 @@ function atualizarResumo(
     );
 
 
+  const avisoFrete =
+    document.getElementById(
+      "pagamento-frete-aviso"
+    );
+
+
   const totalElemento =
     document.getElementById(
       "pagamento-total"
@@ -1005,6 +1328,10 @@ function atualizarResumo(
     );
 
 
+  // ==========================================================
+  // CORTINAS
+  // ==========================================================
+
   if (
     totalCortinas
   ) {
@@ -1016,6 +1343,10 @@ function atualizarResumo(
 
   }
 
+
+  // ==========================================================
+  // TRILHOS
+  // ==========================================================
 
   if (
     totalTrilhos
@@ -1041,6 +1372,10 @@ function atualizarResumo(
   }
 
 
+  // ==========================================================
+  // FRETE
+  // ==========================================================
+
   if (
     freteElemento
   ) {
@@ -1051,12 +1386,43 @@ function atualizarResumo(
   }
 
 
+  if (
+    avisoFrete
+  ) {
+
+    avisoFrete.textContent =
+      frete.aviso;
+
+
+    avisoFrete.style.display =
+      frete.aviso
+        ? "block"
+        : "none";
+
+  }
+
+
   // ==========================================================
   // TOTAL
   //
-  // Como frete pago será calculado posteriormente,
-  // aqui continua sendo o total dos produtos.
+  // Se o frete estiver pendente de cálculo,
+  // mostramos somente o total dos produtos.
   // ==========================================================
+
+  let totalFinal =
+    totais.produtos;
+
+
+  if (
+    typeof frete.valor ===
+    "number"
+  ) {
+
+    totalFinal +=
+      frete.valor;
+
+  }
+
 
   if (
     totalElemento
@@ -1064,37 +1430,98 @@ function atualizarResumo(
 
     totalElemento.textContent =
       brl(
-        totais.produtos
+        totalFinal
       );
 
   }
 
 
+  // ==========================================================
+  // PARCELAMENTO
+  // ==========================================================
+
   if (
     parcelamento
   ) {
 
-    parcelamento.textContent =
-      "ou " +
-      PAGAMENTO_CONFIG
-        .parcelas +
-      "x de " +
-      brl(
-        totais.produtos /
+    if (
+      totalFinal > 0
+    ) {
+
+      parcelamento.textContent =
+        "ou " +
         PAGAMENTO_CONFIG
-          .parcelas
-      ) +
-      " sem juros";
+          .parcelas +
+        "x de " +
+        brl(
+          totalFinal /
+          PAGAMENTO_CONFIG
+            .parcelas
+        ) +
+        " sem juros";
+
+    } else {
+
+      parcelamento.textContent =
+        "";
+
+    }
 
   }
 
 
-  window.pagamentoTotais =
-    totais;
+  // ==========================================================
+  // DISPONIBILIZA GLOBALMENTE
+  // ==========================================================
+
+  window.pagamentoTotais = {
+
+    ...totais,
+
+    frete:
+      frete.valor,
+
+    total:
+      totalFinal
+
+  };
 
 
   window.pagamentoFrete =
     frete;
+
+}
+
+
+// ============================================================
+// MARCAR OPÇÃO VISUALMENTE
+// ============================================================
+
+function atualizarOpcaoSelecionada() {
+
+  document
+    .querySelectorAll(
+      ".pagamento-opcao"
+    )
+    .forEach(
+      (opcao) => {
+
+        const radio =
+          opcao.querySelector(
+            'input[name="forma-pagamento"]'
+          );
+
+
+        opcao.classList.toggle(
+          "selecionada",
+          Boolean(
+            radio &&
+            radio.checked
+          )
+        );
+
+      }
+    );
 
 }
 
@@ -1117,11 +1544,7 @@ function atualizarInformacaoPagamento() {
     );
 
 
-  if (!info) {
-
-    return;
-
-  }
+  atualizarOpcaoSelecionada();
 
 
   // ==========================================================
@@ -1132,14 +1555,26 @@ function atualizarInformacaoPagamento() {
     !formaPagamentoSelecionada
   ) {
 
-    info.textContent =
-      "Selecione a forma de pagamento para continuar.";
+    if (
+      info
+    ) {
+
+      info.textContent =
+        "Selecione a forma de pagamento para continuar.";
+
+    }
 
 
-    if (botao) {
+    if (
+      botao
+    ) {
+
+      botao.disabled =
+        true;
+
 
       botao.textContent =
-        "Finalizar pagamento";
+        "Selecione a forma de pagamento";
 
     }
 
@@ -1158,19 +1593,36 @@ function atualizarInformacaoPagamento() {
     "cartao"
   ) {
 
-    info.innerHTML =
-      `
-        <strong>Cartão de crédito</strong>
-        <br>
-        Pagamento em até
-        ${PAGAMENTO_CONFIG.parcelas}x sem juros.
-      `;
+    if (
+      info
+    ) {
+
+      info.innerHTML =
+        `
+          <strong>
+            Cartão de crédito
+          </strong>
+
+          <br>
+
+          Pagamento em até
+          ${PAGAMENTO_CONFIG.parcelas}x
+          sem juros.
+        `;
+
+    }
 
 
-    if (botao) {
+    if (
+      botao
+    ) {
+
+      botao.disabled =
+        false;
+
 
       botao.textContent =
-        "Pagar com cartão";
+        "Continuar com cartão";
 
     }
 
@@ -1189,20 +1641,81 @@ function atualizarInformacaoPagamento() {
     "pix"
   ) {
 
-    info.innerHTML =
-      `
-        <strong>PIX</strong>
-        <br>
-        Pagamento à vista.
-      `;
+    if (
+      info
+    ) {
 
+      info.innerHTML =
+        `
+          <strong>
+            PIX
+          </strong>
 
-    if (botao) {
+          <br>
 
-      botao.textContent =
-        "Pagar com PIX";
+          Pagamento à vista com
+          confirmação após o pagamento.
+        `;
 
     }
+
+
+    if (
+      botao
+    ) {
+
+      botao.disabled =
+        false;
+
+
+      botao.textContent =
+        "Continuar com PIX";
+
+    }
+
+  }
+
+}
+
+
+// ============================================================
+// RECUPERAR FORMA DE PAGAMENTO JÁ SALVA
+// ============================================================
+
+function recuperarFormaPagamento(
+  pedido
+) {
+
+  const forma =
+    pedido?.pagamento?.forma;
+
+
+  if (
+    forma !== "cartao" &&
+    forma !== "pix"
+  ) {
+
+    return;
+
+  }
+
+
+  formaPagamentoSelecionada =
+    forma;
+
+
+  const radio =
+    document.querySelector(
+      `input[name="forma-pagamento"][value="${forma}"]`
+    );
+
+
+  if (
+    radio
+  ) {
+
+    radio.checked =
+      true;
 
   }
 
@@ -1215,20 +1728,38 @@ function atualizarInformacaoPagamento() {
 
 function salvarFormaPagamento() {
 
-  if (!pedidoAtual) {
+  if (
+    !pedidoAtual ||
+    !formaPagamentoSelecionada
+  ) {
 
     return false;
 
   }
 
 
-  const pagamento = {
+  const pedidoAtualizado = {
 
-    forma:
-      formaPagamentoSelecionada,
+    ...pedidoAtual,
 
-    status:
-      "aguardando_pagamento",
+    pagamento: {
+
+      ...(pedidoAtual.pagamento || {}),
+
+      forma:
+        formaPagamentoSelecionada,
+
+      status:
+        "aguardando_pagamento",
+
+      atualizadoEm:
+        new Date()
+          .toISOString()
+
+    },
+
+    etapa:
+      "pagamento",
 
     atualizadoEm:
       new Date()
@@ -1237,41 +1768,9 @@ function salvarFormaPagamento() {
   };
 
 
-  const pedidoAtualizado = {
-
-    ...pedidoAtual,
-
-    pagamento:
-      pagamento
-
-  };
-
-
-  // ==========================================================
-  // SALVA NAS DUAS CHAVES PARA MANTER COMPATIBILIDADE
-  // ==========================================================
-
-  localStorage.setItem(
-    CHAVE_PEDIDO_PRINCIPAL,
-    JSON.stringify(
-      pedidoAtualizado
-    )
+  return salvarPedido(
+    pedidoAtualizado
   );
-
-
-  localStorage.setItem(
-    CHAVE_PEDIDO_ALTERNATIVA,
-    JSON.stringify(
-      pedidoAtualizado
-    )
-  );
-
-
-  pedidoAtual =
-    pedidoAtualizado;
-
-
-  return true;
 
 }
 
@@ -1279,15 +1778,13 @@ function salvarFormaPagamento() {
 // ============================================================
 // FINALIZAR PAGAMENTO
 //
-// IMPORTANTE:
+// Neste momento ainda não existe gateway conectado.
 //
-// Ainda NÃO existe integração com Cielo ou Mercado Pago.
+// Não coletamos número de cartão.
+// Não geramos PIX falso.
 //
-// Portanto, não coletamos número do cartão e não geramos
-// PIX falso.
-//
-// Quando conectarmos o backend/gateway, esta será a função
-// que chamará a API de pagamento.
+// A função apenas salva a escolha.
+// Depois a integração real usará este ponto.
 // ============================================================
 
 function finalizarPagamento() {
@@ -1307,7 +1804,9 @@ function finalizarPagamento() {
       );
 
 
-    if (primeiraOpcao) {
+    if (
+      primeiraOpcao
+    ) {
 
       primeiraOpcao.scrollIntoView({
         behavior:
@@ -1339,7 +1838,41 @@ function finalizarPagamento() {
   }
 
 
-  salvarFormaPagamento();
+  if (
+    !pedidoAtual.cliente ||
+    !pedidoAtual.cliente.nome
+  ) {
+
+    alert(
+      "Os dados de entrega não foram encontrados."
+    );
+
+
+    window.location.href =
+      "checkout.html";
+
+
+    return;
+
+  }
+
+
+  const salvo =
+    salvarFormaPagamento();
+
+
+  if (
+    !salvo
+  ) {
+
+    alert(
+      "Não foi possível salvar a forma de pagamento."
+    );
+
+
+    return;
+
+  }
 
 
   // ==========================================================
@@ -1352,7 +1885,7 @@ function finalizarPagamento() {
   ) {
 
     alert(
-      "Forma de pagamento salva. A integração segura do cartão será conectada na próxima etapa."
+      "Forma de pagamento salva. O próximo passo será conectar o pagamento seguro por cartão."
     );
 
 
@@ -1371,7 +1904,7 @@ function finalizarPagamento() {
   ) {
 
     alert(
-      "Forma de pagamento salva. A geração do PIX será conectada na próxima etapa."
+      "Forma de pagamento salva. O próximo passo será conectar a geração do PIX."
     );
 
   }
@@ -1425,7 +1958,9 @@ function mostrarPedidoVazio() {
     );
 
 
-  if (!pagina) {
+  if (
+    !pagina
+  ) {
 
     return;
 
@@ -1435,14 +1970,7 @@ function mostrarPedidoVazio() {
   pagina.innerHTML =
     `
 
-      <div
-        style="
-          max-width:700px;
-          margin:80px auto;
-          padding:40px 24px;
-          text-align:center;
-        "
-      >
+      <div class="pagamento-vazio">
 
         <h1>
           Pedido não encontrado
@@ -1453,17 +1981,7 @@ function mostrarPedidoVazio() {
           uma cortina ao carrinho.
         </p>
 
-        <a
-          href="index.html"
-          style="
-            display:inline-block;
-            margin-top:18px;
-            padding:13px 20px;
-            background:#211d18;
-            color:#fff;
-            border-radius:10px;
-          "
-        >
+        <a href="index.html">
           Configurar cortina
         </a>
 
@@ -1521,27 +2039,74 @@ function iniciarPagamento() {
   }
 
 
+  // ==========================================================
+  // O PAGAMENTO DEVE VIR DO CHECKOUT
+  // ==========================================================
+
+  if (
+    !pedido.cliente ||
+    !pedido.cliente.nome
+  ) {
+
+    window.location.href =
+      "checkout.html";
+
+
+    return;
+
+  }
+
+
   pedidoAtual =
     pedido;
 
 
+  // ==========================================================
+  // EVENTOS
+  // ==========================================================
+
   configurarFormasPagamento();
 
+
+  // ==========================================================
+  // RECUPERA ESCOLHA ANTERIOR
+  // ==========================================================
+
+  recuperarFormaPagamento(
+    pedido
+  );
+
+
+  // ==========================================================
+  // CLIENTE
+  // ==========================================================
 
   renderizarCliente(
     pedido
   );
 
 
+  // ==========================================================
+  // ITENS
+  // ==========================================================
+
   renderizarItens(
     pedido.itens
   );
 
 
+  // ==========================================================
+  // VALORES
+  // ==========================================================
+
   atualizarResumo(
     pedido
   );
 
+
+  // ==========================================================
+  // PAGAMENTO
+  // ==========================================================
 
   atualizarInformacaoPagamento();
 
