@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+
+  <meta charset="UTF-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
+
+  <meta
+    name="description"
+    content="Pagamento Salvatex Cortinas"
+  >
+
+  <title>
+    Pagamento | Salvatex Cortinas
+  </title>
+
+  <link
+    rel="stylesheet"
+    href="css/style.css"
+  >
+
+</head>
+
+
+<body>
+
+
+<main class="pagina-pagamento">
+
+
+  <!-- ========================================================
+       TOPO
+  ========================================================= -->
+
+  <header class="pagamento-topo">
+
+    <a
+      href="checkout.html"
+      class="pagamento-voltar"
+    >
+      ← Voltar aos dados de entrega
+    </a>
+
+
+    <h1 class="pagamento-titulo">
+      Pagamento
+    </h1>
+
+
+    <p class="pagamento-subtitulo">
+      Escolha como deseja pagar seu pedido.
+    </p>
+
+  </header>
+
+
+
+  <!-- ========================================================
+       LAYOUT
+  ========================================================= -->
+
+  <div class="pagamento-layout">
+
+
+    <!-- ======================================================
+         FORMAS DE PAGAMENTO
+    ======================================================= -->
+
+    <section class="pagamento-opcoes">
+
+
+      <div class="pagamento-bloco">
+
+        <h2>
+          Forma de pagamento
+        </h2>
+
+
+        <p class="pagamento-descricao">
+          Selecione uma das opções abaixo.
+        </p>
+
+
+
+        <!-- ==================================================
+             CARTÃO
+        =================================================== -->
+
+        <label class="pagamento-opcao">
+
+          <input
+            type="radio"
+            name="forma-pagamento"
+            value="cartao"
+          >
+
+          <div class="pagamento-opcao-conteudo">
+
+            <div class="pagamento-opcao-topo">
+
+              <strong>
+                Cartão de crédito
+              </strong>
+
+              <span>
+                Até 10x sem juros
+              </span>
+
+            </div>
+
+
+            <p>
+              O pagamento será processado em ambiente seguro.
+            </p>
+
+          </div>
+
+        </label>
+
+
+
+        <!-- ==================================================
+             PIX
+        =================================================== -->
+
+        <label class="pagamento-opcao">
+
+          <input
+            type="radio"
+            name="forma-pagamento"
+            value="pix"
+          >
+
+          <div class="pagamento-opcao-conteudo">
+
+            <div class="pagamento-opcao-topo">
+
+              <strong>
+                PIX
+              </strong>
+
+              <span>
+                Pagamento à vista
+              </span>
+
+            </div>
+
+
+            <p>
+              Após continuar, o sistema poderá gerar o QR Code
+              para pagamento.
+            </p>
+
+          </div>
+
+        </label>
+
+
+
+        <!-- ==================================================
+             INFORMAÇÃO DO GATEWAY
+        =================================================== -->
+
+        <div
+          id="pagamento-info"
+          class="pagamento-info"
+        >
+
+          Selecione a forma de pagamento para continuar.
+
+        </div>
+
+
+      </div>
+
+
+
+      <!-- ====================================================
+           SEGURANÇA
+      ===================================================== -->
+
+      <div class="pagamento-bloco pagamento-seguranca">
+
+        <h2>
+          Compra segura
+        </h2>
+
+
+        <div class="pagamento-seguranca-item">
+
+          <strong>
+            Pagamento protegido
+          </strong>
+
+          <span>
+            Seus dados de pagamento não serão armazenados diretamente
+            pela Salvatex.
+          </span>
+
+        </div>
+
+
+        <div class="pagamento-seguranca-item">
+
+          <strong>
+            Produção sob medida
+          </strong>
+
+          <span>
+            O pedido entra em produção após a confirmação do pagamento.
+          </span>
+
+        </div>
+
+
+        <div class="pagamento-seguranca-item">
+
+          <strong>
+            Prazo de produção
+          </strong>
+
+          <span>
+            5 a 10 dias úteis.
+          </span>
+
+        </div>
+
+
+        <div class="pagamento-seguranca-item">
+
+          <strong>
+            Prazo de entrega
+          </strong>
+
+          <span>
+            6 a 12 dias úteis após o envio.
+          </span>
+
+        </div>
+
+      </div>
+
+
+    </section>
+
+
+
+    <!-- ======================================================
+         RESUMO DO PEDIDO
+    ======================================================= -->
+
+    <aside class="pagamento-resumo">
+
+
+      <h2>
+        Resumo do pedido
+      </h2>
+
+
+
+      <!-- CLIENTE -->
+
+      <div
+        id="pagamento-cliente"
+        class="pagamento-cliente"
+      ></div>
+
+
+
+      <!-- ITENS -->
+
+      <div
+        id="pagamento-itens"
+        class="pagamento-itens"
+      >
+
+        <!-- Inserido pelo pagamento.js -->
+
+      </div>
+
+
+
+      <div class="pagamento-resumo-divisor"></div>
+
+
+
+      <!-- CORTINAS -->
+
+      <div class="pagamento-resumo-linha">
+
+        <span>
+          Cortinas
+        </span>
+
+        <strong id="pagamento-total-cortinas">
+          R$ 0,00
+        </strong>
+
+      </div>
+
+
+
+      <!-- TRILHOS -->
+
+      <div
+        id="pagamento-linha-trilhos"
+        class="pagamento-resumo-linha"
+      >
+
+        <span>
+          Trilhos / Varões
+        </span>
+
+        <strong id="pagamento-total-trilhos">
+          R$ 0,00
+        </strong>
+
+      </div>
+
+
+
+      <!-- FRETE -->
+
+      <div class="pagamento-resumo-linha">
+
+        <span>
+          Frete
+        </span>
+
+        <strong id="pagamento-frete">
+          A calcular
+        </strong>
+
+      </div>
+
+
+
+      <div class="pagamento-resumo-divisor"></div>
+
+
+
+      <!-- TOTAL -->
+
+      <div class="pagamento-total">
+
+        <span>
+          Total dos produtos
+        </span>
+
+        <strong id="pagamento-total">
+          R$ 0,00
+        </strong>
+
+      </div>
+
+
+
+      <!-- PARCELAMENTO -->
+
+      <div
+        id="pagamento-parcelamento"
+        class="pagamento-parcelamento"
+      >
+        ou 10x sem juros
+      </div>
+
+
+
+      <!-- ====================================================
+           FINALIZAR
+      ===================================================== -->
+
+      <button
+        id="pagamento-finalizar"
+        type="button"
+        class="pagamento-botao"
+      >
+        Finalizar pagamento
+      </button>
+
+
+
+      <a
+        href="checkout.html"
+        class="pagamento-editar"
+      >
+        Editar dados do pedido
+      </a>
+
+
+    </aside>
+
+
+  </div>
+
+
+</main>
+
+
+
+<!-- ==========================================================
+     JAVASCRIPT
+=========================================================== -->
+
+<script src="js/config.js"></script>
+
+<script src="js/pagamento.js"></script>
+
+
+</body>
+
+</html>
