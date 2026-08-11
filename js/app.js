@@ -163,10 +163,12 @@ function semCache(src) {
     return "";
   }
 
+
   const separador =
     src.includes("?")
       ? "&"
       : "?";
+
 
   return (
     src +
@@ -192,11 +194,14 @@ function obterPastaMidia(
   const tecidoPasta =
     PASTAS_MIDIA.tecidos[tecido];
 
+
   const modeloPasta =
     PASTAS_MIDIA.modelos[modelo];
 
+
   const corPasta =
     PASTAS_MIDIA.cores[cor];
+
 
   const forroPasta =
     PASTAS_MIDIA.forros[forro];
@@ -250,7 +255,9 @@ function obterCaminhoFoto(
 
 
   if (!pasta) {
+
     return "";
+
   }
 
 
@@ -285,7 +292,9 @@ function obterCaminhoVideo(
 
 
   if (!pasta) {
+
     return "";
+
   }
 
 
@@ -303,39 +312,48 @@ function obterCaminhoVideo(
 
 function verificarImagem(src) {
 
-  return new Promise((resolve) => {
+  return new Promise(
+    (resolve) => {
 
-    if (!src) {
+      if (!src) {
 
-      resolve(false);
+        resolve(false);
 
-      return;
+        return;
+
+      }
+
+
+      const imagem =
+        new Image();
+
+
+      imagem.onload =
+        () => resolve(true);
+
+
+      imagem.onerror =
+        () => resolve(false);
+
+
+      imagem.src =
+        semCache(src);
 
     }
-
-
-    const imagem =
-      new Image();
-
-
-    imagem.onload =
-      () => resolve(true);
-
-
-    imagem.onerror =
-      () => resolve(false);
-
-
-    imagem.src =
-      semCache(src);
-
-  });
+  );
 
 }
 
 
 // ============================================================
 // CARREGA AS FOTOS
+//
+// REGRA:
+//
+// tecido + modelo + forro
+//
+// A cor selecionada aparece primeiro.
+// Depois o carrossel mostra as outras cores que possuem fotos.
 // ============================================================
 
 async function carregarFotosCarrossel() {
@@ -347,11 +365,14 @@ async function carregarFotosCarrossel() {
   const tecidoAtual =
     state.tecido;
 
+
   const modeloAtual =
     state.modelo;
 
+
   const forroAtual =
     state.forro;
+
 
   const corSelecionada =
     state.cor;
@@ -367,7 +388,8 @@ async function carregarFotosCarrossel() {
     corSelecionada,
     ...cores.filter(
       (cor) =>
-        cor !== corSelecionada
+        cor !==
+        corSelecionada
     )
   ];
 
@@ -385,6 +407,7 @@ async function carregarFotosCarrossel() {
       ) {
 
         candidatos.push({
+
           src:
             obterCaminhoFoto(
               tecidoAtual,
@@ -395,6 +418,7 @@ async function carregarFotosCarrossel() {
             ),
 
           cor
+
         });
 
       }
@@ -436,7 +460,9 @@ async function carregarFotosCarrossel() {
 
 
   fotosCarrosselAtuais =
-    resultados.filter(Boolean);
+    resultados.filter(
+      Boolean
+    );
 
 
   previewIndex = 0;
@@ -489,9 +515,11 @@ function obterFotoAtual() {
 function gerarPlaceholder() {
 
   const svg = `
-    <svg xmlns="http://www.w3.org/2000/svg"
-         width="900"
-         height="700">
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="900"
+      height="700"
+    >
 
       <rect
         width="100%"
@@ -527,7 +555,9 @@ function gerarPlaceholder() {
 
   return (
     "data:image/svg+xml;charset=UTF-8," +
-    encodeURIComponent(svg)
+    encodeURIComponent(
+      svg
+    )
   );
 
 }
@@ -559,7 +589,9 @@ function brl(valor) {
 function val(id) {
 
   const elemento =
-    document.getElementById(id);
+    document.getElementById(
+      id
+    );
 
 
   return elemento
@@ -593,13 +625,19 @@ function dadosAtuais() {
       state.trilho,
 
     largura:
-      val("largura"),
+      val(
+        "largura"
+      ),
 
     altura:
-      val("altura"),
+      val(
+        "altura"
+      ),
 
     franzimento:
-      val("franzimento")
+      val(
+        "franzimento"
+      )
 
   };
 
@@ -621,66 +659,70 @@ function bindCards(
       groupId +
       " .card"
     )
-    .forEach((el) => {
+    .forEach(
+      (el) => {
 
-      el.addEventListener(
-        "click",
-        async () => {
+        el.addEventListener(
+          "click",
+          async () => {
 
-          document
-            .querySelectorAll(
-              "#" +
-              groupId +
-              " .card"
-            )
-            .forEach(
-              (card) => {
+            document
+              .querySelectorAll(
+                "#" +
+                groupId +
+                " .card"
+              )
+              .forEach(
+                (card) => {
 
-                card.classList.remove(
-                  "selected"
-                );
+                  card.classList.remove(
+                    "selected"
+                  );
 
-              }
+                }
+              );
+
+
+            el.classList.add(
+              "selected"
             );
 
 
-          el.classList.add(
-            "selected"
-          );
+            state[key] =
+              el.dataset.value;
 
 
-          state[key] =
-            el.dataset.value;
+            if (
+              key ===
+              "tecido"
+            ) {
+
+              atualizarCores();
+
+            }
 
 
-          if (
-            key === "tecido"
-          ) {
+            atualizarOrcamento();
 
-            atualizarCores();
+
+            if (
+              key === "modelo" ||
+              key === "tecido" ||
+              key === "forro"
+            ) {
+
+              previewIndex = 0;
+
+
+              await carregarFotosCarrossel();
+
+            }
 
           }
+        );
 
-
-          atualizarOrcamento();
-
-
-          if (
-            key === "modelo" ||
-            key === "tecido" ||
-            key === "forro"
-          ) {
-
-            previewIndex = 0;
-
-            await carregarFotosCarrossel();
-
-          }
-
-        }
-      );
-
-    });
+      }
+    );
 
 }
 
@@ -698,7 +740,9 @@ function atualizarCores() {
 
 
   if (!container) {
+
     return;
+
   }
 
 
@@ -715,7 +759,8 @@ function atualizarCores() {
   ) {
 
     state.cor =
-      cores[0] || "";
+      cores[0] ||
+      "";
 
   }
 
@@ -776,6 +821,17 @@ function atualizarCores() {
 
         imagem.loading =
           "lazy";
+
+
+        imagem.addEventListener(
+          "error",
+          () => {
+
+            imagem.style.display =
+              "none";
+
+          }
+        );
 
 
         card.appendChild(
@@ -861,20 +917,24 @@ function atualizarPreview() {
       "preview-img"
     );
 
+
   const dots =
     document.getElementById(
       "preview-dots"
     );
+
 
   const carousel =
     document.getElementById(
       "preview-carousel"
     );
 
+
   const previewTecido =
     document.getElementById(
       "preview-tecido"
     );
+
 
   const previewCor =
     document.getElementById(
@@ -883,9 +943,15 @@ function atualizarPreview() {
 
 
   if (!img) {
+
     return;
+
   }
 
+
+  // ==========================================================
+  // SEM FOTO
+  // ==========================================================
 
   if (
     !fotosCarrosselAtuais.length
@@ -946,12 +1012,18 @@ function atualizarPreview() {
   }
 
 
+  // ==========================================================
+  // COM FOTO
+  // ==========================================================
+
   const fotoAtual =
     obterFotoAtual();
 
 
   if (!fotoAtual) {
+
     return;
+
   }
 
 
@@ -989,7 +1061,8 @@ function atualizarPreview() {
 
     carousel.classList.toggle(
       "single-image",
-      fotosCarrosselAtuais.length <= 1
+      fotosCarrosselAtuais.length <=
+        1
     );
 
   }
@@ -1002,7 +1075,10 @@ function atualizarPreview() {
 
 
     fotosCarrosselAtuais.forEach(
-      (foto, indice) => {
+      (
+        foto,
+        indice
+      ) => {
 
         const dot =
           document.createElement(
@@ -1133,7 +1209,9 @@ function criarBotaoVideo() {
 
 
   if (!carousel) {
+
     return;
+
   }
 
 
@@ -1159,13 +1237,17 @@ function criarBotaoVideo() {
     botao.style,
     {
 
-      display: "none",
+      display:
+        "none",
 
-      width: "100%",
+      width:
+        "100%",
 
-      marginTop: "12px",
+      marginTop:
+        "12px",
 
-      padding: "12px 14px",
+      padding:
+        "12px 14px",
 
       border:
         "1px solid #e7e0d8",
@@ -1228,6 +1310,28 @@ function verificarVideo(
         );
 
 
+      const limpar =
+        () => {
+
+          video.removeEventListener(
+            "loadedmetadata",
+            sucesso
+          );
+
+
+          video.removeEventListener(
+            "error",
+            erro
+          );
+
+
+          video.removeAttribute(
+            "src"
+          );
+
+      };
+
+
       const sucesso =
         () => {
 
@@ -1244,26 +1348,6 @@ function verificarVideo(
           limpar();
 
           resolve(false);
-
-        };
-
-
-      const limpar =
-        () => {
-
-          video.removeEventListener(
-            "loadedmetadata",
-            sucesso
-          );
-
-          video.removeEventListener(
-            "error",
-            erro
-          );
-
-          video.removeAttribute(
-            "src"
-          );
 
         };
 
@@ -1285,7 +1369,9 @@ function verificarVideo(
 
 
       video.src =
-        semCache(src);
+        semCache(
+          src
+        );
 
 
       video.load();
@@ -1314,7 +1400,9 @@ async function atualizarBotaoVideo(
 
 
   if (!botao) {
+
     return;
+
   }
 
 
@@ -1411,19 +1499,26 @@ function criarModalVideo() {
     modal.style,
     {
 
-      display: "none",
+      display:
+        "none",
 
-      position: "fixed",
+      position:
+        "fixed",
 
-      inset: "0",
+      inset:
+        "0",
 
-      zIndex: "20000",
+      zIndex:
+        "20000",
 
-      alignItems: "center",
+      alignItems:
+        "center",
 
-      justifyContent: "center",
+      justifyContent:
+        "center",
 
-      padding: "20px",
+      padding:
+        "20px",
 
       background:
         "rgba(0,0,0,.85)"
@@ -1477,9 +1572,11 @@ function criarModalVideo() {
     video.style,
     {
 
-      display: "block",
+      display:
+        "block",
 
-      width: "100%",
+      width:
+        "100%",
 
       maxHeight:
         "88vh",
@@ -1551,6 +1648,12 @@ function criarModalVideo() {
 
   fechar.textContent =
     "×";
+
+
+  fechar.setAttribute(
+    "aria-label",
+    "Fechar vídeo"
+  );
 
 
   Object.assign(
@@ -1654,7 +1757,9 @@ function criarModalVideo() {
 function abrirVideoProduto() {
 
   if (!videoAtual) {
+
     return;
+
   }
 
 
@@ -1666,10 +1771,12 @@ function abrirVideoProduto() {
       "modal-video-produto"
     );
 
+
   const video =
     document.getElementById(
       "video-produto"
     );
+
 
   const info =
     document.getElementById(
@@ -1728,6 +1835,7 @@ function fecharVideoProduto() {
       "modal-video-produto"
     );
 
+
   const video =
     document.getElementById(
       "video-produto"
@@ -1738,9 +1846,11 @@ function fecharVideoProduto() {
 
     video.pause();
 
+
     video.removeAttribute(
       "src"
     );
+
 
     video.load();
 
@@ -1772,10 +1882,12 @@ function atualizarImagemZoom() {
       "zoom-foto-img"
     );
 
+
   const zoomTecido =
     document.getElementById(
       "zoom-tecido"
     );
+
 
   const zoomCor =
     document.getElementById(
@@ -1784,7 +1896,9 @@ function atualizarImagemZoom() {
 
 
   if (!imagemGrande) {
+
     return;
+
   }
 
 
@@ -1864,7 +1978,9 @@ function abrirZoomPreview() {
 
 
   if (!modal) {
+
     return;
+
   }
 
 
@@ -1901,7 +2017,9 @@ function fecharZoomPreview() {
 
 
   if (!modal) {
+
     return;
+
   }
 
 
@@ -1951,15 +2069,18 @@ function abrirGaleriaCor() {
       "modal-cor"
     );
 
+
   const galeria =
     document.getElementById(
       "modal-cor-galeria"
     );
 
+
   const titulo =
     document.getElementById(
       "modal-cor-titulo"
     );
+
 
   const tecido =
     document.getElementById(
@@ -2004,9 +2125,11 @@ function abrirGaleriaCor() {
   ) {
 
     galeria.innerHTML =
-      `<p style="color:#746c63;">
-        Fotos desta cor serão adicionadas em breve.
-      </p>`;
+      `
+        <p style="color:#746c63;">
+          Fotos desta cor serão adicionadas em breve.
+        </p>
+      `;
 
   } else {
 
@@ -2112,7 +2235,9 @@ function fecharGaleriaCor() {
 
 
   if (!modal) {
+
     return;
+
   }
 
 
@@ -2149,7 +2274,9 @@ function atualizarInfoBarra(
 
 
   if (!info) {
+
     return;
+
   }
 
 
@@ -2208,35 +2335,42 @@ function atualizarResumoBasico(
       "sum-modelo"
     );
 
+
   const sumTecido =
     document.getElementById(
       "sum-tecido"
     );
+
 
   const sumCor =
     document.getElementById(
       "sum-cor"
     );
 
+
   const sumForro =
     document.getElementById(
       "sum-forro"
     );
+
 
   const sumMedidas =
     document.getElementById(
       "sum-medidas"
     );
 
+
   const sumFranz =
     document.getElementById(
       "sum-franz"
     );
 
+
   const sumTrilho =
     document.getElementById(
       "sum-trilho"
     );
+
 
   const sumBarra =
     document.getElementById(
@@ -2245,45 +2379,56 @@ function atualizarResumoBasico(
 
 
   if (sumModelo) {
+
     sumModelo.textContent =
       dados.modelo;
+
   }
 
 
   if (sumTecido) {
+
     sumTecido.textContent =
       dados.tecido;
+
   }
 
 
   if (sumCor) {
+
     sumCor.textContent =
       dados.cor;
+
   }
 
 
   if (sumForro) {
+
     sumForro.textContent =
       dados.forro;
+
   }
 
 
   const largura =
     Number(
       dados.largura
-    ) || 0;
+    ) ||
+    0;
 
 
   const altura =
     Number(
       dados.altura
-    ) || 0;
+    ) ||
+    0;
 
 
   const franzimento =
     Number(
       dados.franzimento
-    ) || 1;
+    ) ||
+    1;
 
 
   const consumoTecido =
@@ -2296,11 +2441,17 @@ function atualizarResumoBasico(
     sumMedidas.textContent =
       consumoTecido
         .toFixed(2)
-        .replace(".", ",") +
+        .replace(
+          ".",
+          ","
+        ) +
       " × " +
       altura
         .toFixed(2)
-        .replace(".", ",") +
+        .replace(
+          ".",
+          ","
+        ) +
       " m";
 
   }
@@ -2311,10 +2462,11 @@ function atualizarResumoBasico(
     sumFranz.textContent =
       String(
         dados.franzimento
-      ).replace(
-        ".",
-        ","
-      ) +
+      )
+        .replace(
+          ".",
+          ","
+        ) +
       "x";
 
   }
@@ -2413,15 +2565,18 @@ function atualizarResumoValores(
       "preco-cortina"
     );
 
+
   const linhaPrecoTrilho =
     document.getElementById(
       "linha-preco-trilho"
     );
 
+
   const nomePrecoTrilho =
     document.getElementById(
       "nome-preco-trilho"
     );
+
 
   const precoTrilho =
     document.getElementById(
@@ -2448,7 +2603,9 @@ function atualizarResumoValores(
       "Não"
   ) {
 
-    if (linhaPrecoTrilho) {
+    if (
+      linhaPrecoTrilho
+    ) {
 
       linhaPrecoTrilho.style.display =
         "none";
@@ -2461,7 +2618,9 @@ function atualizarResumoValores(
   }
 
 
-  if (linhaPrecoTrilho) {
+  if (
+    linhaPrecoTrilho
+  ) {
 
     linhaPrecoTrilho.style.display =
       "flex";
@@ -2469,7 +2628,9 @@ function atualizarResumoValores(
   }
 
 
-  if (nomePrecoTrilho) {
+  if (
+    nomePrecoTrilho
+  ) {
 
     nomePrecoTrilho.textContent =
       dados.trilho;
@@ -2477,7 +2638,9 @@ function atualizarResumoValores(
   }
 
 
-  if (precoTrilho) {
+  if (
+    precoTrilho
+  ) {
 
     precoTrilho.textContent =
       brl(
@@ -2502,7 +2665,8 @@ function atualizarOrcamento() {
   const altura =
     Number(
       dados.altura
-    ) || 0;
+    ) ||
+    0;
 
 
   atualizarInfoBarra(
@@ -2521,10 +2685,12 @@ function atualizarOrcamento() {
       "preco"
     );
 
+
   const parcelas =
     document.getElementById(
       "parcelas"
     );
+
 
   const comprar =
     document.getElementById(
@@ -2539,7 +2705,9 @@ function atualizarOrcamento() {
 
 
   if (!preco) {
+
     return;
+
   }
 
 
@@ -2547,6 +2715,10 @@ function atualizarOrcamento() {
     "sob-consulta"
   );
 
+
+  // ==========================================================
+  // ERRO
+  // ==========================================================
 
   if (
     resultado.erro
@@ -2564,23 +2736,42 @@ function atualizarOrcamento() {
     }
 
 
+    if (comprar) {
+
+      comprar.textContent =
+        "Adicionar ao carrinho";
+
+    }
+
+
     window.currentTotal =
       null;
+
 
     window.currentValorCortina =
       null;
 
+
     window.currentValorTrilho =
       null;
 
+
     window.currentSobConsulta =
       false;
+
+
+    window.currentBarra =
+      null;
 
 
     return;
 
   }
 
+
+  // ==========================================================
+  // SOB CONSULTA
+  // ==========================================================
 
   if (
     resultado.sobConsulta
@@ -2614,14 +2805,18 @@ function atualizarOrcamento() {
     window.currentTotal =
       null;
 
+
     window.currentValorCortina =
       null;
+
 
     window.currentValorTrilho =
       null;
 
+
     window.currentSobConsulta =
       true;
+
 
     window.currentBarra =
       null;
@@ -2631,6 +2826,10 @@ function atualizarOrcamento() {
 
   }
 
+
+  // ==========================================================
+  // VALORES
+  // ==========================================================
 
   atualizarResumoValores(
     dados,
@@ -2702,13 +2901,15 @@ function mensagemWhatsApp() {
   const largura =
     Number(
       dados.largura
-    ) || 0;
+    ) ||
+    0;
 
 
   const franzimento =
     Number(
       dados.franzimento
-    ) || 1;
+    ) ||
+    1;
 
 
   const consumoTecido =
@@ -2778,8 +2979,8 @@ Cor: ${dados.cor}
 Forro: ${dados.forro}
 Ambiente: ${dados.largura} m x ${dados.altura} m
 Consumo de tecido: ${consumoTecido
-  .toFixed(2)
-  .replace(".", ",")} m x ${dados.altura} m
+    .toFixed(2)
+    .replace(".", ",")} m x ${dados.altura} m
 Franzimento: ${dados.franzimento}x
 Barra: ${
   window.currentBarra
@@ -2835,6 +3036,23 @@ function abrirWhatsApp() {
 
 
 // ============================================================
+// VERIFICAR SE O CORE DO CARRINHO ESTÁ CARREGADO
+// ============================================================
+
+function carrinhoCoreDisponivel() {
+
+  return Boolean(
+    window.SalvatexCarrinho &&
+    typeof window.SalvatexCarrinho.criarItem ===
+      "function" &&
+    typeof window.SalvatexCarrinho.adicionarItens ===
+      "function"
+  );
+
+}
+
+
+// ============================================================
 // CONTADOR DO CARRINHO
 // ============================================================
 
@@ -2847,40 +3065,78 @@ function atualizarContadorCarrinho() {
 
 
   if (!contador) {
+
     return;
+
   }
 
 
   try {
 
-    const dados =
-      localStorage.getItem(
-        "salvatexCarrinho"
-      );
+    let quantidade = 0;
 
 
-    const carrinho =
-      dados
-        ? JSON.parse(dados)
-        : [];
+    // ========================================================
+    // NOVA ESTRUTURA
+    // ========================================================
+
+    if (
+      carrinhoCoreDisponivel() &&
+      typeof SalvatexCarrinho.obterQuantidade ===
+        "function"
+    ) {
+
+      quantidade =
+        SalvatexCarrinho
+          .obterQuantidade();
+
+    } else {
+
+      // ======================================================
+      // FALLBACK
+      //
+      // Mantém contador funcionando mesmo se o core
+      // ainda não estiver carregado.
+      // ======================================================
+
+      const dados =
+        localStorage.getItem(
+          "salvatexCarrinho"
+        );
 
 
-    const quantidade =
-      Array.isArray(carrinho)
-        ? carrinho.reduce(
-            (total, item) => {
+      const carrinho =
+        dados
+          ? JSON.parse(
+              dados
+            )
+          : [];
 
-              return (
-                total +
-                Number(
-                  item.quantidade || 1
-                )
-              );
 
-            },
-            0
-          )
-        : 0;
+      quantidade =
+        Array.isArray(
+          carrinho
+        )
+          ? carrinho.reduce(
+              (
+                total,
+                item
+              ) => {
+
+                return (
+                  total +
+                  Number(
+                    item.quantidade ||
+                    1
+                  )
+                );
+
+              },
+              0
+            )
+          : 0;
+
+    }
 
 
     contador.textContent =
@@ -2924,9 +3180,49 @@ function atualizarContadorCarrinho() {
 
 // ============================================================
 // ADICIONAR AO CARRINHO
+//
+// NOVA ESTRUTURA GENÉRICA V2
+//
+// Qualquer produto possui:
+//
+// categoria
+// nome
+// quantidade
+// valorUnitario
+// total
+// detalhes
+// dados
+//
+// Isso permite adicionar no futuro:
+//
+// cortina
+// trilho
+// persiana
+// acessorio
+// instalação
+// etc.
 // ============================================================
 
 function adicionarAoCarrinho() {
+
+  if (
+    !carrinhoCoreDisponivel()
+  ) {
+
+    console.error(
+      "carrinho-core.js não foi carregado."
+    );
+
+
+    alert(
+      "Não foi possível carregar o carrinho. Atualize a página e tente novamente."
+    );
+
+
+    return;
+
+  }
+
 
   const dados =
     dadosAtuais();
@@ -2942,13 +3238,14 @@ function adicionarAoCarrinho() {
       "Selecione a cor da cortina."
     );
 
+
     return;
 
   }
 
 
   // ==========================================================
-  // TRILHO / VARÃO OBRIGATÓRIO
+  // TRILHO / VARÃO
   // ==========================================================
 
   if (!dados.trilho) {
@@ -2968,9 +3265,13 @@ function adicionarAoCarrinho() {
 
       select.focus();
 
+
       select.scrollIntoView({
-        behavior: "smooth",
-        block: "center"
+        behavior:
+          "smooth",
+
+        block:
+          "center"
       });
 
     }
@@ -2993,6 +3294,7 @@ function adicionarAoCarrinho() {
       "Esta configuração precisa de orçamento personalizado."
     );
 
+
     return;
 
   }
@@ -3011,6 +3313,7 @@ function adicionarAoCarrinho() {
       "Não foi possível calcular esta cortina."
     );
 
+
     return;
 
   }
@@ -3019,19 +3322,22 @@ function adicionarAoCarrinho() {
   const largura =
     Number(
       dados.largura
-    ) || 0;
+    ) ||
+    0;
 
 
   const altura =
     Number(
       dados.altura
-    ) || 0;
+    ) ||
+    0;
 
 
   const franzimento =
     Number(
       dados.franzimento
-    ) || 1;
+    ) ||
+    1;
 
 
   const consumoTecido =
@@ -3054,132 +3360,205 @@ function adicionarAoCarrinho() {
 
 
   // ==========================================================
-  // ID DA CONFIGURAÇÃO
+  // GRUPO DA CONFIGURAÇÃO
+  //
+  // Cortina e trilho ficam relacionados pelo mesmo grupoId.
   // ==========================================================
 
   const grupoId =
-    "config-" +
-    Date.now();
-
-
-  // ==========================================================
-  // CARRINHO EXISTENTE
-  // ==========================================================
-
-  let carrinho = [];
-
-
-  try {
-
-    const carrinhoSalvo =
-      localStorage.getItem(
-        "salvatexCarrinho"
+    SalvatexCarrinho
+      .criarId(
+        "config"
       );
 
 
-    if (carrinhoSalvo) {
-
-      carrinho =
-        JSON.parse(
-          carrinhoSalvo
-        );
-
-    }
-
-
-    if (
-      !Array.isArray(
-        carrinho
-      )
-    ) {
-
-      carrinho = [];
-
-    }
-
-  } catch (erro) {
-
-    carrinho = [];
-
-  }
-
-
   // ==========================================================
-  // ITEM 1 — CORTINA
+  // CORTINA
   // ==========================================================
 
-  const itemCortina = {
+  const itemCortina =
+    SalvatexCarrinho
+      .criarItem({
 
-    id:
-      grupoId +
-      "-cortina",
+        grupoId:
+          grupoId,
 
-    grupoId:
-      grupoId,
+        categoria:
+          "cortina",
 
-    tipo:
-      "cortina",
+        nome:
+          "Cortina " +
+          dados.modelo +
+          " sob medida",
 
-    produto:
-      "Cortina sob medida",
+        imagem:
+          imagemProduto,
 
-    modelo:
-      dados.modelo,
+        quantidade:
+          1,
 
-    tecido:
-      dados.tecido,
+        valorUnitario:
+          Number(
+            window.currentValorCortina
+          ),
 
-    cor:
-      dados.cor,
+        total:
+          Number(
+            window.currentValorCortina
+          ),
 
-    forro:
-      dados.forro,
+        detalhes: [
 
-    larguraAmbiente:
-      largura,
+          {
+            rotulo:
+              "Modelo",
 
-    altura:
-      altura,
+            valor:
+              dados.modelo
+          },
 
-    franzimento:
-      franzimento,
+          {
+            rotulo:
+              "Tecido",
 
-    consumoTecido:
-      consumoTecido,
+            valor:
+              dados.tecido
+          },
 
-    barra:
-      window.currentBarra,
+          {
+            rotulo:
+              "Cor",
 
-    imagem:
-      imagemProduto,
+            valor:
+              dados.cor
+          },
 
-    quantidade:
-      1,
+          {
+            rotulo:
+              "Forro",
 
-    valorUnitario:
-      Number(
-        window.currentValorCortina
-      ),
+            valor:
+              dados.forro
+          },
 
-    total:
-      Number(
-        window.currentValorCortina
-      )
+          {
+            rotulo:
+              "Ambiente",
 
-  };
+            valor:
+              largura
+                .toFixed(2)
+                .replace(
+                  ".",
+                  ","
+                ) +
+              " × " +
+              altura
+                .toFixed(2)
+                .replace(
+                  ".",
+                  ","
+                ) +
+              " m"
+          },
+
+          {
+            rotulo:
+              "Consumo de tecido",
+
+            valor:
+              consumoTecido
+                .toFixed(2)
+                .replace(
+                  ".",
+                  ","
+                ) +
+              " × " +
+              altura
+                .toFixed(2)
+                .replace(
+                  ".",
+                  ","
+                ) +
+              " m"
+          },
+
+          {
+            rotulo:
+              "Franzimento",
+
+            valor:
+              String(
+                franzimento
+              )
+                .replace(
+                  ".",
+                  ","
+                ) +
+              "x"
+          },
+
+          {
+            rotulo:
+              "Barra",
+
+            valor:
+              window.currentBarra
+                ? window.currentBarra +
+                  " cm"
+                : "Sob consulta"
+          }
+
+        ],
+
+        dados: {
+
+          modelo:
+            dados.modelo,
+
+          tecido:
+            dados.tecido,
+
+          cor:
+            dados.cor,
+
+          forro:
+            dados.forro,
+
+          larguraAmbiente:
+            largura,
+
+          altura:
+            altura,
+
+          franzimento:
+            franzimento,
+
+          consumoTecido:
+            consumoTecido,
+
+          barra:
+            window.currentBarra
+
+        }
+
+      });
 
 
-  carrinho.push(
+  const itensParaAdicionar = [
     itemCortina
-  );
+  ];
 
 
   // ==========================================================
-  // ITEM 2 — TRILHO / VARÃO
+  // TRILHO / VARÃO
+  //
+  // Continua sendo um produto separado.
   // ==========================================================
 
   if (
-    dados.trilho !== "Não"
+    dados.trilho !==
+    "Não"
   ) {
 
     if (
@@ -3191,46 +3570,70 @@ function adicionarAoCarrinho() {
         "Não foi possível calcular o trilho/varão selecionado."
       );
 
+
       return;
 
     }
 
 
-    const itemTrilho = {
+    const itemTrilho =
+      SalvatexCarrinho
+        .criarItem({
 
-      id:
-        grupoId +
-        "-trilho",
+          grupoId:
+            grupoId,
 
-      grupoId:
-        grupoId,
+          categoria:
+            "trilho",
 
-      tipo:
-        "trilho",
+          nome:
+            dados.trilho,
 
-      produto:
-        dados.trilho,
+          quantidade:
+            1,
 
-      largura:
-        largura,
+          valorUnitario:
+            Number(
+              window.currentValorTrilho
+            ),
 
-      quantidade:
-        1,
+          total:
+            Number(
+              window.currentValorTrilho
+            ),
 
-      valorUnitario:
-        Number(
-          window.currentValorTrilho
-        ),
+          detalhes: [
 
-      total:
-        Number(
-          window.currentValorTrilho
-        )
+            {
+              rotulo:
+                "Medida",
 
-    };
+              valor:
+                largura
+                  .toFixed(2)
+                  .replace(
+                    ".",
+                    ","
+                  ) +
+                " m"
+            }
+
+          ],
+
+          dados: {
+
+            largura:
+              largura,
+
+            modelo:
+              dados.trilho
+
+          }
+
+        });
 
 
-    carrinho.push(
+    itensParaAdicionar.push(
       itemTrilho
     );
 
@@ -3238,15 +3641,36 @@ function adicionarAoCarrinho() {
 
 
   // ==========================================================
-  // SALVA CARRINHO
+  // ADICIONA TODOS DE UMA VEZ
+  //
+  // Isso evita salvar a cortina se ocorrer algum erro
+  // antes da criação do trilho.
   // ==========================================================
 
-  localStorage.setItem(
-    "salvatexCarrinho",
-    JSON.stringify(
-      carrinho
-    )
-  );
+  try {
+
+    SalvatexCarrinho
+      .adicionarItens(
+        itensParaAdicionar
+      );
+
+
+  } catch (erro) {
+
+    console.error(
+      "Erro ao adicionar ao carrinho:",
+      erro
+    );
+
+
+    alert(
+      "Não foi possível adicionar o produto ao carrinho."
+    );
+
+
+    return;
+
+  }
 
 
   // ==========================================================
@@ -3334,7 +3758,9 @@ if (trilhoSelect) {
 
 
     if (!elemento) {
+
       return;
+
     }
 
 
@@ -3449,6 +3875,7 @@ const previewPrev =
     "preview-prev"
   );
 
+
 const previewNext =
   document.getElementById(
     "preview-next"
@@ -3460,7 +3887,9 @@ if (previewPrev) {
   previewPrev.addEventListener(
     "click",
     () =>
-      mudarPreview(-1)
+      mudarPreview(
+        -1
+      )
   );
 
 }
@@ -3471,7 +3900,9 @@ if (previewNext) {
   previewNext.addEventListener(
     "click",
     () =>
-      mudarPreview(1)
+      mudarPreview(
+        1
+      )
   );
 
 }
@@ -3486,25 +3917,30 @@ const previewImg =
     "preview-img"
   );
 
+
 const previewZoom =
   document.getElementById(
     "preview-zoom"
   );
+
 
 const zoomFechar =
   document.getElementById(
     "zoom-foto-fechar"
   );
 
+
 const zoomFundo =
   document.getElementById(
     "zoom-foto-fundo"
   );
 
+
 const zoomPrev =
   document.getElementById(
     "zoom-prev"
   );
+
 
 const zoomNext =
   document.getElementById(
@@ -3557,7 +3993,9 @@ if (zoomPrev) {
   zoomPrev.addEventListener(
     "click",
     () =>
-      mudarFotoZoom(-1)
+      mudarFotoZoom(
+        -1
+      )
   );
 
 }
@@ -3568,7 +4006,9 @@ if (zoomNext) {
   zoomNext.addEventListener(
     "click",
     () =>
-      mudarFotoZoom(1)
+      mudarFotoZoom(
+        1
+      )
   );
 
 }
@@ -3583,10 +4023,12 @@ const botaoConhecerCor =
     "conhecer-cor"
   );
 
+
 const modalCorFechar =
   document.getElementById(
     "modal-cor-fechar"
   );
+
 
 const modalCorFundo =
   document.getElementById(
@@ -3644,7 +4086,9 @@ document.addEventListener(
 
     fecharGaleriaCor();
 
+
     fecharZoomPreview();
+
 
     fecharVideoProduto();
 
@@ -3653,7 +4097,7 @@ document.addEventListener(
 
 
 // ============================================================
-// ATUALIZA CARRINHO QUANDO ALTERADO EM OUTRA ABA
+// CARRINHO ALTERADO EM OUTRA ABA
 // ============================================================
 
 window.addEventListener(
@@ -3674,7 +4118,7 @@ window.addEventListener(
 
 
 // ============================================================
-// ATUALIZA QUANDO VOLTA PARA A PÁGINA
+// QUANDO VOLTA PARA ESTA PÁGINA
 // ============================================================
 
 window.addEventListener(
@@ -3693,12 +4137,17 @@ window.addEventListener(
 
 criarBotaoVideo();
 
+
 criarModalVideo();
+
 
 atualizarCores();
 
+
 atualizarOrcamento();
 
+
 carregarFotosCarrossel();
+
 
 atualizarContadorCarrinho();
