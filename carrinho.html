@@ -81,8 +81,8 @@
     >
 
       <!--
-        Os produtos serão inseridos
-        automaticamente pelo js/carrinho.js
+        Os produtos serão inseridos automaticamente
+        pelo js/carrinho.js
       -->
 
     </section>
@@ -105,7 +105,9 @@
 
 
 
-      <!-- CORTINAS -->
+      <!-- ====================================================
+           CORTINAS
+      ===================================================== -->
 
       <div class="carrinho-resumo-linha">
 
@@ -121,7 +123,9 @@
 
 
 
-      <!-- TRILHOS / VARÕES -->
+      <!-- ====================================================
+           TRILHOS / VARÕES
+      ===================================================== -->
 
       <div
         id="resumo-linha-trilhos"
@@ -140,16 +144,349 @@
 
 
 
-      <!-- DIVISOR -->
+      <!-- ====================================================
+           SUBTOTAL
+      ===================================================== -->
+
+      <div class="carrinho-resumo-divisor"></div>
+
+
+      <div class="carrinho-resumo-linha">
+
+        <span>
+          Subtotal
+        </span>
+
+        <strong id="carrinho-subtotal">
+          R$ 0,00
+        </strong>
+
+      </div>
+
+
+
+      <!-- ====================================================
+           FRETE GRÁTIS
+      ===================================================== -->
 
       <div
-        class="carrinho-resumo-divisor"
-        aria-hidden="true"
-      ></div>
+        id="frete-gratis-aviso"
+        style="
+          display:none;
+          margin-top:16px;
+          padding:13px 14px;
+          background:#f5f1ec;
+          border-radius:10px;
+          font-size:12px;
+          line-height:1.5;
+        "
+      >
+
+        <strong
+          style="
+            display:block;
+            margin-bottom:3px;
+          "
+        >
+          ✓ Frete grátis
+        </strong>
+
+        <span id="frete-gratis-texto">
+          Sua compra ganhou frete grátis.
+        </span>
+
+      </div>
 
 
 
-      <!-- TOTAL -->
+      <!-- ====================================================
+           QUANTO FALTA PARA FRETE GRÁTIS
+      ===================================================== -->
+
+      <div
+        id="frete-falta-aviso"
+        style="
+          display:none;
+          margin-top:16px;
+          padding:13px 14px;
+          background:#f5f1ec;
+          border-radius:10px;
+          font-size:12px;
+          line-height:1.5;
+        "
+      >
+
+        <strong
+          style="
+            display:block;
+            margin-bottom:3px;
+          "
+        >
+          Frete grátis em cortinas acima de R$ 500
+        </strong>
+
+        <span id="frete-falta-texto"></span>
+
+      </div>
+
+
+
+      <!-- ====================================================
+           CEP
+      ===================================================== -->
+
+      <div
+        style="
+          margin-top:22px;
+        "
+      >
+
+        <label
+          for="cep-frete"
+          style="
+            display:block;
+            margin-bottom:7px;
+            font-size:11px;
+            text-transform:uppercase;
+            letter-spacing:.04em;
+          "
+        >
+          CEP de entrega
+        </label>
+
+
+        <div
+          style="
+            display:flex;
+            gap:8px;
+          "
+        >
+
+          <input
+            id="cep-frete"
+            type="text"
+            inputmode="numeric"
+            autocomplete="postal-code"
+            maxlength="9"
+            placeholder="00000-000"
+            style="
+              width:100%;
+              min-width:0;
+              padding:13px 12px;
+              border:1px solid #e7e0d8;
+              border-radius:10px;
+              outline:none;
+              background:#fff;
+            "
+          >
+
+
+          <button
+            id="calcular-frete"
+            type="button"
+            style="
+              flex-shrink:0;
+              padding:0 16px;
+              border:0;
+              border-radius:10px;
+              background:#211d18;
+              color:#fff;
+              cursor:pointer;
+              font-weight:600;
+              font-size:12px;
+            "
+          >
+            Calcular
+          </button>
+
+        </div>
+
+
+        <div
+          id="cep-erro"
+          style="
+            display:none;
+            margin-top:7px;
+            color:#9f5148;
+            font-size:11px;
+          "
+        ></div>
+
+      </div>
+
+
+
+      <!-- ====================================================
+           ENTREGA
+      ===================================================== -->
+
+      <div
+        id="bloco-entrega"
+        style="
+          display:none;
+          margin-top:18px;
+          padding:15px;
+          border:1px solid #e7e0d8;
+          border-radius:12px;
+          background:#fff;
+        "
+      >
+
+
+        <div
+          style="
+            display:flex;
+            justify-content:space-between;
+            gap:15px;
+            align-items:flex-start;
+          "
+        >
+
+          <div>
+
+            <strong
+              style="
+                display:block;
+                font-size:13px;
+              "
+            >
+              Entrega padrão
+            </strong>
+
+
+            <span
+              style="
+                display:block;
+                margin-top:4px;
+                font-size:11px;
+                line-height:1.5;
+                color:#746c63;
+              "
+            >
+              Prazo de transporte:
+              6 a 12 dias úteis após o envio.
+            </span>
+
+          </div>
+
+
+          <strong
+            id="valor-frete"
+            style="
+              flex-shrink:0;
+              font-size:13px;
+            "
+          >
+            A calcular
+          </strong>
+
+        </div>
+
+
+      </div>
+
+
+
+      <!-- ====================================================
+           PRAZOS
+      ===================================================== -->
+
+      <div
+        style="
+          margin-top:20px;
+          padding-top:18px;
+          border-top:1px solid #e7e0d8;
+        "
+      >
+
+
+        <div
+          style="
+            display:flex;
+            justify-content:space-between;
+            gap:15px;
+            margin-bottom:9px;
+            font-size:12px;
+          "
+        >
+
+          <span style="color:#746c63;">
+            Produção
+          </span>
+
+          <strong>
+            5 a 10 dias úteis
+          </strong>
+
+        </div>
+
+
+        <div
+          style="
+            display:flex;
+            justify-content:space-between;
+            gap:15px;
+            font-size:12px;
+          "
+        >
+
+          <span style="color:#746c63;">
+            Entrega
+          </span>
+
+          <strong>
+            6 a 12 dias úteis
+          </strong>
+
+        </div>
+
+
+        <p
+          style="
+            margin:9px 0 0;
+            font-size:10px;
+            line-height:1.5;
+            color:#746c63;
+          "
+        >
+          O prazo de entrega começa após a conclusão da produção
+          e o envio do pedido.
+        </p>
+
+      </div>
+
+
+
+      <!-- ====================================================
+           FRETE
+      ===================================================== -->
+
+      <div
+        id="linha-frete-resumo"
+        class="carrinho-resumo-linha"
+        style="
+          margin-top:20px;
+        "
+      >
+
+        <span>
+          Frete
+        </span>
+
+        <strong id="resumo-frete">
+          Informe o CEP
+        </strong>
+
+      </div>
+
+
+
+      <!-- ====================================================
+           TOTAL
+      ===================================================== -->
+
+      <div class="carrinho-resumo-divisor"></div>
+
 
       <div class="carrinho-resumo-total">
 
@@ -165,7 +502,9 @@
 
 
 
-      <!-- PARCELAMENTO -->
+      <!-- ====================================================
+           PARCELAMENTO
+      ===================================================== -->
 
       <div
         id="carrinho-parcelamento"
@@ -176,7 +515,9 @@
 
 
 
-      <!-- CONTINUAR -->
+      <!-- ====================================================
+           CONTINUAR
+      ===================================================== -->
 
       <button
         id="finalizar-pedido"
@@ -188,7 +529,9 @@
 
 
 
-      <!-- ADICIONAR OUTRA -->
+      <!-- ====================================================
+           ADICIONAR OUTRA CORTINA
+      ===================================================== -->
 
       <a
         href="index.html"
@@ -226,7 +569,8 @@
 
 
     <p>
-      Configure sua cortina sob medida para adicioná-la ao carrinho.
+      Configure sua cortina sob medida
+      para adicioná-la ao carrinho.
     </p>
 
 
