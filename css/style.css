@@ -4211,3 +4211,924 @@ body.modal-aberto{
   }
 
 }
+/* ==========================================================
+   PAGAMENTO
+   ========================================================== */
+
+.pagina-pagamento{
+  width:100%;
+  max-width:1180px;
+
+  margin:0 auto;
+
+  padding:
+    46px 24px
+    80px;
+}
+
+
+/* ==========================================================
+   TOPO PAGAMENTO
+   ========================================================== */
+
+.pagamento-topo{
+  margin-bottom:30px;
+}
+
+
+.pagamento-voltar{
+  display:inline-flex;
+
+  align-items:center;
+
+  margin-bottom:18px;
+
+  color:var(--muted);
+
+  font-size:13px;
+
+  transition:
+    opacity .2s ease;
+}
+
+
+.pagamento-voltar:hover{
+  opacity:.65;
+}
+
+
+.pagamento-titulo{
+  margin:0;
+
+  font-family:
+    Georgia,
+    serif;
+
+  font-size:40px;
+
+  font-weight:400;
+
+  line-height:1.08;
+}
+
+
+.pagamento-subtitulo{
+  margin:
+    9px 0
+    0;
+
+  color:var(--muted);
+
+  font-size:14px;
+}
+
+
+/* ==========================================================
+   LAYOUT PRINCIPAL
+   ========================================================== */
+
+.pagamento-layout{
+  width:100%;
+
+  display:grid;
+
+  grid-template-columns:
+    minmax(0,1fr)
+    minmax(320px,380px);
+
+  gap:28px;
+
+  align-items:start;
+}
+
+
+.pagamento-opcoes{
+  width:100%;
+
+  display:flex;
+
+  flex-direction:column;
+
+  gap:18px;
+
+  min-width:0;
+}
+
+
+/* ==========================================================
+   BLOCOS
+   ========================================================== */
+
+.pagamento-bloco{
+  width:100%;
+
+  padding:28px;
+
+  background:#fff;
+
+  border:
+    1px solid var(--line);
+
+  border-radius:18px;
+
+  box-shadow:
+    0 10px 30px
+    rgba(33,29,24,.04);
+}
+
+
+.pagamento-bloco h2{
+  margin:
+    0 0
+    8px;
+
+  font-family:
+    Georgia,
+    serif;
+
+  font-size:24px;
+
+  font-weight:400;
+}
+
+
+.pagamento-descricao{
+  margin:
+    0 0
+    22px;
+
+  color:var(--muted);
+
+  font-size:13px;
+
+  line-height:1.5;
+}
+
+
+/* ==========================================================
+   OPÇÕES DE PAGAMENTO
+   ========================================================== */
+
+.pagamento-opcao{
+  position:relative;
+
+  width:100%;
+
+  display:flex;
+
+  align-items:flex-start;
+
+  gap:14px;
+
+  margin-bottom:12px;
+
+  padding:18px;
+
+  background:#fff;
+
+  border:
+    1px solid var(--line);
+
+  border-radius:14px;
+
+  cursor:pointer;
+
+  transition:
+    border-color .2s ease,
+    box-shadow .2s ease,
+    background .2s ease,
+    transform .2s ease;
+}
+
+
+.pagamento-opcao:hover{
+  border-color:#cbbcaf;
+
+  background:
+    #fdfcfb;
+
+  transform:
+    translateY(-1px);
+
+  box-shadow:
+    0 8px 22px
+    rgba(33,29,24,.04);
+}
+
+
+.pagamento-opcao input[type="radio"]{
+  flex-shrink:0;
+
+  width:18px;
+  height:18px;
+
+  margin:
+    3px 0
+    0;
+
+  accent-color:
+    var(--ink);
+
+  cursor:pointer;
+}
+
+
+.pagamento-opcao:has(
+  input[type="radio"]:checked
+){
+  border-color:
+    var(--accent);
+
+  background:
+    #faf7f3;
+
+  box-shadow:
+    inset 0 0 0 1px
+    var(--accent);
+}
+
+
+.pagamento-opcao-conteudo{
+  width:100%;
+
+  min-width:0;
+}
+
+
+.pagamento-opcao-topo{
+  display:flex;
+
+  align-items:flex-start;
+  justify-content:space-between;
+
+  gap:16px;
+}
+
+
+.pagamento-opcao-topo strong{
+  color:var(--ink);
+
+  font-size:14px;
+
+  font-weight:650;
+}
+
+
+.pagamento-opcao-topo span{
+  flex-shrink:0;
+
+  padding:
+    5px 9px;
+
+  background:
+    var(--soft);
+
+  color:
+    var(--accent);
+
+  border-radius:999px;
+
+  font-size:10px;
+
+  font-weight:600;
+
+  white-space:nowrap;
+}
+
+
+.pagamento-opcao-conteudo p{
+  margin:
+    7px 0
+    0;
+
+  color:var(--muted);
+
+  font-size:11px;
+
+  line-height:1.5;
+}
+
+
+/* ==========================================================
+   INFORMAÇÃO DA FORMA DE PAGAMENTO
+   ========================================================== */
+
+.pagamento-info{
+  margin-top:18px;
+
+  padding:
+    14px 15px;
+
+  background:
+    var(--soft);
+
+  color:
+    var(--muted);
+
+  border-radius:11px;
+
+  font-size:12px;
+
+  line-height:1.55;
+}
+
+
+.pagamento-info strong{
+  color:
+    var(--ink);
+}
+
+
+/* ==========================================================
+   SEGURANÇA
+   ========================================================== */
+
+.pagamento-seguranca{
+  background:
+    var(--soft);
+}
+
+
+.pagamento-seguranca h2{
+  margin-bottom:18px;
+}
+
+
+.pagamento-seguranca-item{
+  padding:
+    13px 0;
+
+  border-bottom:
+    1px solid var(--line);
+}
+
+
+.pagamento-seguranca-item:last-child{
+  border-bottom:0;
+}
+
+
+.pagamento-seguranca-item strong{
+  display:block;
+
+  margin-bottom:4px;
+
+  color:var(--ink);
+
+  font-size:12px;
+}
+
+
+.pagamento-seguranca-item span{
+  display:block;
+
+  color:var(--muted);
+
+  font-size:11px;
+
+  line-height:1.5;
+}
+
+
+/* ==========================================================
+   RESUMO DO PAGAMENTO
+   ========================================================== */
+
+.pagamento-resumo{
+  position:sticky;
+
+  top:95px;
+
+  width:100%;
+
+  min-width:0;
+
+  padding:24px;
+
+  background:
+    #f8f5f1;
+
+  border:
+    1px solid var(--line);
+
+  border-radius:18px;
+
+  box-shadow:
+    0 14px 38px
+    rgba(33,29,24,.06);
+}
+
+
+.pagamento-resumo h2{
+  margin:
+    0 0
+    20px;
+
+  font-family:
+    Georgia,
+    serif;
+
+  font-size:24px;
+
+  font-weight:400;
+}
+
+
+/* ==========================================================
+   CLIENTE
+   ========================================================== */
+
+.pagamento-cliente{
+  margin-bottom:18px;
+
+  padding:
+    13px 14px;
+
+  background:#fff;
+
+  border:
+    1px solid var(--line);
+
+  border-radius:11px;
+}
+
+
+.pagamento-cliente:empty{
+  display:none;
+}
+
+
+.pagamento-cliente strong{
+  display:block;
+
+  margin-bottom:5px;
+
+  color:var(--ink);
+
+  font-size:12px;
+}
+
+
+.pagamento-cliente span{
+  display:block;
+
+  color:var(--muted);
+
+  font-size:10px;
+
+  line-height:1.55;
+}
+
+
+/* ==========================================================
+   ITENS DO PEDIDO
+   ========================================================== */
+
+.pagamento-itens{
+  width:100%;
+
+  display:flex;
+
+  flex-direction:column;
+
+  gap:0;
+}
+
+
+.pagamento-item{
+  padding:
+    13px 0;
+
+  border-bottom:
+    1px solid var(--line);
+}
+
+
+.pagamento-item:last-child{
+  border-bottom:0;
+}
+
+
+.pagamento-item-topo{
+  display:flex;
+
+  align-items:flex-start;
+  justify-content:space-between;
+
+  gap:14px;
+}
+
+
+.pagamento-item-topo strong:first-child{
+  min-width:0;
+
+  color:var(--ink);
+
+  font-size:13px;
+}
+
+
+.pagamento-item-topo strong:last-child{
+  flex-shrink:0;
+
+  color:var(--ink);
+
+  font-size:12px;
+
+  white-space:nowrap;
+}
+
+
+.pagamento-item-produto{
+  margin-top:5px;
+
+  color:var(--ink);
+
+  font-size:12px;
+
+  font-weight:600;
+
+  overflow-wrap:anywhere;
+}
+
+
+.pagamento-item-detalhe{
+  margin-top:3px;
+
+  color:var(--muted);
+
+  font-size:10px;
+
+  line-height:1.45;
+
+  overflow-wrap:anywhere;
+}
+
+
+/* ==========================================================
+   DIVISOR
+   ========================================================== */
+
+.pagamento-resumo-divisor{
+  height:1px;
+
+  margin:
+    19px 0;
+
+  background:
+    var(--line);
+}
+
+
+/* ==========================================================
+   LINHAS DO RESUMO
+   ========================================================== */
+
+.pagamento-resumo-linha{
+  display:flex;
+
+  align-items:center;
+  justify-content:space-between;
+
+  gap:18px;
+
+  margin-bottom:11px;
+
+  color:var(--muted);
+
+  font-size:13px;
+}
+
+
+.pagamento-resumo-linha strong{
+  flex-shrink:0;
+
+  color:var(--ink);
+
+  font-weight:600;
+
+  text-align:right;
+
+  white-space:nowrap;
+}
+
+
+/* ==========================================================
+   TOTAL
+   ========================================================== */
+
+.pagamento-total{
+  display:flex;
+
+  align-items:center;
+  justify-content:space-between;
+
+  gap:18px;
+}
+
+
+.pagamento-total span{
+  font-size:14px;
+
+  font-weight:600;
+}
+
+
+.pagamento-total strong{
+  flex-shrink:0;
+
+  font-family:
+    Georgia,
+    serif;
+
+  font-size:29px;
+
+  font-weight:400;
+
+  text-align:right;
+
+  white-space:nowrap;
+}
+
+
+.pagamento-parcelamento{
+  margin-top:6px;
+
+  color:var(--muted);
+
+  font-size:11px;
+
+  text-align:right;
+}
+
+
+/* ==========================================================
+   BOTÃO FINALIZAR
+   ========================================================== */
+
+.pagamento-botao{
+  width:100%;
+
+  min-height:50px;
+
+  margin-top:22px;
+
+  padding:
+    15px 18px;
+
+  background:
+    var(--ink);
+
+  color:#fff;
+
+  border:0;
+
+  border-radius:12px;
+
+  font-size:13px;
+
+  font-weight:600;
+
+  cursor:pointer;
+
+  transition:
+    opacity .2s ease,
+    transform .2s ease,
+    box-shadow .2s ease;
+}
+
+
+.pagamento-botao:hover{
+  opacity:.94;
+
+  transform:
+    translateY(-1px);
+
+  box-shadow:
+    0 8px 22px
+    rgba(33,29,24,.14);
+}
+
+
+.pagamento-botao:active{
+  transform:
+    translateY(0);
+}
+
+
+/* ==========================================================
+   EDITAR PEDIDO
+   ========================================================== */
+
+.pagamento-editar{
+  width:100%;
+
+  min-height:46px;
+
+  display:flex;
+
+  align-items:center;
+  justify-content:center;
+
+  margin-top:10px;
+
+  padding:
+    13px 16px;
+
+  background:#fff;
+
+  color:var(--ink);
+
+  border:
+    1px solid var(--line);
+
+  border-radius:12px;
+
+  font-size:12px;
+
+  font-weight:600;
+
+  transition:
+    border-color .2s ease,
+    background .2s ease;
+}
+
+
+.pagamento-editar:hover{
+  border-color:#cabbae;
+
+  background:
+    var(--paper);
+}
+
+
+/* ==========================================================
+   TABLET
+   ========================================================== */
+
+@media(max-width:900px){
+
+  .pagamento-layout{
+    grid-template-columns:1fr;
+  }
+
+
+  .pagamento-resumo{
+    position:static;
+  }
+
+}
+
+
+/* ==========================================================
+   CELULAR
+   ========================================================== */
+
+@media(max-width:600px){
+
+  .pagina-pagamento{
+    padding:
+      28px 12px
+      60px;
+  }
+
+
+  .pagamento-topo{
+    margin-bottom:22px;
+  }
+
+
+  .pagamento-voltar{
+    margin-bottom:14px;
+
+    font-size:12px;
+  }
+
+
+  .pagamento-titulo{
+    font-size:31px;
+  }
+
+
+  .pagamento-subtitulo{
+    font-size:13px;
+  }
+
+
+  .pagamento-layout{
+    grid-template-columns:1fr;
+
+    gap:18px;
+  }
+
+
+  .pagamento-opcoes{
+    gap:14px;
+  }
+
+
+  .pagamento-bloco{
+    padding:
+      20px 16px;
+
+    border-radius:14px;
+  }
+
+
+  .pagamento-bloco h2{
+    font-size:21px;
+  }
+
+
+  .pagamento-opcao{
+    gap:11px;
+
+    padding:15px 13px;
+
+    border-radius:12px;
+  }
+
+
+  .pagamento-opcao-topo{
+    display:block;
+  }
+
+
+  .pagamento-opcao-topo span{
+    display:inline-flex;
+
+    margin-top:6px;
+  }
+
+
+  .pagamento-opcao-conteudo p{
+    font-size:11px;
+  }
+
+
+  .pagamento-resumo{
+    position:static;
+
+    padding:
+      20px 17px;
+
+    border-radius:14px;
+  }
+
+
+  .pagamento-resumo h2{
+    font-size:21px;
+  }
+
+
+  .pagamento-item-topo{
+    gap:9px;
+  }
+
+
+  .pagamento-item-topo strong:first-child{
+    font-size:12px;
+  }
+
+
+  .pagamento-item-topo strong:last-child{
+    font-size:11px;
+  }
+
+
+  .pagamento-resumo-linha{
+    gap:10px;
+
+    font-size:12px;
+  }
+
+
+  .pagamento-total{
+    gap:10px;
+  }
+
+
+  .pagamento-total span{
+    font-size:13px;
+  }
+
+
+  .pagamento-total strong{
+    font-size:27px;
+  }
+
+
+  .pagamento-botao{
+    min-height:52px;
+
+    font-size:14px;
+  }
+
+
+  .pagamento-editar{
+    min-height:48px;
+
+    font-size:13px;
+  }
+
+}
