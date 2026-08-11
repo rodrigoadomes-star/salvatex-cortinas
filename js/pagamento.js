@@ -1,22 +1,11 @@
 // ============================================================
-// PAGAMENTO - SALVATEX CORTINAS
-// ============================================================
-
-
-// ============================================================
-// CHAVES DO SISTEMA
+// PAGAMENTO - SALVATEX
+// ESTRUTURA GENÉRICA
 // ============================================================
 
 const CHAVE_PEDIDO =
   "salvatex_pedido_atual";
 
-const CHAVE_CARRINHO =
-  "salvatexCarrinho";
-
-
-// ============================================================
-// CONFIGURAÇÕES
-// ============================================================
 
 const PAGAMENTO_CONFIG = {
 
@@ -24,103 +13,70 @@ const PAGAMENTO_CONFIG = {
     Number(
       CONFIG?.parcelas ||
       10
-    ),
-
-  freteGratisMinimo:
-    500,
-
-  producao:
-    "5 a 10 dias",
-
-  entrega:
-    "6 a 12 dias úteis após o envio"
+    )
 
 };
 
-
-// ============================================================
-// ESTADO
-// ============================================================
-
-let formaPagamentoSelecionada =
-  "";
 
 let pedidoAtual =
   null;
 
 
-// ============================================================
-// FORMATAÇÃO BRL
-// ============================================================
-
-function brl(valor) {
-
-  return Number(
-    valor || 0
-  ).toLocaleString(
-    "pt-BR",
-    {
-      style: "currency",
-      currency: "BRL"
-    }
-  );
-
-}
+let formaPagamentoSelecionada =
+  "";
 
 
 // ============================================================
-// FORMATAR MEDIDA
+// PEDIDO
 // ============================================================
 
-function formatarMedida(
-  valor
-) {
-
-  return Number(
-    valor || 0
-  )
-    .toFixed(2)
-    .replace(
-      ".",
-      ","
-    );
-
-}
-
-
-// ============================================================
-// LER JSON
-// ============================================================
-
-function lerJSON(
-  chave
-) {
+function obterPedido() {
 
   try {
 
-    const valor =
+    const salvo =
       localStorage.getItem(
-        chave
+        CHAVE_PEDIDO
       );
 
 
-    if (!valor) {
+    if (!salvo) {
+      return null;
+    }
+
+
+    const pedido =
+      JSON.parse(
+        salvo
+      );
+
+
+    if (
+      !pedido ||
+      !Array.isArray(
+        pedido.itens
+      ) ||
+      !pedido.itens.length
+    ) {
 
       return null;
 
     }
 
 
-    return JSON.parse(
-      valor
-    );
+    pedido.itens =
+      SalvatexCarrinho
+        .normalizarCarrinho(
+          pedido.itens
+        );
+
+
+    return pedido;
 
 
   } catch (erro) {
 
     console.error(
-      "Erro ao ler:",
-      chave,
       erro
     );
 
@@ -133,687 +89,118 @@ function lerJSON(
 
 
 // ============================================================
-// SALVAR PEDIDO
+// ITEM
 // ============================================================
 
-function salvarPedido(
-  pedido
-) {
-
-  try {
-
-    localStorage.setItem(
-      CHAVE_PEDIDO,
-      JSON.stringify(
-        pedido
-      )
-    );
-
-
-    pedidoAtual =
-      pedido;
-
-
-    return true;
-
-
-  } catch (erro) {
-
-    console.error(
-      "Erro ao salvar pedido:",
-      erro
-    );
-
-
-    return false;
-
-  }
-
-}
-
-
-// ============================================================
-// OBTER PEDIDO
-// ============================================================
-
-function obterPedido() {
-
-  // ==========================================================
-  // PEDIDO VINDO DO CHECKOUT
-  // ==========================================================
-
-  const pedido =
-    lerJSON(
-      CHAVE_PEDIDO
-    );
-
-
-  if (
-    pedido &&
-    Array.isArray(
-      pedido.itens
-    ) &&
-    pedido.itens.length
-  ) {
-
-    return pedido;
-
-  }
-
-
-  // ==========================================================
-  // FALLBACK DO CARRINHO
-  // ==========================================================
-
-  const carrinho =
-    lerJSON(
-      CHAVE_CARRINHO
-    );
-
-
-  if (
-    Array.isArray(
-      carrinho
-    ) &&
-    carrinho.length
-  ) {
-
-    return {
-
-      itens:
-        carrinho,
-
-      criadoEm:
-        new Date()
-          .toISOString()
-
-    };
-
-  }
-
-
-  return null;
-
-}
-
-
-// ============================================================
-// IDENTIFICAR ITEM
-// ============================================================
-
-function itemEhCortina(
+function criarItemResumo(
   item
 ) {
 
-  return (
-    item &&
-    item.tipo ===
-      "cortina"
+  const bloco =
+    document.createElement(
+      "div"
+    );
+
+
+  bloco.className =
+    "pagamento-item";
+
+
+  const topo =
+    document.createElement(
+      "div"
+    );
+
+
+  topo.className =
+    "pagamento-item-topo";
+
+
+  const nome =
+    document.createElement(
+      "strong"
+    );
+
+
+  nome.textContent =
+    item.nome;
+
+
+  const preco =
+    document.createElement(
+      "strong"
+    );
+
+
+  preco.textContent =
+    SalvatexCarrinho
+      .brl(
+        item.total
+      );
+
+
+  topo.appendChild(
+    nome
   );
 
-}
 
-
-function itemEhTrilho(
-  item
-) {
-
-  return (
-    item &&
-    item.tipo ===
-      "trilho"
+  topo.appendChild(
+    preco
   );
 
-}
+
+  bloco.appendChild(
+    topo
+  );
 
 
-// ============================================================
-// CALCULAR TOTAIS
-// ============================================================
-
-function calcularTotais(
-  itens
-) {
-
-  let cortinas = 0;
-
-  let trilhos = 0;
-
-  let produtos = 0;
+  const categoria =
+    document.createElement(
+      "div"
+    );
 
 
-  itens.forEach(
-    (item) => {
+  categoria.className =
+    "pagamento-item-produto";
 
-      const valor =
-        Number(
-          item.total ||
-          0
+
+  categoria.textContent =
+    SalvatexCarrinho
+      .nomeCategoria(
+        item.categoria
+      );
+
+
+  bloco.appendChild(
+    categoria
+  );
+
+
+  item.detalhes.forEach(
+    (detalhe) => {
+
+      const linha =
+        document.createElement(
+          "div"
         );
 
 
-      if (
-        itemEhCortina(
-          item
-        )
-      ) {
-
-        cortinas +=
-          valor;
-
-      }
+      linha.className =
+        "pagamento-item-detalhe";
 
 
-      if (
-        itemEhTrilho(
-          item
-        )
-      ) {
-
-        trilhos +=
-          valor;
-
-      }
+      linha.textContent =
+        detalhe.rotulo +
+        ": " +
+        detalhe.valor;
 
 
-      produtos +=
-        valor;
+      bloco.appendChild(
+        linha
+      );
 
     }
   );
-
-
-  return {
-
-    cortinas,
-
-    trilhos,
-
-    produtos
-
-  };
-
-}
-
-
-// ============================================================
-// VERIFICAR SE EXISTE CORTINA
-// ============================================================
-
-function pedidoTemCortina(
-  itens
-) {
-
-  return itens.some(
-    (item) =>
-      itemEhCortina(
-        item
-      )
-  );
-
-}
-
-
-// ============================================================
-// VERIFICAR SE EXISTE TRILHO
-// ============================================================
-
-function pedidoTemTrilho(
-  itens
-) {
-
-  return itens.some(
-    (item) =>
-      itemEhTrilho(
-        item
-      )
-  );
-
-}
-
-
-// ============================================================
-// FRETE
-//
-// REGRA:
-//
-// R$ 500 OU MAIS EM CORTINAS
-// = FRETE GRÁTIS.
-//
-// Trilho/varão comprado junto acompanha
-// o frete grátis.
-//
-// Trilho sozinho não possui frete grátis.
-//
-// Se não for grátis, o valor será calculado
-// posteriormente pela Salvatex.
-// ============================================================
-
-function obterFrete(
-  pedido
-) {
-
-  const itens =
-    pedido.itens ||
-    [];
-
-
-  // ==========================================================
-  // UTILIZA PRIMEIRO O QUE O CHECKOUT SALVOU
-  // ==========================================================
-
-  if (
-    pedido.frete
-  ) {
-
-    if (
-      pedido.frete.gratis ===
-      true
-    ) {
-
-      return {
-
-        gratis:
-          true,
-
-        valor:
-          0,
-
-        status:
-          "gratis",
-
-        texto:
-          "Grátis",
-
-        aviso:
-          pedido.frete.aviso ||
-          "Seu pedido possui frete grátis."
-
-      };
-
-    }
-
-
-    if (
-      pedido.frete.status ===
-      "aguardando_calculo"
-    ) {
-
-      return {
-
-        gratis:
-          false,
-
-        valor:
-          null,
-
-        status:
-          "aguardando_calculo",
-
-        texto:
-          "A calcular",
-
-        aviso:
-          pedido.frete.aviso ||
-          "O valor do frete será calculado conforme o CEP de entrega."
-
-      };
-
-    }
-
-  }
-
-
-  // ==========================================================
-  // FALLBACK PELA REGRA
-  // ==========================================================
-
-  const totais =
-    calcularTotais(
-      itens
-    );
-
-
-  const temCortina =
-    pedidoTemCortina(
-      itens
-    );
-
-
-  const temTrilho =
-    pedidoTemTrilho(
-      itens
-    );
-
-
-  if (
-    temCortina &&
-    totais.cortinas >=
-      PAGAMENTO_CONFIG
-        .freteGratisMinimo
-  ) {
-
-    return {
-
-      gratis:
-        true,
-
-      valor:
-        0,
-
-      status:
-        "gratis",
-
-      texto:
-        "Grátis",
-
-      aviso:
-        temTrilho
-          ? "Frete grátis para as cortinas e o trilho/varão deste pedido."
-          : "Seu pedido possui frete grátis."
-
-    };
-
-  }
-
-
-  if (
-    temTrilho &&
-    !temCortina
-  ) {
-
-    return {
-
-      gratis:
-        false,
-
-      valor:
-        null,
-
-      status:
-        "aguardando_calculo",
-
-      texto:
-        "A calcular",
-
-      aviso:
-        "O frete do trilho/varão será calculado conforme o CEP de entrega."
-
-    };
-
-  }
-
-
-  return {
-
-    gratis:
-      false,
-
-    valor:
-      null,
-
-    status:
-      "aguardando_calculo",
-
-    texto:
-      "A calcular",
-
-    aviso:
-      "O valor do frete será calculado conforme o CEP de entrega."
-
-  };
-
-}
-
-
-// ============================================================
-// CRIAR LINHA DE DETALHE
-// ============================================================
-
-function criarLinhaDetalhe(
-  texto
-) {
-
-  const div =
-    document.createElement(
-      "div"
-    );
-
-
-  div.className =
-    "pagamento-item-detalhe";
-
-
-  div.textContent =
-    texto;
-
-
-  return div;
-
-}
-
-
-// ============================================================
-// CRIAR ITEM CORTINA
-// ============================================================
-
-function criarResumoCortina(
-  item,
-  numero
-) {
-
-  const bloco =
-    document.createElement(
-      "div"
-    );
-
-
-  bloco.className =
-    "pagamento-item";
-
-
-  // ==========================================================
-  // TOPO
-  // ==========================================================
-
-  const topo =
-    document.createElement(
-      "div"
-    );
-
-
-  topo.className =
-    "pagamento-item-topo";
-
-
-  const nome =
-    document.createElement(
-      "strong"
-    );
-
-
-  nome.textContent =
-    "Cortina " +
-    numero;
-
-
-  const preco =
-    document.createElement(
-      "strong"
-    );
-
-
-  preco.textContent =
-    brl(
-      item.total
-    );
-
-
-  topo.appendChild(
-    nome
-  );
-
-
-  topo.appendChild(
-    preco
-  );
-
-
-  bloco.appendChild(
-    topo
-  );
-
-
-  // ==========================================================
-  // TECIDO + COR
-  // ==========================================================
-
-  const produto =
-    document.createElement(
-      "div"
-    );
-
-
-  produto.className =
-    "pagamento-item-produto";
-
-
-  produto.textContent =
-    (
-      item.tecido ||
-      "Cortina sob medida"
-    ) +
-    (
-      item.cor
-        ? " · " +
-          item.cor
-        : ""
-    );
-
-
-  bloco.appendChild(
-    produto
-  );
-
-
-  // ==========================================================
-  // MODELO
-  // ==========================================================
-
-  if (
-    item.modelo
-  ) {
-
-    bloco.appendChild(
-      criarLinhaDetalhe(
-        "Modelo: " +
-        item.modelo
-      )
-    );
-
-  }
-
-
-  // ==========================================================
-  // FORRO
-  // ==========================================================
-
-  if (
-    item.forro
-  ) {
-
-    bloco.appendChild(
-      criarLinhaDetalhe(
-        "Forro: " +
-        item.forro
-      )
-    );
-
-  }
-
-
-  // ==========================================================
-  // AMBIENTE
-  // ==========================================================
-
-  const largura =
-    Number(
-      item.larguraAmbiente ||
-      item.largura ||
-      0
-    );
-
-
-  const altura =
-    Number(
-      item.altura ||
-      0
-    );
-
-
-  if (
-    largura > 0 &&
-    altura > 0
-  ) {
-
-    bloco.appendChild(
-      criarLinhaDetalhe(
-        "Ambiente: " +
-        formatarMedida(
-          largura
-        ) +
-        " × " +
-        formatarMedida(
-          altura
-        ) +
-        " m"
-      )
-    );
-
-  }
-
-
-  // ==========================================================
-  // FRANZIMENTO
-  // ==========================================================
-
-  if (
-    item.franzimento
-  ) {
-
-    bloco.appendChild(
-      criarLinhaDetalhe(
-        "Franzimento: " +
-        String(
-          item.franzimento
-        ).replace(
-          ".",
-          ","
-        ) +
-        "x"
-      )
-    );
-
-  }
-
-
-  // ==========================================================
-  // BARRA
-  // ==========================================================
-
-  if (
-    item.barra
-  ) {
-
-    bloco.appendChild(
-      criarLinhaDetalhe(
-        "Barra: " +
-        item.barra +
-        " cm"
-      )
-    );
-
-  }
 
 
   return bloco;
@@ -822,133 +209,7 @@ function criarResumoCortina(
 
 
 // ============================================================
-// CRIAR ITEM TRILHO / VARÃO
-// ============================================================
-
-function criarResumoTrilho(
-  item
-) {
-
-  const bloco =
-    document.createElement(
-      "div"
-    );
-
-
-  bloco.className =
-    "pagamento-item";
-
-
-  // ==========================================================
-  // TOPO
-  // ==========================================================
-
-  const topo =
-    document.createElement(
-      "div"
-    );
-
-
-  topo.className =
-    "pagamento-item-topo";
-
-
-  const nome =
-    document.createElement(
-      "strong"
-    );
-
-
-  nome.textContent =
-    item.produto ||
-    "Trilho / Varão";
-
-
-  const preco =
-    document.createElement(
-      "strong"
-    );
-
-
-  preco.textContent =
-    brl(
-      item.total
-    );
-
-
-  topo.appendChild(
-    nome
-  );
-
-
-  topo.appendChild(
-    preco
-  );
-
-
-  bloco.appendChild(
-    topo
-  );
-
-
-  // ==========================================================
-  // IDENTIFICAÇÃO
-  // ==========================================================
-
-  const produto =
-    document.createElement(
-      "div"
-    );
-
-
-  produto.className =
-    "pagamento-item-produto";
-
-
-  produto.textContent =
-    "Trilho / Varão";
-
-
-  bloco.appendChild(
-    produto
-  );
-
-
-  // ==========================================================
-  // MEDIDA
-  // ==========================================================
-
-  const largura =
-    Number(
-      item.largura ||
-      0
-    );
-
-
-  if (
-    largura > 0
-  ) {
-
-    bloco.appendChild(
-      criarLinhaDetalhe(
-        "Medida: " +
-        formatarMedida(
-          largura
-        ) +
-        " m"
-      )
-    );
-
-  }
-
-
-  return bloco;
-
-}
-
-
-// ============================================================
-// RENDERIZAR ITENS
+// ITENS
 // ============================================================
 
 function renderizarItens(
@@ -962,9 +223,7 @@ function renderizarItens(
 
 
   if (!container) {
-
     return;
-
   }
 
 
@@ -972,48 +231,14 @@ function renderizarItens(
     "";
 
 
-  let numeroCortina =
-    0;
-
-
   itens.forEach(
     (item) => {
 
-      if (
-        itemEhCortina(
+      container.appendChild(
+        criarItemResumo(
           item
         )
-      ) {
-
-        numeroCortina++;
-
-
-        container.appendChild(
-          criarResumoCortina(
-            item,
-            numeroCortina
-          )
-        );
-
-
-        return;
-
-      }
-
-
-      if (
-        itemEhTrilho(
-          item
-        )
-      ) {
-
-        container.appendChild(
-          criarResumoTrilho(
-            item
-          )
-        );
-
-      }
+      );
 
     }
   );
@@ -1022,7 +247,7 @@ function renderizarItens(
 
 
 // ============================================================
-// RENDERIZAR CLIENTE
+// CLIENTE
 // ============================================================
 
 function renderizarCliente(
@@ -1036,9 +261,7 @@ function renderizarCliente(
 
 
   if (!container) {
-
     return;
-
   }
 
 
@@ -1051,99 +274,57 @@ function renderizarCliente(
     "";
 
 
-  if (
-    !cliente.nome
-  ) {
-
-    const aviso =
-      document.createElement(
-        "span"
-      );
-
-
-    aviso.textContent =
-      "Dados de entrega não informados.";
-
-
-    container.appendChild(
-      aviso
-    );
-
-
+  if (!cliente.nome) {
     return;
-
   }
 
 
-  // ==========================================================
-  // NOME
-  // ==========================================================
-
-  const titulo =
+  const nome =
     document.createElement(
       "strong"
     );
 
 
-  titulo.textContent =
+  nome.textContent =
     cliente.nome;
 
 
   container.appendChild(
-    titulo
+    nome
   );
 
 
-  // ==========================================================
-  // ENDEREÇO
-  // ==========================================================
-
-  const partesEndereco =
+  const partes =
     [];
 
 
-  if (
-    cliente.endereco
-  ) {
+  if (cliente.endereco) {
 
-    let endereco =
-      cliente.endereco;
-
-
-    if (
-      cliente.numero
-    ) {
-
-      endereco +=
-        ", " +
-        cliente.numero;
-
-    }
-
-
-    partesEndereco.push(
-      endereco
+    partes.push(
+      cliente.endereco +
+      (
+        cliente.numero
+          ? ", " +
+            cliente.numero
+          : ""
+      )
     );
 
   }
 
 
-  if (
-    cliente.complemento
-  ) {
+  if (cliente.complemento) {
 
-    partesEndereco.push(
+    partes.push(
       cliente.complemento
     );
 
   }
 
 
-  if (
-    cliente.bairro
-  ) {
+  if (cliente.bairro) {
 
-    partesEndereco.push(
+    partes.push(
       cliente.bairro
     );
 
@@ -1155,27 +336,21 @@ function renderizarCliente(
     cliente.estado
   ) {
 
-    partesEndereco.push(
+    partes.push(
       [
         cliente.cidade,
         cliente.estado
       ]
-        .filter(
-          Boolean
-        )
-        .join(
-          " - "
-        )
+        .filter(Boolean)
+        .join(" - ")
     );
 
   }
 
 
-  if (
-    cliente.cep
-  ) {
+  if (cliente.cep) {
 
-    partesEndereco.push(
+    partes.push(
       "CEP " +
       cliente.cep
     );
@@ -1183,9 +358,7 @@ function renderizarCliente(
   }
 
 
-  if (
-    partesEndereco.length
-  ) {
+  if (partes.length) {
 
     const endereco =
       document.createElement(
@@ -1194,7 +367,7 @@ function renderizarCliente(
 
 
     endereco.textContent =
-      partesEndereco.join(
+      partes.join(
         " · "
       );
 
@@ -1205,64 +378,138 @@ function renderizarCliente(
 
   }
 
-
-  // ==========================================================
-  // CONTATO
-  // ==========================================================
-
-  const contatos =
-    [];
+}
 
 
-  if (
-    cliente.telefone
-  ) {
+// ============================================================
+// CATEGORIAS DINÂMICAS
+// ============================================================
 
-    contatos.push(
-      cliente.telefone
+function renderizarCategoriasResumo(
+  itens
+) {
+
+  const resumo =
+    document.querySelector(
+      ".pagamento-resumo"
     );
 
+
+  if (!resumo) {
+    return;
   }
 
 
-  if (
-    cliente.email
-  ) {
-
-    contatos.push(
-      cliente.email
-    );
-
-  }
-
-
-  if (
-    contatos.length
-  ) {
-
-    const contato =
-      document.createElement(
-        "span"
+  const cortinas =
+    document
+      .getElementById(
+        "pagamento-total-cortinas"
+      )
+      ?.closest(
+        ".pagamento-resumo-linha"
       );
 
 
-    contato.textContent =
-      contatos.join(
-        " · "
+  if (cortinas) {
+
+    cortinas.style.display =
+      "none";
+
+  }
+
+
+  const trilhos =
+    document.getElementById(
+      "pagamento-linha-trilhos"
+    );
+
+
+  if (trilhos) {
+
+    trilhos.style.display =
+      "none";
+
+  }
+
+
+  resumo
+    .querySelectorAll(
+      ".pagamento-categoria-dinamica"
+    )
+    .forEach(
+      (elemento) =>
+        elemento.remove()
+    );
+
+
+  const divisores =
+    resumo.querySelectorAll(
+      ".pagamento-resumo-divisor"
+    );
+
+
+  const divisor =
+    divisores[
+      divisores.length - 1
+    ];
+
+
+  const categorias =
+    SalvatexCarrinho
+      .calcularTotaisPorCategoria(
+        itens
       );
 
 
-    container.appendChild(
-      contato
-    );
+  Object.entries(
+    categorias
+  ).forEach(
+    (
+      [
+        categoria,
+        valor
+      ]
+    ) => {
 
-  }
+      const linha =
+        document.createElement(
+          "div"
+        );
+
+
+      linha.className =
+        "pagamento-resumo-linha pagamento-categoria-dinamica";
+
+
+      linha.innerHTML =
+        `
+          <span>
+            ${SalvatexCarrinho.nomeCategoria(categoria)}
+          </span>
+
+          <strong>
+            ${SalvatexCarrinho.brl(valor)}
+          </strong>
+        `;
+
+
+      if (divisor) {
+
+        resumo.insertBefore(
+          linha,
+          divisor
+        );
+
+      }
+
+    }
+  );
 
 }
 
 
 // ============================================================
-// ATUALIZAR RESUMO
+// RESUMO
 // ============================================================
 
 function atualizarResumo(
@@ -1270,38 +517,27 @@ function atualizarResumo(
 ) {
 
   const itens =
-    pedido.itens ||
-    [];
+    pedido.itens;
 
 
-  const totais =
-    calcularTotais(
-      itens
-    );
+  renderizarCategoriasResumo(
+    itens
+  );
+
+
+  const produtos =
+    SalvatexCarrinho
+      .calcularTotal(
+        itens
+      );
 
 
   const frete =
-    obterFrete(
-      pedido
-    );
-
-
-  const totalCortinas =
-    document.getElementById(
-      "pagamento-total-cortinas"
-    );
-
-
-  const totalTrilhos =
-    document.getElementById(
-      "pagamento-total-trilhos"
-    );
-
-
-  const linhaTrilhos =
-    document.getElementById(
-      "pagamento-linha-trilhos"
-    );
+    pedido.frete ||
+    SalvatexCarrinho
+      .calcularFrete(
+        itens
+      );
 
 
   const freteElemento =
@@ -1328,173 +564,67 @@ function atualizarResumo(
     );
 
 
-  // ==========================================================
-  // CORTINAS
-  // ==========================================================
-
-  if (
-    totalCortinas
-  ) {
-
-    totalCortinas.textContent =
-      brl(
-        totais.cortinas
-      );
-
-  }
-
-
-  // ==========================================================
-  // TRILHOS
-  // ==========================================================
-
-  if (
-    totalTrilhos
-  ) {
-
-    totalTrilhos.textContent =
-      brl(
-        totais.trilhos
-      );
-
-  }
-
-
-  if (
-    linhaTrilhos
-  ) {
-
-    linhaTrilhos.style.display =
-      totais.trilhos > 0
-        ? "flex"
-        : "none";
-
-  }
-
-
-  // ==========================================================
-  // FRETE
-  // ==========================================================
-
-  if (
-    freteElemento
-  ) {
+  if (freteElemento) {
 
     freteElemento.textContent =
-      frete.texto;
+      frete.texto ||
+      "A calcular";
 
   }
 
 
-  if (
-    avisoFrete
-  ) {
+  if (avisoFrete) {
 
     avisoFrete.textContent =
-      frete.aviso;
-
-
-    avisoFrete.style.display =
-      frete.aviso
-        ? "block"
-        : "none";
+      frete.aviso ||
+      "";
 
   }
 
 
-  // ==========================================================
-  // TOTAL
-  //
-  // Se o frete estiver pendente de cálculo,
-  // mostramos somente o total dos produtos.
-  // ==========================================================
-
-  let totalFinal =
-    totais.produtos;
-
-
-  if (
-    typeof frete.valor ===
-    "number"
-  ) {
-
-    totalFinal +=
-      frete.valor;
-
-  }
+  const totalFinal =
+    produtos +
+    (
+      Number(
+        frete.valor
+      ) ||
+      0
+    );
 
 
-  if (
-    totalElemento
-  ) {
+  if (totalElemento) {
 
     totalElemento.textContent =
-      brl(
-        totalFinal
-      );
+      SalvatexCarrinho
+        .brl(
+          totalFinal
+        );
 
   }
 
 
-  // ==========================================================
-  // PARCELAMENTO
-  // ==========================================================
+  if (parcelamento) {
 
-  if (
-    parcelamento
-  ) {
-
-    if (
-      totalFinal > 0
-    ) {
-
-      parcelamento.textContent =
-        "ou " +
-        PAGAMENTO_CONFIG
-          .parcelas +
-        "x de " +
-        brl(
+    parcelamento.textContent =
+      "ou " +
+      PAGAMENTO_CONFIG
+        .parcelas +
+      "x de " +
+      SalvatexCarrinho
+        .brl(
           totalFinal /
           PAGAMENTO_CONFIG
             .parcelas
         ) +
-        " sem juros";
-
-    } else {
-
-      parcelamento.textContent =
-        "";
-
-    }
+      " sem juros";
 
   }
-
-
-  // ==========================================================
-  // DISPONIBILIZA GLOBALMENTE
-  // ==========================================================
-
-  window.pagamentoTotais = {
-
-    ...totais,
-
-    frete:
-      frete.valor,
-
-    total:
-      totalFinal
-
-  };
-
-
-  window.pagamentoFrete =
-    frete;
 
 }
 
 
 // ============================================================
-// MARCAR OPÇÃO VISUALMENTE
+// OPÇÃO VISUAL
 // ============================================================
 
 function atualizarOpcaoSelecionada() {
@@ -1515,8 +645,7 @@ function atualizarOpcaoSelecionada() {
         opcao.classList.toggle(
           "selecionada",
           Boolean(
-            radio &&
-            radio.checked
+            radio?.checked
           )
         );
 
@@ -1527,7 +656,7 @@ function atualizarOpcaoSelecionada() {
 
 
 // ============================================================
-// ATUALIZAR INFORMAÇÃO DA FORMA DE PAGAMENTO
+// PAGAMENTO
 // ============================================================
 
 function atualizarInformacaoPagamento() {
@@ -1547,17 +676,11 @@ function atualizarInformacaoPagamento() {
   atualizarOpcaoSelecionada();
 
 
-  // ==========================================================
-  // NADA SELECIONADO
-  // ==========================================================
-
   if (
     !formaPagamentoSelecionada
   ) {
 
-    if (
-      info
-    ) {
+    if (info) {
 
       info.textContent =
         "Selecione a forma de pagamento para continuar.";
@@ -1565,9 +688,7 @@ function atualizarInformacaoPagamento() {
     }
 
 
-    if (
-      botao
-    ) {
+    if (botao) {
 
       botao.disabled =
         true;
@@ -1584,38 +705,26 @@ function atualizarInformacaoPagamento() {
   }
 
 
-  // ==========================================================
-  // CARTÃO
-  // ==========================================================
-
   if (
     formaPagamentoSelecionada ===
     "cartao"
   ) {
 
-    if (
-      info
-    ) {
+    if (info) {
 
       info.innerHTML =
         `
           <strong>
             Cartão de crédito
           </strong>
-
           <br>
-
-          Pagamento em até
-          ${PAGAMENTO_CONFIG.parcelas}x
-          sem juros.
+          Até ${PAGAMENTO_CONFIG.parcelas}x sem juros.
         `;
 
     }
 
 
-    if (
-      botao
-    ) {
+    if (botao) {
 
       botao.disabled =
         false;
@@ -1626,43 +735,29 @@ function atualizarInformacaoPagamento() {
 
     }
 
-
-    return;
-
   }
 
-
-  // ==========================================================
-  // PIX
-  // ==========================================================
 
   if (
     formaPagamentoSelecionada ===
     "pix"
   ) {
 
-    if (
-      info
-    ) {
+    if (info) {
 
       info.innerHTML =
         `
           <strong>
             PIX
           </strong>
-
           <br>
-
-          Pagamento à vista com
-          confirmação após o pagamento.
+          Pagamento à vista.
         `;
 
     }
 
 
-    if (
-      botao
-    ) {
+    if (botao) {
 
       botao.disabled =
         false;
@@ -1679,72 +774,53 @@ function atualizarInformacaoPagamento() {
 
 
 // ============================================================
-// RECUPERAR FORMA DE PAGAMENTO JÁ SALVA
+// RADIOS
 // ============================================================
 
-function recuperarFormaPagamento(
-  pedido
-) {
+function configurarFormasPagamento() {
 
-  const forma =
-    pedido?.pagamento?.forma;
+  document
+    .querySelectorAll(
+      'input[name="forma-pagamento"]'
+    )
+    .forEach(
+      (radio) => {
 
+        radio.addEventListener(
+          "change",
+          () => {
 
-  if (
-    forma !== "cartao" &&
-    forma !== "pix"
-  ) {
-
-    return;
-
-  }
-
-
-  formaPagamentoSelecionada =
-    forma;
+            formaPagamentoSelecionada =
+              radio.value;
 
 
-  const radio =
-    document.querySelector(
-      `input[name="forma-pagamento"][value="${forma}"]`
+            atualizarInformacaoPagamento();
+
+          }
+        );
+
+      }
     );
-
-
-  if (
-    radio
-  ) {
-
-    radio.checked =
-      true;
-
-  }
 
 }
 
 
 // ============================================================
-// SALVAR FORMA DE PAGAMENTO
+// SALVAR PAGAMENTO
 // ============================================================
 
 function salvarFormaPagamento() {
 
-  if (
-    !pedidoAtual ||
-    !formaPagamentoSelecionada
-  ) {
-
+  if (!pedidoAtual) {
     return false;
-
   }
 
 
-  const pedidoAtualizado = {
+  pedidoAtual = {
 
     ...pedidoAtual,
 
     pagamento: {
-
-      ...(pedidoAtual.pagamento || {}),
 
       forma:
         formaPagamentoSelecionada,
@@ -1758,9 +834,6 @@ function salvarFormaPagamento() {
 
     },
 
-    etapa:
-      "pagamento",
-
     atualizadoEm:
       new Date()
         .toISOString()
@@ -1768,23 +841,21 @@ function salvarFormaPagamento() {
   };
 
 
-  return salvarPedido(
-    pedidoAtualizado
+  localStorage.setItem(
+    CHAVE_PEDIDO,
+    JSON.stringify(
+      pedidoAtual
+    )
   );
+
+
+  return true;
 
 }
 
 
 // ============================================================
-// FINALIZAR PAGAMENTO
-//
-// Neste momento ainda não existe gateway conectado.
-//
-// Não coletamos número de cartão.
-// Não geramos PIX falso.
-//
-// A função apenas salva a escolha.
-// Depois a integração real usará este ponto.
+// FINALIZAR
 // ============================================================
 
 function finalizarPagamento() {
@@ -1798,71 +869,13 @@ function finalizarPagamento() {
     );
 
 
-    const primeiraOpcao =
-      document.querySelector(
-        'input[name="forma-pagamento"]'
-      );
-
-
-    if (
-      primeiraOpcao
-    ) {
-
-      primeiraOpcao.scrollIntoView({
-        behavior:
-          "smooth",
-
-        block:
-          "center"
-      });
-
-    }
-
-
     return;
 
   }
 
 
   if (
-    !pedidoAtual
-  ) {
-
-    alert(
-      "Não foi possível localizar o pedido."
-    );
-
-
-    return;
-
-  }
-
-
-  if (
-    !pedidoAtual.cliente ||
-    !pedidoAtual.cliente.nome
-  ) {
-
-    alert(
-      "Os dados de entrega não foram encontrados."
-    );
-
-
-    window.location.href =
-      "checkout.html";
-
-
-    return;
-
-  }
-
-
-  const salvo =
-    salvarFormaPagamento();
-
-
-  if (
-    !salvo
+    !salvarFormaPagamento()
   ) {
 
     alert(
@@ -1875,17 +888,13 @@ function finalizarPagamento() {
   }
 
 
-  // ==========================================================
-  // CARTÃO
-  // ==========================================================
-
   if (
     formaPagamentoSelecionada ===
     "cartao"
   ) {
 
     alert(
-      "Forma de pagamento salva. O próximo passo será conectar o pagamento seguro por cartão."
+      "Pedido preparado para pagamento com cartão. A integração do gateway será adicionada na próxima etapa."
     );
 
 
@@ -1894,17 +903,13 @@ function finalizarPagamento() {
   }
 
 
-  // ==========================================================
-  // PIX
-  // ==========================================================
-
   if (
     formaPagamentoSelecionada ===
     "pix"
   ) {
 
     alert(
-      "Forma de pagamento salva. O próximo passo será conectar a geração do PIX."
+      "Pedido preparado para pagamento via PIX. A integração do gateway será adicionada na próxima etapa."
     );
 
   }
@@ -1913,41 +918,7 @@ function finalizarPagamento() {
 
 
 // ============================================================
-// CONFIGURAR FORMAS DE PAGAMENTO
-// ============================================================
-
-function configurarFormasPagamento() {
-
-  const radios =
-    document.querySelectorAll(
-      'input[name="forma-pagamento"]'
-    );
-
-
-  radios.forEach(
-    (radio) => {
-
-      radio.addEventListener(
-        "change",
-        () => {
-
-          formaPagamentoSelecionada =
-            radio.value;
-
-
-          atualizarInformacaoPagamento();
-
-        }
-      );
-
-    }
-  );
-
-}
-
-
-// ============================================================
-// PEDIDO VAZIO
+// VAZIO
 // ============================================================
 
 function mostrarPedidoVazio() {
@@ -1958,12 +929,8 @@ function mostrarPedidoVazio() {
     );
 
 
-  if (
-    !pagina
-  ) {
-
+  if (!pagina) {
     return;
-
   }
 
 
@@ -1977,12 +944,12 @@ function mostrarPedidoVazio() {
         </h1>
 
         <p>
-          Volte ao configurador e adicione
-          uma cortina ao carrinho.
+          Adicione um produto antes
+          de continuar.
         </p>
 
         <a href="index.html">
-          Configurar cortina
+          Voltar ao configurador
         </a>
 
       </div>
@@ -1993,29 +960,21 @@ function mostrarPedidoVazio() {
 
 
 // ============================================================
-// BOTÃO FINALIZAR
+// BOTÃO
 // ============================================================
 
-const botaoFinalizar =
-  document.getElementById(
+document
+  .getElementById(
     "pagamento-finalizar"
-  );
-
-
-if (
-  botaoFinalizar
-) {
-
-  botaoFinalizar.addEventListener(
+  )
+  ?.addEventListener(
     "click",
     finalizarPagamento
   );
 
-}
-
 
 // ============================================================
-// INICIALIZAÇÃO
+// INICIAR
 // ============================================================
 
 function iniciarPagamento() {
@@ -2024,13 +983,7 @@ function iniciarPagamento() {
     obterPedido();
 
 
-  if (
-    !pedido ||
-    !Array.isArray(
-      pedido.itens
-    ) ||
-    !pedido.itens.length
-  ) {
+  if (!pedido) {
 
     mostrarPedidoVazio();
 
@@ -2039,13 +992,8 @@ function iniciarPagamento() {
   }
 
 
-  // ==========================================================
-  // O PAGAMENTO DEVE VIR DO CHECKOUT
-  // ==========================================================
-
   if (
-    !pedido.cliente ||
-    !pedido.cliente.nome
+    !pedido.cliente?.nome
   ) {
 
     window.location.href =
@@ -2061,60 +1009,51 @@ function iniciarPagamento() {
     pedido;
 
 
-  // ==========================================================
-  // EVENTOS
-  // ==========================================================
-
   configurarFormasPagamento();
 
 
-  // ==========================================================
-  // RECUPERA ESCOLHA ANTERIOR
-  // ==========================================================
+  if (
+    pedido.pagamento?.forma
+  ) {
 
-  recuperarFormaPagamento(
-    pedido
-  );
+    formaPagamentoSelecionada =
+      pedido.pagamento.forma;
 
 
-  // ==========================================================
-  // CLIENTE
-  // ==========================================================
+    const radio =
+      document.querySelector(
+        `input[name="forma-pagamento"][value="${formaPagamentoSelecionada}"]`
+      );
+
+
+    if (radio) {
+
+      radio.checked =
+        true;
+
+    }
+
+  }
+
 
   renderizarCliente(
     pedido
   );
 
 
-  // ==========================================================
-  // ITENS
-  // ==========================================================
-
   renderizarItens(
     pedido.itens
   );
 
-
-  // ==========================================================
-  // VALORES
-  // ==========================================================
 
   atualizarResumo(
     pedido
   );
 
 
-  // ==========================================================
-  // PAGAMENTO
-  // ==========================================================
-
   atualizarInformacaoPagamento();
 
 }
 
-
-// ============================================================
-// INICIAR
-// ============================================================
 
 iniciarPagamento();
