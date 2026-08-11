@@ -14,7 +14,7 @@ const CHECKOUT_CONFIG = {
 
   freteGratisMinimo: 500,
 
-  producao: "5 a 10 dias úteis",
+  producao: "5 a 7 dias",
 
   entrega: "6 a 12 dias úteis após o envio",
 
