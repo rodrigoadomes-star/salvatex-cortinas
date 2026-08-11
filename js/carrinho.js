@@ -2,7 +2,7 @@
 // CARRINHO - SALVATEX CORTINAS
 // ============================================================
 
-const CHAVE_CARRINHO = "salvatex_carrinho";
+const CHAVE_CARRINHO = "salvatexCarrinho";
 
 
 // ============================================================
