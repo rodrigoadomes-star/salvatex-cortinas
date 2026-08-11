@@ -3578,3 +3578,51 @@ criarModalVideo();
 atualizarOrcamento();
 
 carregarFotosCarrossel();
+
+function atualizarContadorCarrinho() {
+
+  const contador =
+    document.getElementById(
+      "contador-carrinho"
+    );
+
+  if (!contador) {
+    return;
+  }
+
+  try {
+
+    const dados =
+      localStorage.getItem(
+        "salvatexCarrinho"
+      );
+
+    const carrinho =
+      dados
+        ? JSON.parse(dados)
+        : [];
+
+    const quantidade =
+      Array.isArray(carrinho)
+        ? carrinho.length
+        : 0;
+
+    contador.textContent =
+      quantidade;
+
+    contador.style.display =
+      quantidade > 0
+        ? "flex"
+        : "none";
+
+  } catch (erro) {
+
+    contador.textContent =
+      "0";
+
+    contador.style.display =
+      "none";
+
+  }
+
+}
