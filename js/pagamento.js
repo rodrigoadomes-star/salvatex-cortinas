@@ -820,6 +820,12 @@ function salvarFormaPagamento() {
 
     ...pedidoAtual,
 
+    status:
+      "aguardando_pagamento",
+
+    etapa:
+      "pagamento",
+
     pagamento: {
 
       forma:
@@ -841,15 +847,13 @@ function salvarFormaPagamento() {
   };
 
 
-  localStorage.setItem(
-    CHAVE_PEDIDO,
-    JSON.stringify(
+  pedidoAtual =
+    SalvatexPedido.salvarPedido(
       pedidoAtual
-    )
-  );
+    );
 
 
-  return true;
+  return Boolean(pedidoAtual);
 
 }
 
@@ -1007,6 +1011,15 @@ function iniciarPagamento() {
 
   pedidoAtual =
     pedido;
+
+
+  if (!pedido.backendRegistrado || !pedido.backendId) {
+
+    console.warn(
+      "Pedido ainda não possui confirmação do backend."
+    );
+
+  }
 
 
   configurarFormasPagamento();

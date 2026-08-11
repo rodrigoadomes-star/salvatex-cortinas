@@ -5132,3 +5132,15 @@ body.modal-aberto{
   }
 
 }
+
+/* ==========================================================
+   BACKEND / REGISTRO DE PEDIDO
+   ========================================================== */
+
+.checkout-botao:disabled,
+.pagamento-botao:disabled{
+  opacity:.6;
+  cursor:wait;
+  transform:none;
+  box-shadow:none;
+}

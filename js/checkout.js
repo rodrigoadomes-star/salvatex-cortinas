@@ -1098,7 +1098,7 @@ function validarFormulario() {
 
 
 // ============================================================
-// SALVAR CHECKOUT
+// SALVAR CHECKOUT LOCALMENTE
 // ============================================================
 
 function salvarCheckout() {
@@ -1108,7 +1108,7 @@ function salvarCheckout() {
 
 
   if (!pedido) {
-    return false;
+    return null;
   }
 
 
@@ -1154,13 +1154,33 @@ function salvarCheckout() {
     ...pedido,
 
     versao:
-      2,
+      4,
 
     itens,
 
     cliente,
 
+    entrega: {
+      cep:
+        cliente.cep,
+      endereco:
+        cliente.endereco,
+      numero:
+        cliente.numero,
+      complemento:
+        cliente.complemento,
+      bairro:
+        cliente.bairro,
+      cidade:
+        cliente.cidade,
+      estado:
+        cliente.estado
+    },
+
     frete,
+
+    status:
+      "aguardando_pagamento",
 
     totaisPorCategoria:
       categorias,
@@ -1172,6 +1192,9 @@ function salvarCheckout() {
 
       frete:
         frete.valor,
+
+      desconto:
+        0,
 
       total:
         total +
@@ -1206,24 +1229,22 @@ function salvarCheckout() {
   };
 
 
-  localStorage.setItem(
-    CHAVE_PEDIDO,
-    JSON.stringify(
+  return SalvatexPedido
+    .salvarPedido(
       atualizado
-    )
-  );
-
-
-  return true;
+    );
 
 }
 
 
 // ============================================================
 // CONTINUAR
+//
+// Antes de abrir a tela de pagamento, o pedido é registrado
+// no D1. Assim uma compra nunca depende apenas do localStorage.
 // ============================================================
 
-function continuarPagamento() {
+async function continuarPagamento() {
 
   if (
     !validarFormulario()
@@ -1235,26 +1256,71 @@ function continuarPagamento() {
 
 
     return;
-
   }
 
 
-  if (
-    !salvarCheckout()
-  ) {
-
-    alert(
-      "Não foi possível salvar o pedido."
+  const botao =
+    document.getElementById(
+      "checkout-continuar"
     );
 
 
-    return;
+  const textoOriginal =
+    botao?.textContent ||
+    "Continuar para pagamento";
 
+
+  if (botao) {
+    botao.disabled = true;
+    botao.textContent =
+      "Registrando pedido...";
   }
 
 
-  window.location.href =
-    "pagamento.html";
+  try {
+
+    const pedidoLocal =
+      salvarCheckout();
+
+
+    if (!pedidoLocal) {
+      throw new Error(
+        "Não foi possível preparar o pedido."
+      );
+    }
+
+
+    await SalvatexPedido
+      .registrarNoServidor(
+        pedidoLocal
+      );
+
+
+    window.location.href =
+      "pagamento.html";
+
+
+  } catch (erro) {
+
+    console.error(
+      "Erro ao registrar pedido:",
+      erro
+    );
+
+
+    alert(
+      erro?.message ||
+      "Não foi possível registrar o pedido. Tente novamente."
+    );
+
+
+    if (botao) {
+      botao.disabled = false;
+      botao.textContent =
+        textoOriginal;
+    }
+
+  }
 
 }
 

@@ -185,6 +185,9 @@
     id = "",
     grupoId = "",
     categoria = "outros",
+    tipoVenda = "pronta_entrega",
+    configurador = "",
+    sku = "",
     nome = "Produto",
     imagem = "",
     quantidade = 1,
@@ -236,6 +239,15 @@
         normalizarCategoria(
           categoria
         ),
+
+      tipoVenda:
+        String(tipoVenda || "pronta_entrega"),
+
+      configurador:
+        String(configurador || ""),
+
+      sku:
+        String(sku || ""),
 
       nome:
         nome ||

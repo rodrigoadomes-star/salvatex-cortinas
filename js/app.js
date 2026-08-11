@@ -3386,6 +3386,18 @@ function adicionarAoCarrinho() {
         categoria:
           "cortina",
 
+        tipoVenda:
+          "sob_medida",
+
+        configurador:
+          "cortina",
+
+        sku:
+          "CORTINA-" +
+          String(dados.modelo || "MODELO")
+            .toUpperCase()
+            .replace(/[^A-Z0-9]+/g, "-"),
+
         nome:
           "Cortina " +
           dados.modelo +
@@ -3585,6 +3597,18 @@ function adicionarAoCarrinho() {
 
           categoria:
             "trilho",
+
+          tipoVenda:
+            "sob_medida",
+
+          configurador:
+            "complemento_cortina",
+
+          sku:
+            "TRILHO-" +
+            String(dados.trilho || "MODELO")
+              .toUpperCase()
+              .replace(/[^A-Z0-9]+/g, "-"),
 
           nome:
             dados.trilho,

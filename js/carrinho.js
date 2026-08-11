@@ -776,27 +776,24 @@ function continuarParaEntrega() {
       );
 
 
-  localStorage.setItem(
-    CHAVE_PEDIDO,
-    JSON.stringify({
+  const pedido =
+    SalvatexPedido.criarPedido(
+      carrinho,
+      {
+        status: "rascunho",
+        etapa: "entrega",
+        totaisPorCategoria: totais,
+        totais: {
+          produtos: total,
+          frete: null,
+          desconto: 0,
+          total: total
+        }
+      }
+    );
 
-      versao:
-        2,
-
-      itens:
-        carrinho,
-
-      totaisPorCategoria:
-        totais,
-
-      totalProdutos:
-        total,
-
-      criadoEm:
-        new Date()
-          .toISOString()
-
-    })
+  SalvatexPedido.salvarPedido(
+    pedido
   );
 
 
