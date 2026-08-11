@@ -50,7 +50,6 @@ const PASTAS_MIDIA = {
 
 // ============================================================
 // CAPAS DAS CORES
-// USADAS NOS CARDS DAS CORES
 // ============================================================
 
 const GALERIAS_CORES = {
@@ -489,8 +488,7 @@ function obterFotoAtual() {
 
 function gerarPlaceholder() {
 
-  const svg =
-    `
+  const svg = `
     <svg xmlns="http://www.w3.org/2000/svg"
          width="900"
          height="700">
@@ -524,7 +522,7 @@ function gerarPlaceholder() {
       </text>
 
     </svg>
-    `;
+  `;
 
 
   return (
@@ -2837,6 +2835,94 @@ function abrirWhatsApp() {
 
 
 // ============================================================
+// CONTADOR DO CARRINHO
+// ============================================================
+
+function atualizarContadorCarrinho() {
+
+  const contador =
+    document.getElementById(
+      "contador-carrinho"
+    );
+
+
+  if (!contador) {
+    return;
+  }
+
+
+  try {
+
+    const dados =
+      localStorage.getItem(
+        "salvatexCarrinho"
+      );
+
+
+    const carrinho =
+      dados
+        ? JSON.parse(dados)
+        : [];
+
+
+    const quantidade =
+      Array.isArray(carrinho)
+        ? carrinho.reduce(
+            (total, item) => {
+
+              return (
+                total +
+                Number(
+                  item.quantidade || 1
+                )
+              );
+
+            },
+            0
+          )
+        : 0;
+
+
+    contador.textContent =
+      quantidade;
+
+
+    contador.style.display =
+      quantidade > 0
+        ? "flex"
+        : "none";
+
+
+    contador.setAttribute(
+      "aria-label",
+      quantidade === 1
+        ? "1 item no carrinho"
+        : quantidade +
+          " itens no carrinho"
+    );
+
+
+  } catch (erro) {
+
+    console.error(
+      "Erro ao atualizar contador do carrinho:",
+      erro
+    );
+
+
+    contador.textContent =
+      "0";
+
+
+    contador.style.display =
+      "none";
+
+  }
+
+}
+
+
+// ============================================================
 // ADICIONAR AO CARRINHO
 // ============================================================
 
@@ -2863,8 +2949,7 @@ function adicionarAoCarrinho() {
 
   // ==========================================================
   // TRILHO / VARÃO OBRIGATÓRIO
-  // O CLIENTE PRECISA ESCOLHER UM MODELO OU "NÃO"
-// ==========================================================
+  // ==========================================================
 
   if (!dados.trilho) {
 
@@ -2970,7 +3055,6 @@ function adicionarAoCarrinho() {
 
   // ==========================================================
   // ID DA CONFIGURAÇÃO
-  // CORTINA E TRILHO FICAM LIGADOS PELO MESMO GRUPO
   // ==========================================================
 
   const grupoId =
@@ -3092,7 +3176,6 @@ function adicionarAoCarrinho() {
 
   // ==========================================================
   // ITEM 2 — TRILHO / VARÃO
-  // PRODUTO SEPARADO
   // ==========================================================
 
   if (
@@ -3167,6 +3250,13 @@ function adicionarAoCarrinho() {
 
 
   // ==========================================================
+  // ATUALIZA CONTADOR
+  // ==========================================================
+
+  atualizarContadorCarrinho();
+
+
+  // ==========================================================
   // ABRE CARRINHO
   // ==========================================================
 
@@ -3177,7 +3267,7 @@ function adicionarAoCarrinho() {
 
 
 // ============================================================
-// EVENTOS
+// EVENTOS DOS CARDS
 // ============================================================
 
 bindCards(
@@ -3185,10 +3275,12 @@ bindCards(
   "modelo"
 );
 
+
 bindCards(
   "tecidos-choice",
   "tecido"
 );
+
 
 bindCards(
   "forros",
@@ -3222,13 +3314,6 @@ if (trilhoSelect) {
   );
 
 }
-
-
-// ============================================================
-// CORES
-// ============================================================
-
-atualizarCores();
 
 
 // ============================================================
@@ -3568,6 +3653,41 @@ document.addEventListener(
 
 
 // ============================================================
+// ATUALIZA CARRINHO QUANDO ALTERADO EM OUTRA ABA
+// ============================================================
+
+window.addEventListener(
+  "storage",
+  (evento) => {
+
+    if (
+      evento.key ===
+      "salvatexCarrinho"
+    ) {
+
+      atualizarContadorCarrinho();
+
+    }
+
+  }
+);
+
+
+// ============================================================
+// ATUALIZA QUANDO VOLTA PARA A PÁGINA
+// ============================================================
+
+window.addEventListener(
+  "pageshow",
+  () => {
+
+    atualizarContadorCarrinho();
+
+  }
+);
+
+
+// ============================================================
 // INICIALIZAÇÃO
 // ============================================================
 
@@ -3575,54 +3695,10 @@ criarBotaoVideo();
 
 criarModalVideo();
 
+atualizarCores();
+
 atualizarOrcamento();
 
 carregarFotosCarrossel();
 
-function atualizarContadorCarrinho() {
-
-  const contador =
-    document.getElementById(
-      "contador-carrinho"
-    );
-
-  if (!contador) {
-    return;
-  }
-
-  try {
-
-    const dados =
-      localStorage.getItem(
-        "salvatexCarrinho"
-      );
-
-    const carrinho =
-      dados
-        ? JSON.parse(dados)
-        : [];
-
-    const quantidade =
-      Array.isArray(carrinho)
-        ? carrinho.length
-        : 0;
-
-    contador.textContent =
-      quantidade;
-
-    contador.style.display =
-      quantidade > 0
-        ? "flex"
-        : "none";
-
-  } catch (erro) {
-
-    contador.textContent =
-      "0";
-
-    contador.style.display =
-      "none";
-
-  }
-
-}
+atualizarContadorCarrinho();
