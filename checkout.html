@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+
+  <meta charset="UTF-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
+
+  <meta
+    name="description"
+    content="Checkout Salvatex Cortinas"
+  >
+
+  <title>
+    Checkout | Salvatex Cortinas
+  </title>
+
+  <link
+    rel="stylesheet"
+    href="css/style.css"
+  >
+
+</head>
+
+
+<body>
+
+
+<main class="pagina-checkout">
+
+
+  <!-- ========================================================
+       TOPO
+  ========================================================= -->
+
+  <header class="checkout-topo">
+
+    <a
+      href="carrinho.html"
+      class="checkout-voltar"
+    >
+      ← Voltar ao carrinho
+    </a>
+
+
+    <h1 class="checkout-titulo">
+      Finalizar pedido
+    </h1>
+
+
+    <p class="checkout-subtitulo">
+      Preencha seus dados para continuar.
+    </p>
+
+  </header>
+
+
+
+  <!-- ========================================================
+       LAYOUT
+  ========================================================= -->
+
+  <div class="checkout-layout">
+
+
+    <!-- ======================================================
+         FORMULÁRIO
+    ======================================================= -->
+
+    <section class="checkout-formulario">
+
+
+      <!-- ====================================================
+           DADOS DO CLIENTE
+      ===================================================== -->
+
+      <div class="checkout-bloco">
+
+        <h2>
+          Dados do cliente
+        </h2>
+
+
+        <div class="checkout-grid">
+
+
+          <div class="checkout-field checkout-field-full">
+
+            <label for="checkout-nome">
+              Nome completo
+            </label>
+
+            <input
+              id="checkout-nome"
+              type="text"
+              autocomplete="name"
+              placeholder="Seu nome completo"
+            >
+
+          </div>
+
+
+          <div class="checkout-field">
+
+            <label for="checkout-cpf">
+              CPF
+            </label>
+
+            <input
+              id="checkout-cpf"
+              type="text"
+              inputmode="numeric"
+              maxlength="14"
+              placeholder="000.000.000-00"
+            >
+
+          </div>
+
+
+          <div class="checkout-field">
+
+            <label for="checkout-telefone">
+              WhatsApp
+            </label>
+
+            <input
+              id="checkout-telefone"
+              type="tel"
+              inputmode="tel"
+              autocomplete="tel"
+              placeholder="(44) 99999-9999"
+            >
+
+          </div>
+
+
+          <div class="checkout-field checkout-field-full">
+
+            <label for="checkout-email">
+              E-mail
+            </label>
+
+            <input
+              id="checkout-email"
+              type="email"
+              autocomplete="email"
+              placeholder="seuemail@exemplo.com"
+            >
+
+          </div>
+
+
+        </div>
+
+      </div>
+
+
+
+      <!-- ====================================================
+           ENTREGA
+      ===================================================== -->
+
+      <div class="checkout-bloco">
+
+        <h2>
+          Endereço de entrega
+        </h2>
+
+
+        <div class="checkout-grid">
+
+
+          <div class="checkout-field">
+
+            <label for="checkout-cep">
+              CEP
+            </label>
+
+            <input
+              id="checkout-cep"
+              type="text"
+              inputmode="numeric"
+              autocomplete="postal-code"
+              maxlength="9"
+              placeholder="00000-000"
+            >
+
+          </div>
+
+
+          <div class="checkout-field">
+
+            <label for="checkout-cidade">
+              Cidade
+            </label>
+
+            <input
+              id="checkout-cidade"
+              type="text"
+              autocomplete="address-level2"
+              placeholder="Cidade"
+            >
+
+          </div>
+
+
+          <div class="checkout-field checkout-field-full">
+
+            <label for="checkout-endereco">
+              Endereço
+            </label>
+
+            <input
+              id="checkout-endereco"
+              type="text"
+              autocomplete="street-address"
+              placeholder="Rua, avenida..."
+            >
+
+          </div>
+
+
+          <div class="checkout-field">
+
+            <label for="checkout-numero">
+              Número
+            </label>
+
+            <input
+              id="checkout-numero"
+              type="text"
+              placeholder="123"
+            >
+
+          </div>
+
+
+          <div class="checkout-field">
+
+            <label for="checkout-complemento">
+              Complemento
+            </label>
+
+            <input
+              id="checkout-complemento"
+              type="text"
+              placeholder="Apartamento, bloco..."
+            >
+
+          </div>
+
+
+          <div class="checkout-field">
+
+            <label for="checkout-bairro">
+              Bairro
+            </label>
+
+            <input
+              id="checkout-bairro"
+              type="text"
+              autocomplete="address-level3"
+              placeholder="Bairro"
+            >
+
+          </div>
+
+
+          <div class="checkout-field">
+
+            <label for="checkout-estado">
+              Estado
+            </label>
+
+            <select id="checkout-estado">
+
+              <option value="">
+                Selecione
+              </option>
+
+              <option value="AC">AC</option>
+              <option value="AL">AL</option>
+              <option value="AP">AP</option>
+              <option value="AM">AM</option>
+              <option value="BA">BA</option>
+              <option value="CE">CE</option>
+              <option value="DF">DF</option>
+              <option value="ES">ES</option>
+              <option value="GO">GO</option>
+              <option value="MA">MA</option>
+              <option value="MT">MT</option>
+              <option value="MS">MS</option>
+              <option value="MG">MG</option>
+              <option value="PA">PA</option>
+              <option value="PB">PB</option>
+              <option value="PR">PR</option>
+              <option value="PE">PE</option>
+              <option value="PI">PI</option>
+              <option value="RJ">RJ</option>
+              <option value="RN">RN</option>
+              <option value="RS">RS</option>
+              <option value="RO">RO</option>
+              <option value="RR">RR</option>
+              <option value="SC">SC</option>
+              <option value="SP">SP</option>
+              <option value="SE">SE</option>
+              <option value="TO">TO</option>
+
+            </select>
+
+          </div>
+
+
+        </div>
+
+      </div>
+
+
+
+      <!-- ====================================================
+           OBSERVAÇÕES
+      ===================================================== -->
+
+      <div class="checkout-bloco">
+
+        <h2>
+          Observações
+        </h2>
+
+
+        <div class="checkout-field">
+
+          <label for="checkout-observacoes">
+            Informações adicionais
+          </label>
+
+          <textarea
+            id="checkout-observacoes"
+            rows="4"
+            placeholder="Ex.: referência do endereço, preferência de contato ou outra observação."
+          ></textarea>
+
+        </div>
+
+      </div>
+
+
+
+      <!-- ====================================================
+           PRAZOS
+      ===================================================== -->
+
+      <div class="checkout-bloco checkout-prazos">
+
+        <h2>
+          Prazo do pedido
+        </h2>
+
+
+        <div class="checkout-prazo-linha">
+
+          <span>
+            Produção
+          </span>
+
+          <strong>
+            5 a 10 dias úteis
+          </strong>
+
+        </div>
+
+
+        <div class="checkout-prazo-linha">
+
+          <span>
+            Entrega
+          </span>
+
+          <strong>
+            6 a 12 dias úteis após o envio
+          </strong>
+
+        </div>
+
+
+        <p>
+          O prazo de transporte começa após a conclusão da produção
+          e o despacho do pedido.
+        </p>
+
+      </div>
+
+
+    </section>
+
+
+
+    <!-- ======================================================
+         RESUMO DO PEDIDO
+    ======================================================= -->
+
+    <aside class="checkout-resumo">
+
+
+      <h2>
+        Seu pedido
+      </h2>
+
+
+      <div
+        id="checkout-itens"
+        class="checkout-itens"
+      >
+        <!-- Inserido pelo JavaScript -->
+      </div>
+
+
+
+      <div class="checkout-resumo-divisor"></div>
+
+
+
+      <div class="checkout-resumo-linha">
+
+        <span>
+          Cortinas
+        </span>
+
+        <strong id="checkout-total-cortinas">
+          R$ 0,00
+        </strong>
+
+      </div>
+
+
+
+      <div
+        id="checkout-linha-trilhos"
+        class="checkout-resumo-linha"
+      >
+
+        <span>
+          Trilhos / Varões
+        </span>
+
+        <strong id="checkout-total-trilhos">
+          R$ 0,00
+        </strong>
+
+      </div>
+
+
+
+      <div class="checkout-resumo-linha">
+
+        <span>
+          Frete
+        </span>
+
+        <strong id="checkout-frete">
+          A calcular
+        </strong>
+
+      </div>
+
+
+
+      <div class="checkout-resumo-divisor"></div>
+
+
+
+      <div class="checkout-total">
+
+        <span>
+          Total dos produtos
+        </span>
+
+        <strong id="checkout-total">
+          R$ 0,00
+        </strong>
+
+      </div>
+
+
+
+      <div
+        id="checkout-parcelamento"
+        class="checkout-parcelamento"
+      >
+        ou 10x sem juros
+      </div>
+
+
+
+      <div
+        id="checkout-frete-aviso"
+        class="checkout-frete-aviso"
+      ></div>
+
+
+
+      <!-- ====================================================
+           CONTINUAR PARA PAGAMENTO
+      ===================================================== -->
+
+      <button
+        id="checkout-continuar"
+        type="button"
+        class="checkout-botao"
+      >
+        Continuar para pagamento
+      </button>
+
+
+
+      <a
+        href="carrinho.html"
+        class="checkout-editar"
+      >
+        Editar carrinho
+      </a>
+
+
+    </aside>
+
+
+  </div>
+
+
+</main>
+
+
+
+<!-- ==========================================================
+     JAVASCRIPT
+=========================================================== -->
+
+<script src="js/config.js"></script>
+
+<script src="js/checkout.js"></script>
+
+
+</body>
+
+</html>
