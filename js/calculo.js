@@ -175,6 +175,7 @@ function calcularOrcamento(dados) {
 
 
       mensagem:
+        CONFIG.altura.acimaMaximo?.texto ||
         `Alturas acima de ${
           CONFIG.altura.calculoMaximo
             .toFixed(2)

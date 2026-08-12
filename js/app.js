@@ -181,6 +181,37 @@ function semCache(src) {
 
 
 // ============================================================
+// MÍDIA CONFIGURADA PELO PAINEL ADMIN
+// ============================================================
+
+function obterMidiaAdmin(tecido, modelo, cor, forro) {
+  const lista = Array.isArray(CONFIG.mediaConfigurador)
+    ? CONFIG.mediaConfigurador
+    : [];
+
+  return lista.find((item) =>
+    String(item.tecido || "") === String(tecido || "") &&
+    String(item.modelo || "Wave") === String(modelo || "Wave") &&
+    String(item.cor || "") === String(cor || "") &&
+    String(item.forro || "") === String(forro || "")
+  ) || null;
+}
+
+function obterCapaCorAdmin(tecido, cor) {
+  const lista = Array.isArray(CONFIG.mediaConfigurador)
+    ? CONFIG.mediaConfigurador
+    : [];
+  const item = lista.find((x) =>
+    String(x.tecido || "") === String(tecido || "") &&
+    String(x.cor || "") === String(cor || "") &&
+    (x.capa || (Array.isArray(x.imagens) && x.imagens[0]))
+  );
+  return item
+    ? (item.capa || item.imagens?.[0] || "")
+    : "";
+}
+
+// ============================================================
 // CAMINHO DA PASTA
 // ============================================================
 
@@ -281,6 +312,11 @@ function obterCaminhoVideo(
   cor,
   forro
 ) {
+
+  const midiaAdmin = obterMidiaAdmin(tecido, modelo, cor, forro);
+  if (midiaAdmin?.video) {
+    return midiaAdmin.video;
+  }
 
   const pasta =
     obterPastaMidia(
@@ -397,7 +433,32 @@ async function carregarFotosCarrossel() {
   const candidatos = [];
 
 
-  coresOrdenadas.forEach(
+  coresOrdenadas.forEach((cor) => {
+    const midiaAdmin = obterMidiaAdmin(
+      tecidoAtual,
+      modeloAtual,
+      cor,
+      forroAtual
+    );
+
+    if (midiaAdmin && Array.isArray(midiaAdmin.imagens) && midiaAdmin.imagens.length) {
+      midiaAdmin.imagens.filter(Boolean).forEach((src) => {
+        candidatos.push({ src, cor, configurada: true });
+      });
+      return;
+    }
+
+    for (let numero = 1; numero <= 10; numero++) {
+      candidatos.push({
+        src: obterCaminhoFoto(tecidoAtual, modeloAtual, cor, forroAtual, numero),
+        cor
+      });
+    }
+  });
+
+
+  /* Fallback antigo continua abaixo apenas para compatibilidade. */
+  if (!candidatos.length) coresOrdenadas.forEach(
     (cor) => {
 
       for (
@@ -792,11 +853,8 @@ function atualizarCores() {
 
 
       const capa =
-        GALERIAS_CORES?.[
-          state.tecido
-        ]?.[
-          cor
-        ]?.[0]?.src;
+        obterCapaCorAdmin(state.tecido, cor) ||
+        GALERIAS_CORES?.[state.tecido]?.[cor]?.[0]?.src;
 
 
       if (capa) {
@@ -2100,12 +2158,13 @@ function abrirGaleriaCor() {
   }
 
 
-  const fotos =
-    GALERIAS_CORES?.[
-      state.tecido
-    ]?.[
-      state.cor
-    ] || [];
+  const midiaAtual = obterMidiaAdmin(state.tecido, state.modelo, state.cor, state.forro);
+  const fotosAdmin = Array.isArray(midiaAtual?.imagens)
+    ? midiaAtual.imagens.map((src) => ({src, legenda: `${state.tecido} ${state.cor}`}))
+    : [];
+  const fotos = fotosAdmin.length
+    ? fotosAdmin
+    : (GALERIAS_CORES?.[state.tecido]?.[state.cor] || []);
 
 
   tecido.textContent =
@@ -2797,7 +2856,7 @@ function atualizarOrcamento() {
     if (comprar) {
 
       comprar.textContent =
-        "Solicitar orçamento";
+        CONFIG.altura.acimaMaximo?.textoBotao || "Solicitar orçamento";
 
     }
 
@@ -4156,6 +4215,73 @@ window.addEventListener(
 
 
 // ============================================================
+// OPÇÕES DO CONFIGURADOR VINDAS DO PAINEL ADMIN
+// ============================================================
+
+function atualizarForrosDinamicos() {
+  const container = document.getElementById("forros");
+  if (!container) return;
+  const forros = Object.keys(CONFIG.precos?.[state.tecido] || {});
+  if (!forros.length) return;
+  if (!forros.includes(state.forro)) state.forro = forros[0];
+  container.innerHTML = "";
+  forros.forEach((nome) => {
+    const card = document.createElement("div");
+    card.className = "card" + (state.forro === nome ? " selected" : "");
+    card.dataset.value = nome;
+    card.innerHTML = `<strong>${nome}</strong><span>Opção configurada no painel administrativo.</span>`;
+    container.appendChild(card);
+  });
+  bindCards("forros", "forro");
+}
+
+function montarOpcoesConfiguradorWave() {
+  const tecidos = Object.keys(CONFIG.precos || {});
+  const tecidosContainer = document.getElementById("tecidos-choice");
+  if (tecidosContainer && tecidos.length) {
+    if (!tecidos.includes(state.tecido)) state.tecido = tecidos[0];
+    tecidosContainer.innerHTML = "";
+    tecidos.forEach((nome) => {
+      const card = document.createElement("div");
+      card.className = "card" + (state.tecido === nome ? " selected" : "");
+      card.dataset.value = nome;
+      card.innerHTML = `<strong>${nome}</strong><span>Tecido disponível para este configurador.</span>`;
+      tecidosContainer.appendChild(card);
+    });
+    bindCards("tecidos-choice", "tecido");
+  }
+
+  atualizarForrosDinamicos();
+
+  const franz = document.getElementById("franzimento");
+  if (franz && Array.isArray(CONFIG.franzimentos) && CONFIG.franzimentos.length) {
+    const atual = String(franz.value || CONFIG.franzimentos[0].valor);
+    franz.innerHTML = CONFIG.franzimentos.map((item) =>
+      `<option value="${item.valor}" ${String(item.valor) === atual ? "selected" : ""}>${item.rotulo || item.valor + "x"}</option>`
+    ).join("");
+  }
+
+  const trilho = document.getElementById("trilho-select");
+  if (trilho) {
+    const atual = trilho.value;
+    trilho.innerHTML = `<option value="" disabled>Selecione...</option><option value="Não">Não quero trilho ou varão</option>` +
+      Object.keys(CONFIG.instalacao || {}).map((nome) => `<option value="${nome}">${nome}</option>`).join("");
+    trilho.value = Object.prototype.hasOwnProperty.call(CONFIG.instalacao || {}, atual) || atual === "Não" ? atual : "";
+    state.trilho = trilho.value;
+  }
+
+  const altura = document.getElementById("altura");
+  if (altura) {
+    altura.max = String(CONFIG.altura.alturaEntradaMaxima || Math.max(5, CONFIG.altura.calculoMaximo || 3.2));
+  }
+
+  const ajudaAltura = document.querySelector('label[for="altura"]')?.closest('.field')?.querySelector('.field-help');
+  if (ajudaAltura) {
+    ajudaAltura.textContent = `Acima de ${Number(CONFIG.altura.calculoMaximo || 3.2).toFixed(2).replace('.', ',')} m: orçamento sob consulta.`;
+  }
+}
+
+// ============================================================
 // INICIALIZAÇÃO
 // ============================================================
 
@@ -4178,6 +4304,8 @@ async function iniciarAplicacaoSalvatex() {
 
   }
 
+
+  montarOpcoesConfiguradorWave();
 
   criarBotaoVideo();
 
