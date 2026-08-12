@@ -5168,3 +5168,11 @@ body.modal-aberto{
    MEDIDAS PRÉ-DEFINIDAS POR PÁGINA — 6.3
    ========================================================== */
 .collection-head-row{display:flex;align-items:flex-end;justify-content:space-between;gap:24px}.measure-filter{position:relative;width:min(280px,100%);z-index:12}.measure-filter-toggle{width:100%;min-height:46px;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:0 15px;background:#fff;border:1px solid var(--line);border-radius:10px;color:var(--ink);font-size:12px;font-weight:650;cursor:pointer}.measure-filter-menu{position:absolute;top:calc(100% + 7px);left:0;right:0;display:none;overflow:hidden;background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:0 18px 45px rgba(33,29,24,.14)}.measure-filter-menu.open{display:block}.measure-filter-title{padding:13px 15px 10px;color:var(--muted);font-size:10px;font-weight:600}.measure-filter-option,.measure-filter-custom{width:100%;display:flex;align-items:center;min-height:44px;padding:10px 15px;border:0;border-top:1px solid #eee9e3;background:#fff;color:#5f5953;text-align:left;font-size:11px;cursor:pointer}.measure-filter-option:hover,.measure-filter-option.active{background:#f8f5f1;color:var(--ink)}.measure-filter-custom{justify-content:center;background:#2f8a4c;color:#fff;font-weight:700}.measure-filter-custom:hover{background:#267a42}.collection-grid .catalog-empty{grid-column:1/-1}@media(max-width:700px){.collection-head-row{display:block}.measure-filter{width:100%;margin-top:18px}.measure-filter-menu{position:relative;top:7px;margin-bottom:8px}}
+/* Páginas públicas dinâmicas no menu */
+.nav-pages-dropdown{position:relative;display:flex;align-items:center}
+.nav-pages-toggle{border:0;background:transparent;padding:0;font:inherit;color:inherit;cursor:pointer;display:flex;align-items:center;gap:5px}
+.nav-pages-menu{position:absolute;top:calc(100% + 18px);left:50%;transform:translateX(-50%);min-width:220px;padding:8px;background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:0 18px 45px rgba(33,29,24,.12);display:none;z-index:100}
+.nav-pages-dropdown.open .nav-pages-menu{display:block}
+.nav-pages-menu a{display:block;padding:10px 12px;border-radius:8px;white-space:nowrap}
+.nav-pages-menu a:hover{background:var(--soft)}
+@media(max-width:900px){.nav-pages-dropdown{display:none}}
