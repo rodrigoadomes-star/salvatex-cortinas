@@ -140,11 +140,12 @@ export async function onRequestPatch(context) {
 
   const now = new Date().toISOString();
   const changedStatus = current.status !== status;
+  const internalNotesChanged = internalNotes !== String(current.internal_notes || "");
 
   const payload = {
     status,
     stage,
-    internalNotesChanged: internalNotes !== String(current.internal_notes || ""),
+    internalNotesChanged,
     freight,
     payment
   };
@@ -167,6 +168,12 @@ export async function onRequestPatch(context) {
         VALUES(?1,'admin_status_changed',?2,?3,?4,?5)`)
         .bind(id, current.status, status, JSON.stringify(payload), now)
     );
+  } else if (internalNotesChanged) {
+    statements.push(
+      db.prepare(`INSERT INTO order_events(order_id,event_type,from_status,to_status,payload_json,created_at)
+        VALUES(?1,'admin_internal_note_updated',?2,?3,?4,?5)`)
+        .bind(id, current.status, status, JSON.stringify(payload), now)
+    );
   } else {
     statements.push(
       db.prepare(`INSERT INTO order_events(order_id,event_type,from_status,to_status,payload_json,created_at)
@@ -176,10 +183,17 @@ export async function onRequestPatch(context) {
   }
 
   await db.batch(statements);
-  await logAdmin(db, changedStatus ? "order_status_changed" : "order_updated", "order", id, {
+  const adminAction = changedStatus
+    ? "order_status_changed"
+    : internalNotesChanged
+      ? "order_internal_note_updated"
+      : "order_updated";
+
+  await logAdmin(db, adminAction, "order", id, {
     from: current.status,
     to: status,
     stage,
+    internalNotesChanged,
     freight,
     payment
   });
