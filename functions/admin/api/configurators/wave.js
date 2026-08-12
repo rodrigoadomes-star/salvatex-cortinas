@@ -1,4 +1,4 @@
-import { json } from "../_lib.js";
+import { json, requireAdmin, logAdmin } from "../_auth.js";
 
 const DEFAULT_WAVE = {
   id: "wave",
