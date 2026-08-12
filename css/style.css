@@ -5168,11 +5168,188 @@ body.modal-aberto{
    MEDIDAS PRÉ-DEFINIDAS POR PÁGINA — 6.3
    ========================================================== */
 .collection-head-row{display:flex;align-items:flex-end;justify-content:space-between;gap:24px}.measure-filter{position:relative;width:min(280px,100%);z-index:12}.measure-filter-toggle{width:100%;min-height:46px;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:0 15px;background:#fff;border:1px solid var(--line);border-radius:10px;color:var(--ink);font-size:12px;font-weight:650;cursor:pointer}.measure-filter-menu{position:absolute;top:calc(100% + 7px);left:0;right:0;display:none;overflow:hidden;background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:0 18px 45px rgba(33,29,24,.14)}.measure-filter-menu.open{display:block}.measure-filter-title{padding:13px 15px 10px;color:var(--muted);font-size:10px;font-weight:600}.measure-filter-option,.measure-filter-custom{width:100%;display:flex;align-items:center;min-height:44px;padding:10px 15px;border:0;border-top:1px solid #eee9e3;background:#fff;color:#5f5953;text-align:left;font-size:11px;cursor:pointer}.measure-filter-option:hover,.measure-filter-option.active{background:#f8f5f1;color:var(--ink)}.measure-filter-custom{justify-content:center;background:#2f8a4c;color:#fff;font-weight:700}.measure-filter-custom:hover{background:#267a42}.collection-grid .catalog-empty{grid-column:1/-1}@media(max-width:700px){.collection-head-row{display:block}.measure-filter{width:100%;margin-top:18px}.measure-filter-menu{position:relative;top:7px;margin-bottom:8px}}
-/* Páginas públicas dinâmicas no menu */
-.nav-pages-dropdown{position:relative;display:flex;align-items:center}
-.nav-pages-toggle{border:0;background:transparent;padding:0;font:inherit;color:inherit;cursor:pointer;display:flex;align-items:center;gap:5px}
-.nav-pages-menu{position:absolute;top:calc(100% + 18px);left:50%;transform:translateX(-50%);min-width:220px;padding:8px;background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:0 18px 45px rgba(33,29,24,.12);display:none;z-index:100}
-.nav-pages-dropdown.open .nav-pages-menu{display:block}
-.nav-pages-menu a{display:block;padding:10px 12px;border-radius:8px;white-space:nowrap}
-.nav-pages-menu a:hover{background:var(--soft)}
-@media(max-width:900px){.nav-pages-dropdown{display:none}}
+
+
+/* ==========================================================
+   MENU PÚBLICO — PÁGINAS COM MEDIDAS NO HOVER
+   ========================================================== */
+
+.navlinks{
+  align-items:center;
+}
+
+.nav-pagina-wrapper{
+  position:relative;
+  display:flex;
+  align-items:center;
+  align-self:stretch;
+}
+
+.nav-pagina-principal{
+  display:flex !important;
+  align-items:center;
+  gap:4px;
+  height:100%;
+  white-space:nowrap;
+}
+
+.nav-pagina-seta{
+  display:inline-block;
+  margin-top:-2px;
+  font-size:13px;
+  line-height:1;
+  transition:transform .2s ease;
+}
+
+.nav-pagina-submenu{
+  position:absolute;
+  top:calc(100% - 2px);
+  left:50%;
+  z-index:1000;
+
+  width:230px;
+  min-width:230px;
+
+  visibility:hidden;
+  opacity:0;
+  pointer-events:none;
+
+  transform:
+    translate(-50%,8px);
+
+  overflow:hidden;
+
+  background:#fff;
+
+  border:
+    1px solid var(--line);
+
+  border-radius:
+    0 0 10px 10px;
+
+  box-shadow:
+    0 18px 38px
+    rgba(33,29,24,.14);
+
+  transition:
+    opacity .16s ease,
+    transform .16s ease,
+    visibility .16s ease;
+}
+
+.nav-pagina-wrapper.tem-submenu:hover
+.nav-pagina-submenu,
+.nav-pagina-wrapper.tem-submenu:focus-within
+.nav-pagina-submenu{
+  visibility:visible;
+  opacity:1;
+  pointer-events:auto;
+
+  transform:
+    translate(-50%,0);
+}
+
+.nav-pagina-wrapper.tem-submenu:hover
+.nav-pagina-seta,
+.nav-pagina-wrapper.tem-submenu:focus-within
+.nav-pagina-seta{
+  transform:rotate(180deg);
+}
+
+.nav-pagina-submenu-titulo{
+  padding:
+    14px 16px 11px;
+
+  color:var(--muted);
+
+  font-size:11px;
+  font-weight:500;
+}
+
+.nav-pagina-medida{
+  display:flex !important;
+
+  min-height:43px;
+  align-items:center;
+
+  padding:
+    10px 16px;
+
+  border-top:
+    1px solid #eee9e3;
+
+  color:#625c56 !important;
+
+  font-size:11px !important;
+  line-height:1.35;
+
+  background:#fff;
+
+  transition:
+    background .16s ease,
+    color .16s ease;
+}
+
+.nav-pagina-medida:hover,
+.nav-pagina-medida:focus{
+  opacity:1 !important;
+
+  background:#f7f4ef;
+
+  color:var(--ink) !important;
+}
+
+.nav-pagina-medida-personalizada{
+  display:flex !important;
+
+  min-height:49px;
+
+  align-items:center;
+  justify-content:center;
+
+  padding:
+    10px 15px;
+
+  background:#2f8a4c;
+
+  color:#fff !important;
+
+  font-size:11px !important;
+  font-weight:700;
+
+  line-height:1.25;
+  text-align:center;
+}
+
+.nav-pagina-medida-personalizada:hover,
+.nav-pagina-medida-personalizada:focus{
+  opacity:1 !important;
+  background:#277842;
+}
+
+
+/* Ponte invisível para o mouse não perder o submenu
+   entre o item principal e a caixa. */
+.nav-pagina-submenu::before{
+  content:"";
+
+  position:absolute;
+
+  left:0;
+  right:0;
+
+  top:-9px;
+
+  height:9px;
+}
+
+
+/* Em telas onde o menu principal já é ocultado,
+   o submenu também não interfere. */
+@media(max-width:900px){
+
+  .nav-pagina-wrapper{
+    display:none;
+  }
+
+}
