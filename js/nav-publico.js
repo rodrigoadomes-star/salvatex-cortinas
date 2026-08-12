@@ -1,29 +1,248 @@
 (function () {
 
   function limparLinksDinamicos(nav) {
+
     nav
-      .querySelectorAll("[data-dynamic-page-link]")
-      .forEach((item) => item.remove());
+      .querySelectorAll(
+        "[data-dynamic-page-link]"
+      )
+      .forEach(
+        (item) => item.remove()
+      );
+
   }
 
-  function criarLinkPagina(pagina) {
-    const link = document.createElement("a");
+
+  function criarUrlPagina(
+    pagina,
+    medida
+  ) {
+
+    const params =
+      new URLSearchParams();
+
+
+    params.set(
+      "slug",
+      pagina.slug
+    );
+
+
+    if (
+      medida &&
+      medida.id
+    ) {
+
+      params.set(
+        "medida",
+        medida.id
+      );
+
+    }
+
+
+    return (
+      "pagina.html?" +
+      params.toString()
+    );
+
+  }
+
+
+  function criarItemPagina(
+    pagina
+  ) {
+
+    const wrapper =
+      document.createElement(
+        "div"
+      );
+
+
+    wrapper.className =
+      "nav-pagina-wrapper";
+
+
+    wrapper.dataset.dynamicPageLink =
+      "1";
+
+
+    const link =
+      document.createElement(
+        "a"
+      );
+
 
     link.href =
-      "pagina.html?slug=" +
-      encodeURIComponent(pagina.slug);
+      criarUrlPagina(
+        pagina
+      );
+
+
+    link.className =
+      "nav-pagina-principal";
+
 
     link.textContent =
       pagina.title;
 
-    link.dataset.dynamicPageLink =
-      "1";
 
-    link.className =
-      "nav-pagina-dinamica";
+    wrapper.appendChild(
+      link
+    );
 
-    return link;
+
+    const medidas =
+      Array.isArray(
+        pagina.measures
+      )
+        ? pagina.measures
+        : [];
+
+
+    const temSubmenu =
+      medidas.length > 0 ||
+      Boolean(
+        pagina.customMeasureUrl
+      );
+
+
+    if (!temSubmenu) {
+
+      return wrapper;
+
+    }
+
+
+    wrapper.classList.add(
+      "tem-submenu"
+    );
+
+
+    const seta =
+      document.createElement(
+        "span"
+      );
+
+
+    seta.className =
+      "nav-pagina-seta";
+
+
+    seta.textContent =
+      "⌄";
+
+
+    seta.setAttribute(
+      "aria-hidden",
+      "true"
+    );
+
+
+    link.appendChild(
+      seta
+    );
+
+
+    const submenu =
+      document.createElement(
+        "div"
+      );
+
+
+    submenu.className =
+      "nav-pagina-submenu";
+
+
+    const titulo =
+      document.createElement(
+        "div"
+      );
+
+
+    titulo.className =
+      "nav-pagina-submenu-titulo";
+
+
+    titulo.textContent =
+      "Medidas Pré Definidas:";
+
+
+    submenu.appendChild(
+      titulo
+    );
+
+
+    medidas.forEach(
+      (medida) => {
+
+        const opcao =
+          document.createElement(
+            "a"
+          );
+
+
+        opcao.className =
+          "nav-pagina-medida";
+
+
+        opcao.href =
+          criarUrlPagina(
+            pagina,
+            medida
+          );
+
+
+        opcao.textContent =
+          medida.label;
+
+
+        submenu.appendChild(
+          opcao
+        );
+
+      }
+    );
+
+
+    if (
+      pagina.customMeasureUrl
+    ) {
+
+      const personalizada =
+        document.createElement(
+          "a"
+        );
+
+
+      personalizada.className =
+        "nav-pagina-medida-personalizada";
+
+
+      personalizada.href =
+        pagina.customMeasureUrl;
+
+
+      personalizada.textContent =
+        "Tenho uma medida específica";
+
+
+      submenu.appendChild(
+        personalizada
+      );
+
+    }
+
+
+    wrapper.appendChild(
+      submenu
+    );
+
+
+    return wrapper;
+
   }
+
 
   async function carregarPaginasMenu() {
 
@@ -32,11 +251,16 @@
         ".navlinks"
       );
 
+
     if (!nav) {
       return;
     }
 
-    limparLinksDinamicos(nav);
+
+    limparLinksDinamicos(
+      nav
+    );
+
 
     try {
 
@@ -44,20 +268,28 @@
         await fetch(
           "/api/pages",
           {
-            cache: "no-store"
+            cache:
+              "no-store"
           }
         );
+
 
       const dados =
         await resposta.json();
 
+
       if (
         !resposta.ok ||
         !dados.ok ||
-        !Array.isArray(dados.pages)
+        !Array.isArray(
+          dados.pages
+        )
       ) {
+
         return;
+
       }
+
 
       const paginas =
         dados.pages.filter(
@@ -67,53 +299,41 @@
             pagina.title
         );
 
-      if (!paginas.length) {
-        return;
-      }
-
-      /*
-       * As páginas publicadas entram diretamente no menu principal.
-       *
-       * Exemplo:
-       * Cortinas sob medida | Produtos | Cortina de Varão |
-       * Cortina de Trilho Suíço | Como funciona | Contato
-       *
-       * Elas são inseridas antes de "Como funciona".
-       */
 
       const referencia =
         Array.from(
           nav.querySelectorAll(
             ":scope > a"
           )
-        ).find((link) => {
-
-          return (
-            link.getAttribute("href") ===
+        ).find(
+          (link) =>
+            link.getAttribute(
+              "href"
+            ) ===
             "#vantagens"
-          );
+        );
 
-        });
 
       paginas.forEach(
         (pagina) => {
 
-          const link =
-            criarLinkPagina(
+          const item =
+            criarItemPagina(
               pagina
             );
+
 
           if (referencia) {
 
             nav.insertBefore(
-              link,
+              item,
               referencia
             );
 
           } else {
 
             nav.appendChild(
-              link
+              item
             );
 
           }
@@ -131,6 +351,7 @@
     }
 
   }
+
 
   document.addEventListener(
     "DOMContentLoaded",
