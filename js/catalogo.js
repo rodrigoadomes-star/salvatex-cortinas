@@ -1,4 +1,4 @@
-const brlCatalogo = cents => Number(cents||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+const brlCatalogo = cents => (Number(cents || 0) / 100).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
 const escCatalogo = s => String(s??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
 let categoriaAtual = new URLSearchParams(location.search).get('categoria') || '';
 

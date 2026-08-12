@@ -1,4 +1,4 @@
-const brlProduto = cents => Number(cents||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+const brlProduto = cents => (Number(cents || 0) / 100).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
 const escProduto = s => String(s??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
 let produtoAtual=null;
 
