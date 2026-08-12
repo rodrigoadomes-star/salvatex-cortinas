@@ -1,37 +1,23 @@
-# Configuradores — Salvatex Admin
+# Configuradores Salvatex
 
-A área **Configuradores** é a fonte administrativa para produtos sob medida.
+O painel administrativo agora possui estrutura para quatro configuradores:
 
-## Wave
+- Cortina Wave
+- Cortina Prega Macho
+- Cortina de Varão
+- Persiana sob medida
 
-O configurador Wave agora permite editar pelo Admin:
-
-- nome e status;
-- largura mínima/máxima;
-- altura mínima;
-- altura máxima que o cliente pode informar;
-- altura calculada automaticamente (ex.: 3,20 m);
-- início e percentual do acréscimo;
-- comportamento acima do limite: mensagem, botão e carrinho;
-- faixas de barra;
-- tecidos;
-- cores;
-- forros e preço por metro;
-- trilhos/varões, preço por metro e mínimo;
-- fotos e vídeos por combinação tecido + cor + forro.
-
-A configuração é salva em `store_configs` com a chave `configurator_wave`.
-
-O `config.js` permanece somente como fallback de segurança.
+Cada configurador pode armazenar nome, descrição, limites de medidas, regra de cálculo, tecidos/materiais, descrições, cores, forros/opções, preços, trilhos/varões, fotos e vídeo.
 
 ## Mídia
 
-No painel pode ser informado caminho já existente, por exemplo:
+A interface usa upload do computador. Para ativar os uploads, crie um bucket Cloudflare R2 e vincule-o ao projeto Pages com o binding `MEDIA`. O código já inclui upload administrativo e rota pública `/media/...`.
 
-`imagens/galeria/gaze/wave/branco/forro-leve/foto-1.png`
+## Configuradores públicos
 
-ou uma URL pública. O upload de arquivo direto pelo painel pode ser conectado ao Cloudflare R2 em uma etapa futura.
+- Wave continua no configurador principal existente.
+- Outros configuradores podem ser abertos por `configurador.html?id=prega-macho`, `configurador.html?id=cortina-varao` e `configurador.html?id=persiana`.
 
-## Acima de 3,20 m
+## Integrações futuras
 
-O valor 3,20 m não fica mais travado no código. É editável em **Configuradores → Wave → Regras de medidas e altura**.
+Pagamento, ClearSale, e-mail e WhatsApp continuam indicados no painel como integrações futuras.
