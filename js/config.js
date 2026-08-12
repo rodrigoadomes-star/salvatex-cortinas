@@ -99,7 +99,19 @@ window.CONFIG_READY=(async()=>{
       fetch('/api/configurators/wave',{cache:'no-store'})
     ]);
     if(siteResp.ok){const d=await siteResp.json();if(d?.ok&&d.config)mesclarConfig(CONFIG,d.config)}
-    if(waveResp.ok){const d=await waveResp.json();if(d?.ok&&d.wave)aplicarWave(d.wave)}
-  }catch(erro){console.warn('Configuração remota indisponível; usando fallback local.',erro)}
+    if(waveResp.ok){
+      const d=await waveResp.json();
+      if(d?.ok&&d.wave){
+        aplicarWave(d.wave);
+        console.info('Configurador Wave carregado do Admin:',d.source||'configurator_wave',d.updatedAt||'');
+      }else{
+        console.warn('API do configurador Wave respondeu sem configuração válida.',d);
+      }
+    }else{
+      console.warn('Falha HTTP ao carregar /api/configurators/wave:',waveResp.status);
+    }
+  }catch(erro){
+    console.warn('Configuração remota indisponível; usando fallback local.',erro);
+  }
   return CONFIG;
 })();
