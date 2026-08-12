@@ -29,9 +29,14 @@ export async function onRequestGet(context){
       const byId=new Map((result.results||[]).map(x=>[x.id,x]));
       products=ids.map(id=>byId.get(id)).filter(Boolean).map(productPublic);
     }
+    const measures=parseJSON(page.measures_json,[]).map(m=>({
+      id:String(m?.id||''),label:String(m?.label||''),value:String(m?.value||''),
+      productIds:Array.isArray(m?.productIds)?m.productIds.map(String):[]
+    })).filter(m=>m.label);
     return json({ok:true,page:{
       id:page.id,title:page.title,slug:page.slug,pageType:page.page_type||'conteudo',contentHtml:page.content_html||'',
-      seoTitle:page.seo_title||'',seoDescription:page.seo_description||'',heroImageUrl:page.hero_image_url||''
+      seoTitle:page.seo_title||'',seoDescription:page.seo_description||'',heroImageUrl:page.hero_image_url||'',
+      measures,customMeasureUrl:page.custom_measure_url||''
     },products});
   }catch(error){console.error('public page error',error);return json({ok:false,message:"Não foi possível carregar a página"},500)}
 }
