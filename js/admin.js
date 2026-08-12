@@ -122,8 +122,64 @@ async function renderConfigurators(){
   const d=await api('configurators/wave'),w=d.wave||{},m=w.medidas||{},b=w.barra||{},faixas=b.faixas||[];
   $('#view-content').innerHTML=`<div class="page-toolbar"><div><span class="select">Configurador ativo na loja: Wave</span></div><button id="save-wave" class="primary-btn">Salvar configurador</button></div><form id="wave-form"><section class="panel configurator-section"><div class="panel-head"><div><h2>Configurador Wave</h2><p>Edite regras, preços, opções e mídia sem alterar código.</p></div></div><div class="form-grid"><div class="form-field"><label>Nome exibido</label><input name="nome" value="${esc(w.nome||'Cortina Wave')}"></div><div class="form-field"><label><input type="checkbox" name="ativo" ${w.ativo!==false?'checked':''}> Configurador ativo</label></div></div></section><section class="panel configurator-section"><div class="panel-head"><h2>Regras de medidas e altura</h2></div><div class="form-grid"><div class="form-field"><label>Largura mínima (m)</label><input name="larguraMinima" type="number" step="0.01" value="${m.larguraMinima??0.5}"></div><div class="form-field"><label>Largura máxima (m)</label><input name="larguraMaxima" type="number" step="0.01" value="${m.larguraMaxima??12}"></div><div class="form-field"><label>Altura mínima (m)</label><input name="alturaMinima" type="number" step="0.01" value="${m.alturaMinima??0.5}"></div><div class="form-field"><label>Altura máxima que cliente pode digitar (m)</label><input name="alturaEntradaMaxima" type="number" step="0.01" value="${m.alturaEntradaMaxima??5}"></div><div class="form-field"><label>Calcular automaticamente até (m)</label><input name="calculoMaximo" type="number" step="0.01" value="${m.calculoMaximo??3.2}"></div><div class="form-field"><label>Aplicar acréscimo acima de (m)</label><input name="inicioAcrescimo" type="number" step="0.01" value="${m.inicioAcrescimo??2.8}"></div><div class="form-field"><label>Acréscimo (%)</label><input name="acrescimoPercentual" type="number" step="0.01" value="${m.acrescimoPercentual??25}"></div><div class="form-field full"><label>Mensagem acima do limite automático</label><input name="textoAcimaMaximo" value="${esc(m.acimaMaximo?.texto||'Alturas acima de 3,20 m precisam de orçamento personalizado.')}"></div><div class="form-field"><label>Texto do botão</label><input name="textoBotaoAcimaMaximo" value="${esc(m.acimaMaximo?.textoBotao||'Solicitar orçamento')}"></div><div class="form-field"><label><input type="checkbox" name="permitirCarrinho" ${m.acimaMaximo?.permitirCarrinho?'checked':''}> Permitir carrinho acima do limite</label></div></div></section><section class="panel configurator-section"><div class="panel-head"><h2>Regras da barra</h2></div><div class="configurator-rules-grid">${[0,1,2,3].map((i)=>`<div class="configurator-rule"><span>Faixa ${i+1}</span><input name="faixa${i+1}Ate" type="number" step="0.01" value="${faixas[i]?.ate??''}" placeholder="Até (m)"><input name="faixa${i+1}Barra" type="number" step="1" value="${faixas[i]?.tamanho??''}" placeholder="Barra (cm)"></div>`).join('')}</div><div class="form-field" style="max-width:260px;margin-top:12px"><label>Barra acima do início do acréscimo (cm)</label><input name="barraAcimaInicio" type="number" value="${b.acimaInicio??20}"></div></section><section class="panel configurator-section"><div class="panel-head"><div><h2>Tecidos, cores, forros e preços</h2><p>O preço é informado por metro de tecido.</p></div><button type="button" id="add-wave-tecido" class="ghost-btn">+ Adicionar tecido</button></div><div id="wave-tecidos" class="configurator-stack">${Object.entries(w.tecidos||{}).map(([n,t])=>waveTecidoCard(n,t)).join('')}</div></section><section class="panel configurator-section"><div class="panel-head"><h2>Trilhos e varões</h2><button type="button" id="add-wave-trilho" class="ghost-btn">+ Adicionar</button></div><div id="wave-trilhos" class="configurator-stack">${Object.entries(w.trilhos||{}).map(([n,x])=>waveTrilhoRow(n,x)).join('')}</div></section><section class="panel configurator-section"><div class="panel-head"><div><h2>Fotos e vídeos do configurador</h2><p>Vincule mídia à combinação tecido + cor + forro. Pode usar caminhos existentes em /imagens ou URLs.</p></div><button type="button" id="add-wave-midia" class="ghost-btn">+ Adicionar mídia</button></div><div id="wave-midias" class="configurator-stack">${(w.midia||[]).map(waveMidiaRow).join('')}</div></section><div class="form-actions"><button class="primary-btn">Salvar configurador Wave</button></div></form>`;
   bindWaveBuilder();
-  const save=async()=>{const wave=collectWave($('#wave-form'),w);await api('configurators/wave',{method:'PUT',body:JSON.stringify({wave})});toast('Configurador Wave salvo no D1')};
-  $('#wave-form').onsubmit=async e=>{e.preventDefault();await save()};$('#save-wave').onclick=save;
+  const salvarBotoes=()=>[
+    $('#save-wave'),
+    ...$$('#wave-form button.primary-btn')
+  ].filter(Boolean);
+
+  const save=async(evento)=>{
+    if(evento&&typeof evento.preventDefault==='function')evento.preventDefault();
+
+    const botoes=salvarBotoes();
+    const textos=botoes.map(b=>b.textContent);
+
+    try{
+      botoes.forEach(b=>{
+        b.disabled=true;
+        b.textContent='Salvando...';
+      });
+
+      const wave=collectWave($('#wave-form'),w);
+
+      if(!wave.nome||!String(wave.nome).trim()){
+        throw new Error('Informe o nome do configurador.');
+      }
+
+      if(!wave.medidas||Number(wave.medidas.calculoMaximo)<=0){
+        throw new Error('Informe a altura máxima calculada.');
+      }
+
+      const resposta=await api('configurators/wave',{
+        method:'PUT',
+        body:JSON.stringify({wave})
+      });
+
+      if(!resposta||resposta.ok!==true){
+        throw new Error(resposta?.message||'Não foi possível salvar o configurador.');
+      }
+
+      toast('Configurador Wave salvo com sucesso');
+      ADMIN.cache.configuratorWave=resposta.wave||wave;
+
+    }catch(erro){
+      console.error('Erro ao salvar configurador Wave:',erro);
+      toast('Erro ao salvar: '+(erro?.message||'falha desconhecida'));
+      alert('Não foi possível salvar o configurador Wave.\n\n'+(erro?.message||'Falha desconhecida.'));
+    }finally{
+      botoes.forEach((b,i)=>{
+        b.disabled=false;
+        b.textContent=textos[i]||'Salvar configurador';
+      });
+    }
+  };
+
+  $('#wave-form').onsubmit=save;
+
+  const saveTopo=$('#save-wave');
+  if(saveTopo){
+    saveTopo.type='button';
+    saveTopo.onclick=save;
+  }
 }
 async function renderSettings(){
   const d=await api('config'),cfg=d.config||{};
