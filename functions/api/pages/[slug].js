@@ -17,7 +17,12 @@ export async function onRequestGet(context){
   try{
     const page=await context.env.DB.prepare(`SELECT * FROM pages WHERE store_id='salvatex' AND slug=?1 AND active=1 LIMIT 1`).bind(slug).first();
     if(!page)return json({ok:false,message:"Página não encontrada"},404);
-    const ids=parseJSON(page.product_ids_json,[]).filter(Boolean).slice(0,100);
+    const measuresRaw=parseJSON(page.measures_json,[]);
+    const pageIds=parseJSON(page.product_ids_json,[]).filter(Boolean);
+    const measureIds=Array.isArray(measuresRaw)
+      ? measuresRaw.flatMap(m=>Array.isArray(m?.productIds)?m.productIds:[]).filter(Boolean)
+      : [];
+    const ids=[...new Set([...pageIds,...measureIds].map(String))].slice(0,100);
     let products=[];
     if(page.page_type==='produtos' && ids.length){
       const placeholders=ids.map((_,i)=>`?${i+1}`).join(',');
@@ -29,7 +34,7 @@ export async function onRequestGet(context){
       const byId=new Map((result.results||[]).map(x=>[x.id,x]));
       products=ids.map(id=>byId.get(id)).filter(Boolean).map(productPublic);
     }
-    const measures=parseJSON(page.measures_json,[]).map(m=>({
+    const measures=measuresRaw.map(m=>({
       id:String(m?.id||''),label:String(m?.label||''),value:String(m?.value||''),
       productIds:Array.isArray(m?.productIds)?m.productIds.map(String):[]
     })).filter(m=>m.label);
