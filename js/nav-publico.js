@@ -1,30 +1,140 @@
-(function(){
-  const esc=s=>String(s??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
-  async function carregarPaginasMenu(){
-    const nav=document.querySelector('.navlinks');
-    if(!nav) return;
-    try{
-      const r=await fetch('/api/pages',{cache:'no-store'});
-      const d=await r.json();
-      if(!r.ok||!d.ok||!Array.isArray(d.pages)) return;
-      const pages=d.pages.filter(p=>p.slug&&p.title);
-      if(!pages.length) return;
+(function () {
 
-      const existente=nav.querySelector('[data-dynamic-pages]');
-      if(existente) existente.remove();
-
-      const wrap=document.createElement('div');
-      wrap.className='nav-pages-dropdown';
-      wrap.dataset.dynamicPages='1';
-      wrap.innerHTML=`<button type="button" class="nav-pages-toggle">Páginas <span>⌄</span></button><div class="nav-pages-menu">${pages.map(p=>`<a href="pagina.html?slug=${encodeURIComponent(p.slug)}">${esc(p.title)}</a>`).join('')}</div>`;
-      nav.appendChild(wrap);
-
-      const btn=wrap.querySelector('.nav-pages-toggle');
-      btn.addEventListener('click',e=>{e.stopPropagation();wrap.classList.toggle('open')});
-      document.addEventListener('click',e=>{if(!wrap.contains(e.target))wrap.classList.remove('open')});
-    }catch(error){
-      console.warn('Não foi possível carregar páginas no menu',error);
-    }
+  function limparLinksDinamicos(nav) {
+    nav
+      .querySelectorAll("[data-dynamic-page-link]")
+      .forEach((item) => item.remove());
   }
-  document.addEventListener('DOMContentLoaded',carregarPaginasMenu);
+
+  function criarLinkPagina(pagina) {
+    const link = document.createElement("a");
+
+    link.href =
+      "pagina.html?slug=" +
+      encodeURIComponent(pagina.slug);
+
+    link.textContent =
+      pagina.title;
+
+    link.dataset.dynamicPageLink =
+      "1";
+
+    link.className =
+      "nav-pagina-dinamica";
+
+    return link;
+  }
+
+  async function carregarPaginasMenu() {
+
+    const nav =
+      document.querySelector(
+        ".navlinks"
+      );
+
+    if (!nav) {
+      return;
+    }
+
+    limparLinksDinamicos(nav);
+
+    try {
+
+      const resposta =
+        await fetch(
+          "/api/pages",
+          {
+            cache: "no-store"
+          }
+        );
+
+      const dados =
+        await resposta.json();
+
+      if (
+        !resposta.ok ||
+        !dados.ok ||
+        !Array.isArray(dados.pages)
+      ) {
+        return;
+      }
+
+      const paginas =
+        dados.pages.filter(
+          (pagina) =>
+            pagina &&
+            pagina.slug &&
+            pagina.title
+        );
+
+      if (!paginas.length) {
+        return;
+      }
+
+      /*
+       * As páginas publicadas entram diretamente no menu principal.
+       *
+       * Exemplo:
+       * Cortinas sob medida | Produtos | Cortina de Varão |
+       * Cortina de Trilho Suíço | Como funciona | Contato
+       *
+       * Elas são inseridas antes de "Como funciona".
+       */
+
+      const referencia =
+        Array.from(
+          nav.querySelectorAll(
+            ":scope > a"
+          )
+        ).find((link) => {
+
+          return (
+            link.getAttribute("href") ===
+            "#vantagens"
+          );
+
+        });
+
+      paginas.forEach(
+        (pagina) => {
+
+          const link =
+            criarLinkPagina(
+              pagina
+            );
+
+          if (referencia) {
+
+            nav.insertBefore(
+              link,
+              referencia
+            );
+
+          } else {
+
+            nav.appendChild(
+              link
+            );
+
+          }
+
+        }
+      );
+
+    } catch (erro) {
+
+      console.warn(
+        "Não foi possível carregar as páginas no menu principal:",
+        erro
+      );
+
+    }
+
+  }
+
+  document.addEventListener(
+    "DOMContentLoaded",
+    carregarPaginasMenu
+  );
+
 })();
