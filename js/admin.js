@@ -51,22 +51,37 @@ async function renderPages(){
 
 function pageForm(x={},products=[]){
   let selected=[];try{selected=JSON.parse(x.product_ids_json||'[]')}catch{}
+  let measures=[];try{measures=JSON.parse(x.measures_json||'[]')}catch{}
   const type=x.page_type||'conteudo';
-  const picker=products.map(p=>`<label class="page-product-option"><input type="checkbox" name="productIds" value="${esc(p.id)}" ${selected.includes(p.id)?'checked':''}><span>${p.image_url?`<img src="${esc(p.image_url)}" alt="">`:'<i></i>'}<b>${esc(p.name)}</b><small>${brlCents(p.base_price_cents)} · ${esc(p.category_name||p.sale_type||'')}</small></span></label>`).join('')||'<div class="empty">Cadastre produtos antes de montar uma vitrine.</div>';
+  const productPicker=(name,selectedIds=[])=>products.map(p=>`<label class="page-product-option"><input type="checkbox" name="${name}" value="${esc(p.id)}" ${selectedIds.includes(p.id)?'checked':''}><span>${p.image_url?`<img src="${esc(p.image_url)}" alt="">`:'<i></i>'}<b>${esc(p.name)}</b><small>${brlCents(p.base_price_cents)} · ${esc(p.category_name||p.sale_type||'')}</small></span></label>`).join('')||'<div class="empty">Cadastre produtos antes de montar uma vitrine.</div>';
+  const picker=productPicker('productIds',selected);
   openModal(`<h2>${x.id?'Editar página':'Nova página'}</h2><form id="page-form"><div class="form-grid">
-    <div class="form-field full"><label>Nome da página</label><input name="title" value="${esc(x.title||'')}" placeholder="Ex.: Cortina de Varão" required><small class="field-hint">Este será o título exibido ao cliente. Não depende da categoria do produto.</small></div>
+    <div class="form-field full"><label>Nome da página</label><input name="title" value="${esc(x.title||'')}" placeholder="Ex.: Cortina de Trilho Suíço" required><small class="field-hint">Este será o título exibido ao cliente.</small></div>
     <div class="form-field"><label>Tipo de página</label><select name="pageType" id="page-type"><option value="produtos" ${type==='produtos'?'selected':''}>Vitrine de produtos</option><option value="conteudo" ${type==='conteudo'?'selected':''}>Página de conteúdo</option></select></div>
-    <div class="form-field"><label>Endereço / slug</label><input name="slug" value="${esc(x.slug||'')}" placeholder="cortina-de-varao"><small class="field-hint">Ex.: pagina.html?slug=cortina-de-varao</small></div>
+    <div class="form-field"><label>Endereço / slug</label><input name="slug" value="${esc(x.slug||'')}" placeholder="cortina-de-trilho-suico"></div>
     <div class="form-field full"><label>Imagem de capa opcional</label><input name="heroImageUrl" value="${esc(x.hero_image_url||'')}" placeholder="https://..."></div>
-    <div id="page-products-wrap" class="form-field full"><label>Produtos desta página</label><div class="page-product-picker">${picker}</div></div>
+    <div id="page-products-wrap" class="form-field full"><label>Produtos gerais desta página</label><div class="page-product-picker">${picker}</div><small class="field-hint">Esses produtos aparecem ao abrir a página antes de escolher uma medida.</small></div>
+    <div id="page-measures-wrap" class="form-field full"><div class="measure-admin-head"><div><label>Medidas pré-definidas</label><small class="field-hint">Crie as medidas desta página e vincule os produtos corretos a cada uma.</small></div><button type="button" id="add-measure" class="ghost-btn">+ Adicionar medida</button></div><div id="measure-builder" class="measure-builder"></div><div class="form-field full custom-measure-field"><label>Destino para “Tenho uma medida específica”</label><input name="customMeasureUrl" value="${esc(x.custom_measure_url||'index.html#configurador')}" placeholder="index.html#configurador"><small class="field-hint">Pode apontar para o configurador sob medida.</small></div></div>
     <div id="page-content-wrap" class="form-field full"><label>Conteúdo HTML</label><textarea name="contentHtml" style="min-height:220px">${esc(x.content_html||'')}</textarea></div>
     <div class="form-field"><label>SEO título</label><input name="seoTitle" value="${esc(x.seo_title||'')}"></div>
     <div class="form-field"><label>SEO descrição</label><input name="seoDescription" value="${esc(x.seo_description||'')}"></div>
     <div class="form-field"><label><input name="active" type="checkbox" ${x.active!==0?'checked':''}> Publicada</label></div>
   </div><div class="form-actions">${x.id?'<button id="delete-page" type="button" class="danger-btn">Excluir</button>':''}<button type="button" class="ghost-btn" data-close-modal>Cancelar</button><button class="primary-btn">Salvar página</button></div></form>`);
-  const f=$('#page-form'),typeEl=$('#page-type'),productsWrap=$('#page-products-wrap'),contentWrap=$('#page-content-wrap');
-  const toggle=()=>{const productMode=typeEl.value==='produtos';productsWrap.style.display=productMode?'block':'none';contentWrap.style.display=productMode?'none':'block'}; typeEl.onchange=toggle;toggle();
-  f.onsubmit=async e=>{e.preventDefault();const fd=new FormData(f),body={title:fd.get('title'),slug:fd.get('slug'),pageType:fd.get('pageType'),heroImageUrl:fd.get('heroImageUrl'),productIds:fd.getAll('productIds'),contentHtml:fd.get('contentHtml'),seoTitle:fd.get('seoTitle'),seoDescription:fd.get('seoDescription'),active:fd.get('active')==='on'};await api(x.id?'pages/'+x.id:'pages',{method:x.id?'PUT':'POST',body:JSON.stringify(body)});toast('Página salva');closeModal();navigate('pages',true)};
+  const f=$('#page-form'),typeEl=$('#page-type'),productsWrap=$('#page-products-wrap'),contentWrap=$('#page-content-wrap'),measuresWrap=$('#page-measures-wrap'),builder=$('#measure-builder');
+  let seq=0;
+  function renderMeasure(m={}){
+    seq++;
+    const id=m.id||`medida-${Date.now()}-${seq}`;
+    const productIds=Array.isArray(m.productIds)?m.productIds:[];
+    const row=document.createElement('div');row.className='measure-admin-card';row.dataset.measureId=id;
+    row.innerHTML=`<div class="measure-admin-row"><div class="form-field"><label>Texto exibido</label><input class="measure-label" value="${esc(m.label||'')}" placeholder="Para trilho de 2,00 metros"></div><div class="form-field"><label>Valor / referência</label><input class="measure-value" value="${esc(m.value||'')}" placeholder="2,00 m"></div><button type="button" class="measure-remove danger-link">Remover</button></div><div class="form-field full"><label>Produtos desta medida</label><div class="page-product-picker measure-products">${productPicker('ignore',productIds)}</div></div>`;
+    $$('.measure-products input',row).forEach(i=>i.removeAttribute('name'));
+    $('.measure-remove',row).onclick=()=>row.remove();builder.appendChild(row);
+  }
+  measures.forEach(renderMeasure);
+  $('#add-measure').onclick=()=>renderMeasure({});
+  const toggle=()=>{const productMode=typeEl.value==='produtos';productsWrap.style.display=productMode?'block':'none';measuresWrap.style.display=productMode?'block':'none';contentWrap.style.display=productMode?'none':'block'};typeEl.onchange=toggle;toggle();
+  f.onsubmit=async e=>{e.preventDefault();const fd=new FormData(f);const measurePayload=$$('.measure-admin-card',builder).map(row=>({id:row.dataset.measureId,label:$('.measure-label',row).value.trim(),value:$('.measure-value',row).value.trim(),productIds:$$('.measure-products input:checked',row).map(i=>i.value)})).filter(m=>m.label);const body={title:fd.get('title'),slug:fd.get('slug'),pageType:fd.get('pageType'),heroImageUrl:fd.get('heroImageUrl'),productIds:fd.getAll('productIds'),measures:measurePayload,customMeasureUrl:fd.get('customMeasureUrl'),contentHtml:fd.get('contentHtml'),seoTitle:fd.get('seoTitle'),seoDescription:fd.get('seoDescription'),active:fd.get('active')==='on'};await api(x.id?'pages/'+x.id:'pages',{method:x.id?'PUT':'POST',body:JSON.stringify(body)});toast('Página salva');closeModal();navigate('pages',true)};
   if(x.id)$('#delete-page').onclick=async()=>{if(confirm('Excluir página?')){await api('pages/'+x.id,{method:'DELETE'});closeModal();navigate('pages',true)}}
 }
 
