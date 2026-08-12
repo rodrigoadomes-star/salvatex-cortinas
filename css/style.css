@@ -5353,3 +5353,9 @@ body.modal-aberto{
   }
 
 }
+
+
+/* ==========================================================
+   CONFIGURADOR GENÉRICO — PREGA MACHO / VARÃO / PERSIANA
+   ========================================================== */
+.generic-config-page{padding-top:42px;padding-bottom:70px}.generic-config-grid{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(360px,.85fr);gap:34px;align-items:start}.generic-config-gallery{position:sticky;top:96px}.generic-config-gallery img{width:100%;aspect-ratio:1/1;object-fit:cover;border-radius:18px;background:#f0ece7}.generic-config-panel{padding:10px 0}.generic-config-panel h1{font-size:42px;margin:9px 0 12px}.generic-config-description{color:var(--muted);font-size:14px;line-height:1.6}.generic-fields,.generic-choice{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:18px}.generic-choice{grid-template-columns:1fr}.generic-fields label,.generic-choice label{display:flex;flex-direction:column;gap:6px;font-size:10px;text-transform:uppercase;letter-spacing:.04em}.generic-fields input,.generic-choice select{width:100%;min-height:48px;padding:0 12px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--ink)}.generic-price{margin:24px 0 10px;padding:18px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}.generic-price small,.generic-price span{display:block;color:var(--muted);font-size:11px}.generic-price strong{display:block;margin:5px 0;font:400 34px Georgia,serif}.generic-config-panel>.btn{width:100%;min-height:50px}.empty-state{padding:60px 20px;text-align:center;color:var(--muted)}@media(max-width:900px){.generic-config-grid{grid-template-columns:1fr}.generic-config-gallery{position:static}.generic-config-panel h1{font-size:34px}}@media(max-width:600px){.generic-config-page{padding-top:22px}.generic-fields{grid-template-columns:1fr}.generic-config-gallery img{border-radius:12px}}
