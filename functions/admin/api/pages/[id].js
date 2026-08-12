@@ -5,6 +5,16 @@ function normalizeProductIds(value){
   return [...new Set(value.map(v=>clean(v,160)).filter(Boolean))].slice(0,100);
 }
 
+function normalizeMeasures(value){
+  if(!Array.isArray(value)) return [];
+  return value.slice(0,30).map((m,index)=>({
+    id:clean(m?.id,80)||`medida-${index+1}`,
+    label:clean(m?.label,160),
+    value:clean(m?.value,80),
+    productIds:normalizeProductIds(m?.productIds)
+  })).filter(m=>m.label);
+}
+
 export async function onRequestPut(context){
   const a=requireAdmin(context); if(!a.ok)return a.response;
   let b={}; try{b=await context.request.json()}catch{return json({ok:false,message:"JSON inválido"},400)}
@@ -12,15 +22,16 @@ export async function onRequestPut(context){
   if(!title) return json({ok:false,message:"Título obrigatório"},400);
   const pageType=b.pageType==='produtos'?'produtos':'conteudo';
   const productIds=normalizeProductIds(b.productIds);
+  const measures=normalizeMeasures(b.measures);
   await context.env.DB.prepare(`
     UPDATE pages SET title=?1,slug=?2,content_html=?3,seo_title=?4,seo_description=?5,
-      active=?6,page_type=?7,product_ids_json=?8,hero_image_url=?9,updated_at=?10
-    WHERE id=?11 AND store_id='salvatex'
+      active=?6,page_type=?7,product_ids_json=?8,hero_image_url=?9,measures_json=?10,custom_measure_url=?11,updated_at=?12
+    WHERE id=?13 AND store_id='salvatex'
   `).bind(
     title,slugify(b.slug||title),clean(b.contentHtml,50000),clean(b.seoTitle,240),clean(b.seoDescription,500),
-    b.active===false?0:1,pageType,JSON.stringify(productIds),clean(b.heroImageUrl,1000)||null,now,id
+    b.active===false?0:1,pageType,JSON.stringify(productIds),clean(b.heroImageUrl,1000)||null,JSON.stringify(measures),clean(b.customMeasureUrl,1000)||null,now,id
   ).run();
-  await logAdmin(context.env.DB,"page_updated","page",id,{title,pageType,productCount:productIds.length});
+  await logAdmin(context.env.DB,"page_updated","page",id,{title,pageType,productCount:productIds.length,measureCount:measures.length});
   return json({ok:true});
 }
 
