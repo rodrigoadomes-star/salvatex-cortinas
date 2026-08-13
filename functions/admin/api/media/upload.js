@@ -1,5 +1,159 @@
-import { json, requireAdmin, logAdmin } from "../_auth.js";
-const ALLOWED_PREFIXES=['image/','video/'];
-function safeName(name='arquivo'){return String(name).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9._-]+/g,'-').replace(/^-+|-+$/g,'').slice(0,120)||'arquivo'}
-export async function onRequestGet(context){const a=requireAdmin(context);if(!a.ok)return a.response;return json({ok:true,configured:Boolean(context.env.MEDIA),binding:'MEDIA',message:context.env.MEDIA?'R2 conectado.':'Crie um bucket R2 e vincule-o ao projeto com o binding MEDIA.'});}
-export async function onRequestPost(context){const a=requireAdmin(context);if(!a.ok)return a.response;if(!context.env.MEDIA)return json({ok:false,code:'R2_NOT_CONFIGURED',message:'R2 ainda não configurado. Vincule o bucket usando o binding MEDIA.'},503);let form;try{form=await context.request.formData()}catch{return json({ok:false,message:'Upload inválido.'},400)}const file=form.get('file');const folder=String(form.get('folder')||'uploads').replace(/[^a-z0-9/_-]/gi,'').slice(0,100)||'uploads';if(!file||typeof file.arrayBuffer!=='function')return json({ok:false,message:'Selecione um arquivo.'},400);const type=String(file.type||'application/octet-stream');if(!ALLOWED_PREFIXES.some(p=>type.startsWith(p)))return json({ok:false,message:'Envie somente imagem ou vídeo.'},400);const max=type.startsWith('video/')?150*1024*1024:20*1024*1024;if(Number(file.size||0)>max)return json({ok:false,message:type.startsWith('video/')?'Vídeo acima de 150 MB.':'Imagem acima de 20 MB.'},400);const key=`${folder}/${new Date().toISOString().slice(0,10)}/${crypto.randomUUID()}-${safeName(file.name)}`;await context.env.MEDIA.put(key,await file.arrayBuffer(),{httpMetadata:{contentType:type,cacheControl:'public, max-age=31536000, immutable'},customMetadata:{originalName:String(file.name||''),uploadedAt:new Date().toISOString()}});await logAdmin(context.env.DB,'media_uploaded','media',key,{type,size:Number(file.size||0)});return json({ok:true,key,url:'/media/'+key,type,size:Number(file.size||0),name:file.name});}
+import {
+  json,
+  requireAdmin,
+  clean
+} from "../_auth.js";
+
+const IMAGE_TYPES = new Set([
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "image/gif"
+]);
+
+const VIDEO_TYPES = new Set([
+  "video/mp4",
+  "video/webm",
+  "video/quicktime"
+]);
+
+function extensionFromType(type) {
+  const map = {
+    "image/jpeg": "jpg",
+    "image/png": "png",
+    "image/webp": "webp",
+    "image/gif": "gif",
+    "video/mp4": "mp4",
+    "video/webm": "webm",
+    "video/quicktime": "mov"
+  };
+
+  return map[type] || "bin";
+}
+
+function slug(value) {
+  return String(value || "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 80) || "item";
+}
+
+export async function onRequestPost(context) {
+  const auth = requireAdmin(context);
+  if (!auth.ok) return auth.response;
+
+  if (!context.env.MEDIA) {
+    return json(
+      {
+        ok: false,
+        message: "Binding R2 MEDIA não configurado."
+      },
+      503
+    );
+  }
+
+  let form;
+
+  try {
+    form = await context.request.formData();
+  } catch {
+    return json(
+      {
+        ok: false,
+        message: "Não foi possível ler o upload."
+      },
+      400
+    );
+  }
+
+  const file = form.get("file");
+
+  if (!(file instanceof File)) {
+    return json(
+      {
+        ok: false,
+        message: "Selecione um arquivo."
+      },
+      400
+    );
+  }
+
+  const contentType = String(file.type || "").toLowerCase();
+
+  const isImage = IMAGE_TYPES.has(contentType);
+  const isVideo = VIDEO_TYPES.has(contentType);
+
+  if (!isImage && !isVideo) {
+    return json(
+      {
+        ok: false,
+        message:
+          "Formato não suportado. Use JPG, JPEG, PNG, WebP, GIF, MP4, WebM ou MOV."
+      },
+      400
+    );
+  }
+
+  const maxBytes = isVideo
+    ? 120 * 1024 * 1024
+    : 20 * 1024 * 1024;
+
+  if (file.size > maxBytes) {
+    return json(
+      {
+        ok: false,
+        message:
+          isVideo
+            ? "O vídeo deve ter no máximo 120 MB."
+            : "A imagem deve ter no máximo 20 MB."
+      },
+      400
+    );
+  }
+
+  const configurator = slug(form.get("configurator") || "wave");
+  const tecido = slug(form.get("tecido") || "geral");
+  const cor = slug(form.get("cor") || "geral");
+  const forro = slug(form.get("forro") || "geral");
+  const tipo = isVideo ? "videos" : "imagens";
+
+  const ext = extensionFromType(contentType);
+
+  const key = [
+    "configuradores",
+    configurator,
+    tecido,
+    cor,
+    forro,
+    tipo,
+    `${crypto.randomUUID()}.${ext}`
+  ].join("/");
+
+  await context.env.MEDIA.put(
+    key,
+    await file.arrayBuffer(),
+    {
+      httpMetadata: {
+        contentType,
+        cacheControl:
+          "public, max-age=31536000, immutable"
+      },
+      customMetadata: {
+        originalName: clean(file.name, 240),
+        uploadedAt: new Date().toISOString()
+      }
+    }
+  );
+
+  return json({
+    ok: true,
+    key,
+    url: `/media/${encodeURIComponent(key).replace(/%2F/g, "/")}`,
+    contentType,
+    size: file.size,
+    originalName: file.name
+  });
+}
