@@ -463,150 +463,196 @@ async function carregarFotosCarrossel() {
   ];
 
 
+  const fotosFinais = [];
+
+
   // ========================================================
-  // MÍDIA ENVIADA PELO PAINEL / R2
+  // REGRA DE MIGRAÇÃO
   //
-  // Quando existe mídia cadastrada, usamos exatamente
-  // as URLs salvas no D1 e NÃO fazemos testes foto-1..10.
+  // Cada COR é tratada separadamente:
+  //
+  // 1. Se aquela combinação possui mídia no Admin/R2,
+  //    usamos exatamente capa + galeria cadastradas.
+  //
+  // 2. Se aquela cor ainda NÃO possui mídia cadastrada,
+  //    usamos temporariamente as fotos antigas.
+  //
+  // Assim é possível migrar uma cor por vez sem fazer
+  // desaparecer as demais fotos do site.
   // ========================================================
 
-  const configuradas = [];
+  for (
+    const cor
+    of coresOrdenadas
+  ) {
+
+    if (
+      token !==
+      tokenAtualizacaoGaleria
+    ) {
+      return;
+    }
 
 
-  coresOrdenadas.forEach(
-    (cor) => {
-
-      const midiaAdmin =
-        obterMidiaAdmin(
-          tecidoAtual,
-          modeloAtual,
-          cor,
-          forroAtual
-        );
+    const midiaAdmin =
+      obterMidiaAdmin(
+        tecidoAtual,
+        modeloAtual,
+        cor,
+        forroAtual
+      );
 
 
-      if (
-        !midiaAdmin ||
-        !Array.isArray(
-          midiaAdmin.imagens
-        )
-      ) {
-        return;
-      }
+    const urlsAdmin = [];
 
+
+    if (
+      midiaAdmin?.capa
+    ) {
+
+      urlsAdmin.push(
+        String(
+          midiaAdmin.capa
+        ).trim()
+      );
+
+    }
+
+
+    if (
+      Array.isArray(
+        midiaAdmin?.imagens
+      )
+    ) {
 
       midiaAdmin.imagens
+        .map(
+          (src) =>
+            String(
+              src || ""
+            ).trim()
+        )
         .filter(Boolean)
         .forEach(
           (src) => {
 
-            configuradas.push({
-              src:
-                String(src).trim(),
+            if (
+              !urlsAdmin.includes(
+                src
+              )
+            ) {
 
-              cor,
+              urlsAdmin.push(
+                src
+              );
 
-              configurada:
-                true
-            });
+            }
 
           }
         );
 
     }
-  );
 
 
-  if (
-    token !==
-    tokenAtualizacaoGaleria
-  ) {
-    return;
-  }
+    if (
+      urlsAdmin.length
+    ) {
+
+      urlsAdmin.forEach(
+        (src) => {
+
+          fotosFinais.push({
+            src,
+            cor,
+            configurada:
+              true
+          });
+
+        }
+      );
 
 
-  if (
-    configuradas.length
-  ) {
+      /*
+        Não testamos foto-1...10 para esta cor,
+        pois a combinação já é administrada pelo R2.
+      */
+      continue;
 
-    fotosCarrosselAtuais =
-      configuradas;
-
-
-    previewIndex =
-      0;
+    }
 
 
-    atualizarPreview();
+    // ======================================================
+    // FALLBACK LEGADO SOMENTE PARA A COR AINDA NÃO MIGRADA
+    // ======================================================
+
+    const candidatosCor = [];
 
 
-    return;
-  }
+    for (
+      let numero = 1;
+      numero <= 10;
+      numero++
+    ) {
 
-
-  // ========================================================
-  // FALLBACK LEGADO
-  //
-  // Só permanece enquanto as imagens antigas ainda não
-  // tiverem sido migradas para o R2.
-  // ========================================================
-
-  const candidatos = [];
-
-
-  coresOrdenadas.forEach(
-    (cor) => {
-
-      for (
-        let numero = 1;
-        numero <= 10;
-        numero++
-      ) {
-
-        candidatos.push({
-
-          src:
-            obterCaminhoFoto(
-              tecidoAtual,
-              modeloAtual,
-              cor,
-              forroAtual,
-              numero
-            ),
-
+      const src =
+        obterCaminhoFoto(
+          tecidoAtual,
+          modeloAtual,
           cor,
+          forroAtual,
+          numero
+        );
 
+
+      if (src) {
+
+        candidatosCor.push({
+          src,
+          cor,
           configurada:
             false
-
         });
 
       }
 
     }
-  );
 
 
-  const resultados =
-    await Promise.all(
+    const resultadosCor =
+      await Promise.all(
 
-      candidatos.map(
-        async (foto) => {
+        candidatosCor.map(
+          async (foto) => {
 
-          const existe =
-            await verificarImagem(
-              foto.src
-            );
+            const existe =
+              await verificarImagem(
+                foto.src
+              );
 
 
-          return existe
-            ? foto
-            : null;
+            return existe
+              ? foto
+              : null;
+
+          }
+        )
+
+      );
+
+
+    resultadosCor
+      .filter(Boolean)
+      .forEach(
+        (foto) => {
+
+          fotosFinais.push(
+            foto
+          );
 
         }
-      )
+      );
 
-    );
+  }
 
 
   if (
@@ -620,9 +666,7 @@ async function carregarFotosCarrossel() {
 
 
   fotosCarrosselAtuais =
-    resultados.filter(
-      Boolean
-    );
+    fotosFinais;
 
 
   previewIndex =
