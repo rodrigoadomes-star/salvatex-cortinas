@@ -1,1 +1,66 @@
-export async function onRequestGet(context){if(!context.env.MEDIA)return new Response('Mídia não configurada',{status:503});const raw=context.params.path;const key=Array.isArray(raw)?raw.join('/'):String(raw||'');if(!key)return new Response('Arquivo não informado',{status:400});const object=await context.env.MEDIA.get(key);if(!object)return new Response('Arquivo não encontrado',{status:404});const headers=new Headers();object.writeHttpMetadata(headers);headers.set('etag',object.httpEtag);headers.set('cache-control',headers.get('cache-control')||'public, max-age=31536000, immutable');return new Response(object.body,{headers});}
+export async function onRequestGet(context) {
+  if (!context.env.MEDIA) {
+    return new Response(
+      "MEDIA_NOT_CONFIGURED",
+      {
+        status: 503
+      }
+    );
+  }
+
+  const key =
+    Array.isArray(context.params.path)
+      ? context.params.path.join("/")
+      : String(context.params.path || "");
+
+  if (!key) {
+    return new Response(
+      "NOT_FOUND",
+      {
+        status: 404
+      }
+    );
+  }
+
+  const object =
+    await context.env.MEDIA.get(key);
+
+  if (!object) {
+    return new Response(
+      "NOT_FOUND",
+      {
+        status: 404
+      }
+    );
+  }
+
+  const headers =
+    new Headers();
+
+  object.writeHttpMetadata(
+    headers
+  );
+
+  headers.set(
+    "etag",
+    object.httpEtag
+  );
+
+  if (
+    !headers.has(
+      "cache-control"
+    )
+  ) {
+    headers.set(
+      "cache-control",
+      "public, max-age=31536000, immutable"
+    );
+  }
+
+  return new Response(
+    object.body,
+    {
+      headers
+    }
+  );
+}
