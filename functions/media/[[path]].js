@@ -9,9 +9,13 @@ export async function onRequestGet(context) {
   }
 
   const key =
-    Array.isArray(context.params.path)
+    Array.isArray(
+      context.params.path
+    )
       ? context.params.path.join("/")
-      : String(context.params.path || "");
+      : String(
+          context.params.path || ""
+        );
 
   if (!key) {
     return new Response(
@@ -23,7 +27,9 @@ export async function onRequestGet(context) {
   }
 
   const object =
-    await context.env.MEDIA.get(key);
+    await context.env.MEDIA.get(
+      key
+    );
 
   if (!object) {
     return new Response(
@@ -46,16 +52,10 @@ export async function onRequestGet(context) {
     object.httpEtag
   );
 
-  if (
-    !headers.has(
-      "cache-control"
-    )
-  ) {
-    headers.set(
-      "cache-control",
-      "public, max-age=31536000, immutable"
-    );
-  }
+  headers.set(
+    "cache-control",
+    "public, max-age=31536000, immutable"
+  );
 
   return new Response(
     object.body,
