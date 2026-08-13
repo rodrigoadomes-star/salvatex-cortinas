@@ -157,24 +157,57 @@ let videoCorAtual = "";
 // CACHE
 // ============================================================
 
+const CACHE_SESSAO =
+  String(
+    Date.now()
+  );
+
+function midiaGerenciada(src) {
+  const valor =
+    String(
+      src || ""
+    );
+
+  return (
+    valor.startsWith(
+      "/media/"
+    ) ||
+    valor.includes(
+      "/media/"
+    )
+  );
+}
+
 function semCache(src) {
 
   if (!src) {
     return "";
   }
 
+  /*
+    Arquivos do R2 têm nome UUID e cache immutable.
+    Nunca adicionamos timestamp neles.
+  */
+  if (
+    midiaGerenciada(src)
+  ) {
+    return src;
+  }
 
+  /*
+    Para o legado, o valor muda apenas ao recarregar
+    a página — não a cada uso da mesma imagem.
+  */
   const separador =
     src.includes("?")
       ? "&"
       : "?";
 
-
   return (
     src +
     separador +
     "v=" +
-    Date.now()
+    CACHE_SESSAO
   );
 
 }
@@ -430,35 +463,98 @@ async function carregarFotosCarrossel() {
   ];
 
 
+  // ========================================================
+  // MÍDIA ENVIADA PELO PAINEL / R2
+  //
+  // Quando existe mídia cadastrada, usamos exatamente
+  // as URLs salvas no D1 e NÃO fazemos testes foto-1..10.
+  // ========================================================
+
+  const configuradas = [];
+
+
+  coresOrdenadas.forEach(
+    (cor) => {
+
+      const midiaAdmin =
+        obterMidiaAdmin(
+          tecidoAtual,
+          modeloAtual,
+          cor,
+          forroAtual
+        );
+
+
+      if (
+        !midiaAdmin ||
+        !Array.isArray(
+          midiaAdmin.imagens
+        )
+      ) {
+        return;
+      }
+
+
+      midiaAdmin.imagens
+        .filter(Boolean)
+        .forEach(
+          (src) => {
+
+            configuradas.push({
+              src:
+                String(src).trim(),
+
+              cor,
+
+              configurada:
+                true
+            });
+
+          }
+        );
+
+    }
+  );
+
+
+  if (
+    token !==
+    tokenAtualizacaoGaleria
+  ) {
+    return;
+  }
+
+
+  if (
+    configuradas.length
+  ) {
+
+    fotosCarrosselAtuais =
+      configuradas;
+
+
+    previewIndex =
+      0;
+
+
+    atualizarPreview();
+
+
+    return;
+  }
+
+
+  // ========================================================
+  // FALLBACK LEGADO
+  //
+  // Só permanece enquanto as imagens antigas ainda não
+  // tiverem sido migradas para o R2.
+  // ========================================================
+
   const candidatos = [];
 
 
-  coresOrdenadas.forEach((cor) => {
-    const midiaAdmin = obterMidiaAdmin(
-      tecidoAtual,
-      modeloAtual,
-      cor,
-      forroAtual
-    );
-
-    if (midiaAdmin && Array.isArray(midiaAdmin.imagens) && midiaAdmin.imagens.length) {
-      midiaAdmin.imagens.filter(Boolean).forEach((src) => {
-        candidatos.push({ src, cor, configurada: true });
-      });
-      return;
-    }
-
-    for (let numero = 1; numero <= 10; numero++) {
-      candidatos.push({
-        src: obterCaminhoFoto(tecidoAtual, modeloAtual, cor, forroAtual, numero),
-        cor
-      });
-    }
-  });
-
-
-  /* Fallback antigo continua abaixo apenas para compatibilidade. */
-  if (!candidatos.length) coresOrdenadas.forEach(
+  coresOrdenadas.forEach(
     (cor) => {
 
       for (
@@ -478,7 +574,10 @@ async function carregarFotosCarrossel() {
               numero
             ),
 
-          cor
+          cor,
+
+          configurada:
+            false
 
         });
 
@@ -526,7 +625,8 @@ async function carregarFotosCarrossel() {
     );
 
 
-  previewIndex = 0;
+  previewIndex =
+    0;
 
 
   atualizarPreview();
@@ -1090,9 +1190,11 @@ function atualizarPreview() {
 
 
   img.src =
-    semCache(
-      fotoAtual.src
-    );
+    fotoAtual.configurada
+      ? fotoAtual.src
+      : semCache(
+          fotoAtual.src
+        );
 
 
   img.alt =
@@ -1996,9 +2098,11 @@ function atualizarImagemZoom() {
 
 
   imagemGrande.src =
-    semCache(
-      fotoAtual.src
-    );
+    fotoAtual.configurada
+      ? fotoAtual.src
+      : semCache(
+          fotoAtual.src
+        );
 
 
   imagemGrande.alt =
