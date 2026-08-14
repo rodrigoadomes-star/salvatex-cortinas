@@ -109,7 +109,7 @@
 
 .cfg-option-nav{
   position:sticky;
-  top:70px;
+  top:18px;
   display:flex;
   flex-direction:column;
   gap:6px;
