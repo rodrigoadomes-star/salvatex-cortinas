@@ -1019,10 +1019,34 @@ function atualizarCores() {
   }
 
 
-  const cores =
+  const todasCores =
     CONFIG.cores?.[
       state.tecido
     ] || [];
+
+
+  /*
+    REGRA:
+    A opção de cor só aparece no configurador quando
+    existe pelo menos uma foto cadastrada no Admin/R2.
+
+    Consideramos foto disponível quando existe:
+    - imagem de capa; ou
+    - pelo menos uma imagem na galeria.
+
+    Assim não mostramos uma cor que o cliente não
+    consegue visualizar antes de solicitar orçamento.
+  */
+  const cores =
+    todasCores.filter(
+      (cor) =>
+        Boolean(
+          obterCapaCorAdmin(
+            state.tecido,
+            cor
+          )
+        )
+    );
 
 
   if (
@@ -1040,6 +1064,45 @@ function atualizarCores() {
 
   container.innerHTML =
     "";
+
+
+  if (
+    !cores.length
+  ) {
+
+    const aviso =
+      document.createElement(
+        "div"
+      );
+
+
+    aviso.className =
+      "cores-sem-foto";
+
+
+    aviso.textContent =
+      "Nenhuma cor com foto disponível no momento.";
+
+
+    container.appendChild(
+      aviso
+    );
+
+
+    previewIndex =
+      0;
+
+
+    fotosCarrosselAtuais =
+      [];
+
+
+    atualizarPreview();
+
+
+    return;
+
+  }
 
 
   cores.forEach(
@@ -1064,9 +1127,17 @@ function atualizarCores() {
         cor;
 
 
+      /*
+        A capa é exclusiva do card.
+        Se não houver capa própria, a primeira foto da
+        galeria pode ser usada apenas para representar
+        visualmente a cor no card.
+      */
       const capa =
-        obterCapaCorAdmin(state.tecido, cor) ||
-        GALERIAS_CORES?.[state.tecido]?.[cor]?.[0]?.src;
+        obterCapaCorAdmin(
+          state.tecido,
+          cor
+        );
 
 
       if (capa) {
@@ -1097,8 +1168,11 @@ function atualizarCores() {
           "error",
           () => {
 
-            imagem.style.display =
-              "none";
+            /*
+              Se a imagem não carregar, escondemos o card
+              inteiro para não deixar uma opção de cor sem foto.
+            */
+            card.remove();
 
           }
         );
@@ -1157,7 +1231,8 @@ function atualizarCores() {
           atualizarOrcamento();
 
 
-          previewIndex = 0;
+          previewIndex =
+            0;
 
 
           await carregarFotosCarrossel();
