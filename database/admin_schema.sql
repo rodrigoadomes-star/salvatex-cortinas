@@ -29,3 +29,11 @@ ADD COLUMN measures_json TEXT NOT NULL DEFAULT '[]';
 
 ALTER TABLE pages
 ADD COLUMN custom_measure_url TEXT;
+
+
+-- ============================================================
+-- MENU PÚBLICO / NOVO LAYOUT
+-- ============================================================
+
+ALTER TABLE pages ADD COLUMN nav_group TEXT NOT NULL DEFAULT 'oculto';
+ALTER TABLE pages ADD COLUMN nav_order INTEGER NOT NULL DEFAULT 100;
