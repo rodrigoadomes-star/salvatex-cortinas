@@ -31,85 +31,39 @@
 
 
 <!-- =========================================================
-     CABEÇALHO
+     CABEÇALHO — NOVO LAYOUT
      ========================================================= -->
 
-<header class="topbar">
+<header class="topbar storefront-topbar">
 
   <div class="shell nav">
 
-    <a
-      class="logo"
-      href="#"
-    >
+    <a class="logo" href="index.html">
       SALVATEX
-
-      <small>
-        CORTINAS
-      </small>
-
+      <small>CORTINAS</small>
     </a>
 
-
     <nav class="navlinks">
+      <div class="nav-mega-item">
+        <button type="button" class="nav-mega-trigger">Cortinas sob medida <span>⌄</span></button>
+      </div>
 
-      <a href="#configurador">
-        Cortinas sob medida
-      </a>
+      <div class="nav-mega-item">
+        <button type="button" class="nav-mega-trigger">Persianas sob medida <span>⌄</span></button>
+      </div>
 
-      <a href="#tecidos">
-        Tecidos
-      </a>
-
-      <a href="catalogo.html">
-        Produtos
-      </a>
-
-      <a href="#vantagens">
-        Como funciona
-      </a>
-
-      <a href="#contato">
-        Contato
-      </a>
-
+      <a href="#contato">Contato</a>
     </nav>
 
-
-    <div class="nav-acoes">
-
-      <a
-        class="cta-small"
-        href="#configurador"
-      >
-        Montar minha cortina
-      </a>
-
-
-      <a
-        href="carrinho.html"
-        class="carrinho-link-topo"
-        aria-label="Abrir carrinho"
-      >
-
-        <span class="carrinho-icone">
-          🛒
-        </span>
-
-        <span class="carrinho-texto">
-          Carrinho
-        </span>
-
-        <span
-          id="contador-carrinho"
-          class="contador-carrinho"
-        >
-          0
-        </span>
-
-      </a>
-
-    </div>
+    <a
+      href="carrinho.html"
+      class="carrinho-link-topo"
+      aria-label="Abrir carrinho"
+    >
+      <span class="carrinho-icone">🛒</span>
+      <span class="carrinho-texto">Carrinho</span>
+      <span id="contador-carrinho" class="contador-carrinho">0</span>
+    </a>
 
   </div>
 
@@ -117,36 +71,77 @@
 
 
 <!-- =========================================================
-     BANNER
+     HERO — FOTO DE FUNDO
      ========================================================= -->
 
-<section class="hero">
+<section class="hero hero-home-new">
 
-  <div class="shell hero-copy">
+  <div class="hero-home-overlay"></div>
 
-    <div class="kicker">
-      Feita para o seu ambiente
+  <div class="shell hero-home-content">
+
+    <div class="hero-home-copy">
+
+      <div class="kicker">
+        Cortinas e persianas
+      </div>
+
+      <h1>
+        Sob medida para
+        <br>
+        transformar seus ambientes.
+      </h1>
+
+      <p>
+        Encontre cortinas, persianas e opções pronta entrega
+        com acabamento pensado para cada espaço.
+      </p>
+
+      <div class="hero-home-actions">
+        <a class="hero-primary" href="#colecoes-home">
+          Conhecer opções
+        </a>
+
+        <a class="hero-secondary" href="#contato">
+          Falar com a Salvatex
+        </a>
+      </div>
+
     </div>
 
+  </div>
 
-    <h1>
-      Monte sua cortina
-      <br>
-      sob medida.
-    </h1>
+</section>
 
 
-    <p>
-      Escolha medidas, tecido, forro e acabamento.
-      Veja uma estimativa instantânea e envie a
-      configuração para atendimento.
-    </p>
+<!-- =========================================================
+     COLEÇÕES / PÁGINAS DO ADMIN
+     ========================================================= -->
 
+<section id="colecoes-home" class="home-collections shell">
 
-    <div class="pill">
-      ✓ Atendimento especializado pelo WhatsApp
+  <div class="home-section-head">
+    <div>
+      <div class="kicker">SALVATEX CORTINAS</div>
+      <h2>Sob medida para transformar seus ambientes</h2>
+      <p>
+        Escolha o modelo e veja opções, medidas e produtos
+        cadastrados diretamente pelo nosso catálogo.
+      </p>
     </div>
+  </div>
 
+  <div id="home-collections-grid" class="home-collections-grid">
+    <div class="home-collections-empty">
+      Carregando opções…
+    </div>
+  </div>
+
+  <div class="home-benefits-strip">
+    <div><strong>Feito sob medida</strong><span>Perfeito para o seu espaço</span></div>
+    <div><strong>Materiais selecionados</strong><span>Acabamento e qualidade</span></div>
+    <div><strong>Entrega para todo o Brasil</strong><span>Com segurança e agilidade</span></div>
+    <div><strong>Atendimento especializado</strong><span>Suporte antes e depois da compra</span></div>
   </div>
 
 </section>
@@ -162,6 +157,12 @@
 <!-- =========================================================
      CONFIGURADOR
      ========================================================= -->
+
+<div class="home-configurator-intro">
+  <div class="kicker">CONFIGURADOR WAVE</div>
+  <h2>Configure sua cortina sob medida</h2>
+  <p>O configurador atual continua disponível abaixo enquanto as novas páginas são organizadas.</p>
+</div>
 
 <section
   id="configurador"
@@ -1337,7 +1338,8 @@
 <script src="js/app.js?v=midia-cores-r2-4"></script>
 
 
-<script src="js/nav-publico.js?v=1"></script>
+<script src="js/nav-publico.js?v=layout-2"></script>
+<script src="js/home-publico.js?v=layout-2"></script>
 </body>
 
 </html>
