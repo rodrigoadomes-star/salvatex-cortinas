@@ -39,7 +39,7 @@ export async function onRequestGet(context){
   return json({
     ok:true,
     ...data
-  },{
+  },200,{
     "Cache-Control":"no-store"
   });
 }
@@ -117,7 +117,7 @@ export async function onRequestPut(context){
     ok:true,
     layout,
     updatedAt:now
-  },{
+  },200,{
     "Cache-Control":"no-store"
   });
 }
