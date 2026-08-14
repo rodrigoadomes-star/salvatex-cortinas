@@ -1037,15 +1037,44 @@ function atualizarCores() {
     Assim não mostramos uma cor que o cliente não
     consegue visualizar antes de solicitar orçamento.
   */
+  const tecidoConfig =
+    CONFIG.configuradorTecidos?.[
+      state.tecido
+    ] || {};
+
+
+  const coresAtivas =
+    tecidoConfig.coresAtivas &&
+    typeof tecidoConfig.coresAtivas ===
+      "object"
+      ? tecidoConfig.coresAtivas
+      : {};
+
+
   const cores =
     todasCores.filter(
-      (cor) =>
-        Boolean(
-          obterCapaCorAdmin(
-            state.tecido,
-            cor
-          )
-        )
+      (cor) => {
+
+        const comEstoque =
+          coresAtivas[cor] !==
+          false;
+
+
+        const temFoto =
+          Boolean(
+            obterCapaCorAdmin(
+              state.tecido,
+              cor
+            )
+          );
+
+
+        return (
+          comEstoque &&
+          temFoto
+        );
+
+      }
     );
 
 

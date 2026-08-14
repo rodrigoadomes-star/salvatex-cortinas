@@ -114,9 +114,101 @@ async function renderCoupons(){const d=await api('coupons');const c=$('#view-con
 function couponForm(x={}){openModal(`<h2>${x.id?'Editar cupom':'Novo cupom'}</h2><form id="coupon-form"><div class="form-grid"><div class="form-field"><label>Código</label><input name="code" value="${esc(x.code||'')}" required></div><div class="form-field"><label>Tipo</label><select name="discountType"><option value="percent" ${x.discount_type!=='fixed'?'selected':''}>Percentual</option><option value="fixed" ${x.discount_type==='fixed'?'selected':''}>Valor fixo</option></select></div><div class="form-field"><label>Desconto</label><input name="discountValue" type="number" step="0.01" value="${x.discount_value||0}"></div><div class="form-field"><label>Pedido mínimo (R$)</label><input name="minimum" type="number" step="0.01" value="${Number(x.minimum_cents||0)/100}"></div><div class="form-field"><label>Máximo de usos</label><input name="maxUses" type="number" value="${x.max_uses||''}"></div><div class="form-field"><label><input name="active" type="checkbox" ${x.active!==0?'checked':''}> Ativo</label></div></div><div class="form-actions">${x.id?'<button id="delete-coupon" type="button" class="danger-btn">Excluir</button>':''}<button class="primary-btn">Salvar cupom</button></div></form>`);const f=$('#coupon-form');f.onsubmit=async e=>{e.preventDefault();const fd=new FormData(f),body={code:fd.get('code'),discountType:fd.get('discountType'),discountValue:fd.get('discountValue'),minimum:fd.get('minimum'),maxUses:fd.get('maxUses'),active:fd.get('active')==='on'};await api(x.id?'coupons/'+x.id:'coupons',{method:x.id?'PUT':'POST',body:JSON.stringify(body)});closeModal();navigate('coupons',true)};if(x.id)$('#delete-coupon').onclick=async()=>{if(confirm('Excluir cupom?')){await api('coupons/'+x.id,{method:'DELETE'});closeModal();navigate('coupons',true)}}}
 async function renderReports(){const d=await api('dashboard');$('#view-content').innerHTML=`<div class="stats-grid">${statCard('Faturamento mês',brlCents(d.stats.monthRevenue),'R$','green')}${statCard('Pedidos no mês','—','▣','blue')}${statCard('Ticket médio',brlCents(d.stats.averageTicket),'▤','yellow')}${statCard('Pedidos totais',d.stats.totalOrders,'#','purple')}</div><section class="panel" style="margin-top:16px"><div class="panel-head"><h2>Faturamento — últimos 30 dias</h2></div><div id="revenue-chart" class="chart"></div></section>`;drawRevenue(d.revenue)}
 
+
+function colorStockHtml(cores=[],status={}){
+  const mapa=
+    status &&
+    typeof status==='object' &&
+    !Array.isArray(status)
+      ? status
+      : {};
+
+  return (Array.isArray(cores)?cores:[]).map(cor=>{
+    const ativo=
+      mapa[cor] !== false;
+
+    return `<label class="cfg-color-stock-item ${ativo?'':'is-out'}">
+      <input
+        type="checkbox"
+        class="cfg-cor-estoque"
+        data-cor="${esc(cor)}"
+        ${ativo?'checked':''}
+      >
+      <span>${esc(cor)}</span>
+      <small>${ativo?'Com estoque':'Sem estoque'}</small>
+    </label>`;
+  }).join('');
+}
+
+function bindColorStockToggles(root=document){
+  $$('.cfg-cor-estoque',root).forEach(inp=>{
+    inp.onchange=()=>{
+      const item=
+        inp.closest(
+          '.cfg-color-stock-item'
+        );
+
+      if(!item)return;
+
+      item.classList.toggle(
+        'is-out',
+        !inp.checked
+      );
+
+      const status=
+        item.querySelector(
+          'small'
+        );
+
+      if(status){
+        status.textContent=
+          inp.checked
+            ? 'Com estoque'
+            : 'Sem estoque';
+      }
+    };
+  });
+}
+
+function collectColorStock(card,cores){
+  const atuais={};
+
+  $$('.cfg-cor-estoque',card).forEach(inp=>{
+    const cor=
+      String(
+        inp.dataset.cor || ''
+      ).trim();
+
+    if(cor){
+      atuais[cor]=
+        Boolean(
+          inp.checked
+        );
+    }
+  });
+
+  /*
+    Cores novas digitadas no campo começam como "com estoque".
+    Cores existentes preservam o status do checkbox.
+  */
+  (Array.isArray(cores)?cores:[]).forEach(cor=>{
+    if(
+      !Object.prototype.hasOwnProperty.call(
+        atuais,
+        cor
+      )
+    ){
+      atuais[cor]=true;
+    }
+  });
+
+  return atuais;
+}
+
 function waveTecidoCard(nome,t={}){
   const forros=Object.entries(t.forros||{});
-  return `<div class="configurator-subcard wave-tecido-card"><div class="configurator-card-head"><div class="form-field"><label>Nome do tecido</label><input class="wave-tecido-nome" value="${esc(nome||'')}"></div><button type="button" class="danger-link remove-wave-tecido">Remover tecido</button></div><div class="form-field full"><label>Cores (separe por vírgula)</label><input class="wave-tecido-cores" value="${esc((t.cores||[]).join(', '))}"></div><div class="wave-forros">${forros.map(([f,p])=>waveForroRow(f,p)).join('')}</div><button type="button" class="ghost-btn add-wave-forro">+ Adicionar forro</button></div>`
+  const cores=Array.isArray(t.cores)?t.cores:[];
+  return `<div class="configurator-subcard wave-tecido-card"><div class="configurator-card-head"><div class="form-field"><label>Nome do tecido</label><input class="wave-tecido-nome" value="${esc(nome||'')}"></div><button type="button" class="danger-link remove-wave-tecido">Remover tecido</button></div><div class="form-field full"><label>Cores (separe por vírgula)</label><input class="wave-tecido-cores" value="${esc(cores.join(', '))}"></div><div class="color-stock-wrap"><div class="color-stock-title">Disponibilidade das cores</div><div class="cfg-color-stock-list">${colorStockHtml(cores,t.coresAtivas||{})||'<small>Salve o tecido após adicionar cores para gerenciar o estoque.</small>'}</div></div><div class="wave-forros">${forros.map(([f,p])=>waveForroRow(f,p)).join('')}</div><button type="button" class="ghost-btn add-wave-forro">+ Adicionar forro</button></div>`
 }
 function waveForroRow(nome='',preco=''){return `<div class="configurator-inline-row wave-forro-row"><input class="wave-forro-nome" placeholder="Nome do forro" value="${esc(nome)}"><input class="wave-forro-preco" type="number" step="0.01" placeholder="Preço por metro" value="${Number(preco||0)}"><button type="button" class="danger-link remove-wave-forro">×</button></div>`}
 function waveTrilhoRow(nome='',x={}){return `<div class="configurator-inline-row wave-trilho-row"><input class="wave-trilho-nome" placeholder="Nome do trilho/varão" value="${esc(nome)}"><input class="wave-trilho-metro" type="number" step="0.01" placeholder="R$/metro" value="${Number(x.valorMetro||0)}"><input class="wave-trilho-minimo" type="number" step="0.01" placeholder="Mínimo" value="${Number(x.minimo||0)}"><button type="button" class="danger-link remove-wave-trilho">×</button></div>`}
@@ -129,6 +221,7 @@ function bindWaveBuilder(){
   bindWaveBuilderRows();
 }
 function bindWaveBuilderRows(){
+  bindColorStockToggles(document);
   $$('.remove-wave-tecido').forEach(b=>b.onclick=()=>b.closest('.wave-tecido-card').remove());
   $$('.add-wave-forro').forEach(b=>b.onclick=()=>{const box=b.closest('.wave-tecido-card').querySelector('.wave-forros');box.insertAdjacentHTML('beforeend',waveForroRow());bindWaveBuilderRows()});
   $$('.remove-wave-forro').forEach(b=>b.onclick=()=>b.closest('.wave-forro-row').remove());
@@ -137,7 +230,7 @@ function bindWaveBuilderRows(){
 }
 function collectWave(form,wave){
   const fd=new FormData(form),tecidos={},trilhos={},midia=[];
-  $$('.wave-tecido-card').forEach(card=>{const nome=$('.wave-tecido-nome',card).value.trim();if(!nome)return;const forros={};$$('.wave-forro-row',card).forEach(r=>{const f=$('.wave-forro-nome',r).value.trim();if(f)forros[f]=Number($('.wave-forro-preco',r).value||0)});tecidos[nome]={ativo:true,cores:$('.wave-tecido-cores',card).value.split(',').map(x=>x.trim()).filter(Boolean),forros}});
+  $$('.wave-tecido-card').forEach(card=>{const nome=$('.wave-tecido-nome',card).value.trim();if(!nome)return;const forros={};$$('.wave-forro-row',card).forEach(r=>{const f=$('.wave-forro-nome',r).value.trim();if(f)forros[f]=Number($('.wave-forro-preco',r).value||0)});const cores=$('.wave-tecido-cores',card).value.split(',').map(x=>x.trim()).filter(Boolean);tecidos[nome]={ativo:true,cores,coresAtivas:collectColorStock(card,cores),forros}});
   $$('.wave-trilho-row').forEach(r=>{const nome=$('.wave-trilho-nome',r).value.trim();if(nome)trilhos[nome]={valorMetro:Number($('.wave-trilho-metro',r).value||0),minimo:Number($('.wave-trilho-minimo',r).value||0)}});
   $$('.wave-midia-row').forEach(r=>{const tecido=$('.wave-midia-tecido',r).value.trim(),cor=$('.wave-midia-cor',r).value.trim(),forro=$('.wave-midia-forro',r).value.trim();if(!tecido||!cor||!forro)return;midia.push({tecido,modelo:'Wave',cor,forro,capa:$('.wave-midia-capa',r).value.trim(),imagens:$('.wave-midia-imagens',r).value.split('\n').map(x=>x.trim()).filter(Boolean),video:$('.wave-midia-video',r).value.trim()})});
   return {...wave,nome:fd.get('nome'),ativo:fd.get('ativo')==='on',medidas:{larguraMinima:Number(fd.get('larguraMinima')||0.5),larguraMaxima:Number(fd.get('larguraMaxima')||12),alturaMinima:Number(fd.get('alturaMinima')||0.5),alturaEntradaMaxima:Number(fd.get('alturaEntradaMaxima')||5),calculoMaximo:Number(fd.get('calculoMaximo')||3.2),inicioAcrescimo:Number(fd.get('inicioAcrescimo')||2.8),acrescimoPercentual:Number(fd.get('acrescimoPercentual')||0),acimaMaximo:{modo:'consulta',texto:fd.get('textoAcimaMaximo'),textoBotao:fd.get('textoBotaoAcimaMaximo'),permitirCarrinho:fd.get('permitirCarrinho')==='on'}},barra:{faixas:[{ate:Number(fd.get('faixa1Ate')),tamanho:Number(fd.get('faixa1Barra'))},{ate:Number(fd.get('faixa2Ate')),tamanho:Number(fd.get('faixa2Barra'))},{ate:Number(fd.get('faixa3Ate')),tamanho:Number(fd.get('faixa3Barra'))},{ate:Number(fd.get('faixa4Ate')),tamanho:Number(fd.get('faixa4Barra'))}],acimaInicio:Number(fd.get('barraAcimaInicio')||20)},franzimentos:wave.franzimentos||[],tecidos,trilhos,midia};
@@ -228,14 +321,14 @@ const CONFIGURATOR_TYPES=[
   {id:'persiana',nome:'Persiana sob medida',icon:'▤',tipo:'persiana'}
 ];
 let ACTIVE_CONFIGURATOR_ID='wave';
-let ACTIVE_CONFIGURATOR_BASE=null;
 
 function cfgEndpoint(id){return 'configurators/'+id}
 function normalizeConfiguratorResponse(d,id){return d?.configurator||d?.wave||{id,nome:CONFIGURATOR_TYPES.find(x=>x.id===id)?.nome||id,ativo:false,tecidos:{},trilhos:{},midia:[]}}
 function cfgForroRow(nome='',preco='',descricao=''){return `<div class="configurator-inline-row cfg-forro-row"><input class="cfg-forro-nome" placeholder="Nome do forro/opção" value="${esc(nome)}"><input class="cfg-forro-preco" type="number" step="0.01" placeholder="Preço" value="${Number(preco||0)}"><input class="cfg-forro-desc" placeholder="Descrição exibida no site" value="${esc(descricao||'')}"><button type="button" class="danger-link remove-cfg-forro">×</button></div>`}
 function cfgTecidoCard(nome,t={},modo='metro_tecido'){
   const descr=t.forroDescricoes||{};
-  return `<div class="configurator-subcard cfg-tecido-card"><div class="configurator-card-head"><div class="form-field"><label>Nome do tecido/material</label><input class="cfg-tecido-nome" value="${esc(nome)}"></div><button type="button" class="danger-link remove-cfg-tecido">Remover</button></div><div class="form-grid"><div class="form-field full"><label>Descrição do tecido</label><input class="cfg-tecido-desc" value="${esc(t.descricao||'')}" placeholder="Ex.: leve, moderno e com trama aparente"></div><div class="form-field full"><label>Cores (separe por vírgula)</label><input class="cfg-tecido-cores" value="${esc((t.cores||[]).join(', '))}"></div>${modo==='area'?`<div class="form-field"><label>Preço base por m² (R$)</label><input class="cfg-tecido-base" type="number" step="0.01" value="${Number(t.precoBase||0)}"></div>`:''}</div>${modo==='area'?'<p class="field-hint">Para persianas, o preço base é por m². Use as opções abaixo apenas se houver complementos/acabamentos.</p>':'<p class="field-hint">Preços abaixo são por metro de tecido, mantendo a regra atual das cortinas.</p>'}<div class="cfg-forros">${Object.entries(t.forros||{}).map(([f,p])=>cfgForroRow(f,p,descr[f]||'')).join('')}</div><button type="button" class="ghost-btn add-cfg-forro">+ Adicionar forro/opção</button></div>`
+  const cores=Array.isArray(t.cores)?t.cores:[];
+  return `<div class="configurator-subcard cfg-tecido-card"><div class="configurator-card-head"><div class="form-field"><label>Nome do tecido/material</label><input class="cfg-tecido-nome" value="${esc(nome)}"></div><button type="button" class="danger-link remove-cfg-tecido">Remover</button></div><div class="form-grid"><div class="form-field full"><label>Descrição do tecido</label><input class="cfg-tecido-desc" value="${esc(t.descricao||'')}" placeholder="Ex.: leve, moderno e com trama aparente"></div><div class="form-field full"><label>Cores (separe por vírgula)</label><input class="cfg-tecido-cores" value="${esc(cores.join(', '))}"></div>${modo==='area'?`<div class="form-field"><label>Preço base por m² (R$)</label><input class="cfg-tecido-base" type="number" step="0.01" value="${Number(t.precoBase||0)}"></div>`:''}</div><div class="color-stock-wrap"><div class="color-stock-title">Disponibilidade das cores</div><div class="cfg-color-stock-list">${colorStockHtml(cores,t.coresAtivas||{})||'<small>Salve após adicionar cores para gerenciar a disponibilidade.</small>'}</div></div>${modo==='area'?'<p class="field-hint">Para persianas, o preço base é por m². Use as opções abaixo apenas se houver complementos/acabamentos.</p>':'<p class="field-hint">Preços abaixo são por metro de tecido, mantendo a regra atual das cortinas.</p>'}<div class="cfg-forros">${Object.entries(t.forros||{}).map(([f,p])=>cfgForroRow(f,p,descr[f]||'')).join('')}</div><button type="button" class="ghost-btn add-cfg-forro">+ Adicionar forro/opção</button></div>`
 }
 function cfgTrilhoRow(nome='',x={}){return `<div class="configurator-subcard cfg-trilho-row"><div class="configurator-card-head"><strong>Trilho / varão / acabamento</strong><button type="button" class="danger-link remove-cfg-trilho">Remover</button></div><div class="form-grid"><div class="form-field"><label>Nome</label><input class="cfg-trilho-nome" value="${esc(nome)}"></div><div class="form-field"><label>R$/metro</label><input class="cfg-trilho-metro" type="number" step="0.01" value="${Number(x.valorMetro||0)}"></div><div class="form-field"><label>Valor mínimo</label><input class="cfg-trilho-minimo" type="number" step="0.01" value="${Number(x.minimo||0)}"></div><div class="form-field full"><label>Descrição</label><input class="cfg-trilho-desc" value="${esc(x.descricao||'')}" placeholder="Descrição exibida no site"></div></div></div>`}
 function cfgMidiaRow(m={}){const imgs=Array.isArray(m.imagens)?m.imagens:[];return `<div class="configurator-subcard cfg-midia-row"><div class="configurator-card-head"><strong>Galeria por combinação</strong><button type="button" class="danger-link remove-cfg-midia">Remover</button></div><div class="form-grid"><div class="form-field"><label>Tecido/material</label><input class="cfg-midia-tecido" value="${esc(m.tecido||'')}"></div><div class="form-field"><label>Cor</label><input class="cfg-midia-cor" value="${esc(m.cor||'')}"></div><div class="form-field"><label>Forro/opção</label><input class="cfg-midia-forro" value="${esc(m.forro||'')}"></div></div><div class="media-upload-grid"><div class="media-upload-box"><strong>Imagem de capa</strong><input class="cfg-midia-capa" type="hidden" value="${esc(m.capa||'')}"><div class="media-preview cfg-capa-preview">${m.capa?`<img src="${esc(m.capa)}">`:'<span>Sem capa</span>'}</div><label class="upload-btn">Enviar imagem<input type="file" class="cfg-upload-capa" accept="image/*"></label></div><div class="media-upload-box"><strong>Fotos da galeria</strong><input class="cfg-midia-imagens" type="hidden" value="${esc(imgs.join('\n'))}"><div class="media-thumbs cfg-galeria-preview">${imgs.map(u=>`<img src="${esc(u)}">`).join('')||'<span>Sem fotos</span>'}</div><label class="upload-btn">Adicionar fotos<input type="file" class="cfg-upload-galeria" accept="image/*" multiple></label></div><div class="media-upload-box"><strong>Vídeo</strong><input class="cfg-midia-video" type="hidden" value="${esc(m.video||'')}"><div class="media-preview cfg-video-preview">${m.video?`<video src="${esc(m.video)}" controls muted></video>`:'<span>Sem vídeo</span>'}</div><label class="upload-btn">Enviar vídeo<input type="file" class="cfg-upload-video" accept="video/*"></label></div></div><small class="upload-status"></small></div>`}
@@ -307,65 +400,8 @@ async function uploadAdminMedia(file,meta={}){
 
   return d;
 }
-
-async function salvarConfiguradorAtualSilencioso(){
-  const form =
-    document.getElementById(
-      'cfg-form'
-    );
-
-  if (
-    !form ||
-    !ACTIVE_CONFIGURATOR_BASE ||
-    !ACTIVE_CONFIGURATOR_ID
-  ) {
-    return null;
-  }
-
-  const cfg =
-    collectConfigurator(
-      form,
-      ACTIVE_CONFIGURATOR_BASE,
-      ACTIVE_CONFIGURATOR_ID
-    );
-
-  const payload =
-    ACTIVE_CONFIGURATOR_ID ===
-      'wave'
-      ? {
-          wave:
-            cfg
-        }
-      : {
-          configurator:
-            cfg
-        };
-
-  const res =
-    await api(
-      cfgEndpoint(
-        ACTIVE_CONFIGURATOR_ID
-      ),
-      {
-        method:
-          'PUT',
-
-        body:
-          JSON.stringify(
-            payload
-          )
-      }
-    );
-
-  ACTIVE_CONFIGURATOR_BASE =
-    res.configurator ||
-    res.wave ||
-    cfg;
-
-  return res;
-}
-
 function bindCfgRows(){
+  bindColorStockToggles(document);
   $$('.remove-cfg-tecido').forEach(b=>b.onclick=()=>b.closest('.cfg-tecido-card').remove());
   $$('.add-cfg-forro').forEach(b=>b.onclick=()=>{const box=b.closest('.cfg-tecido-card').querySelector('.cfg-forros');box.insertAdjacentHTML('beforeend',cfgForroRow());bindCfgRows()});
   $$('.remove-cfg-forro').forEach(b=>b.onclick=()=>b.closest('.cfg-forro-row').remove());
@@ -376,23 +412,23 @@ function bindCfgRows(){
       tecido:$('.cfg-midia-tecido',row).value.trim(),
       cor:$('.cfg-midia-cor',row).value.trim(),
       forro:$('.cfg-midia-forro',row).value.trim()
-    });$('.cfg-midia-capa',row).value=d.url;$('.cfg-capa-preview',row).innerHTML=`<img src="${esc(d.url)}">`;st.textContent='Salvando vínculo...';await salvarConfiguradorAtualSilencioso();st.textContent='Capa enviada e salva.'}catch(e){st.textContent=e.message;alert(e.message)}});
+    });$('.cfg-midia-capa',row).value=d.url;$('.cfg-capa-preview',row).innerHTML=`<img src="${esc(d.url)}">`;st.textContent='Capa enviada.'}catch(e){st.textContent=e.message;alert(e.message)}});
   $$('.cfg-upload-galeria').forEach(inp=>inp.onchange=async()=>{if(!inp.files?.length)return;const row=inp.closest('.cfg-midia-row'),st=$('.upload-status',row),hidden=$('.cfg-midia-imagens',row);let urls=hidden.value.split('\n').map(x=>x.trim()).filter(Boolean);try{for(const f of inp.files){st.textContent=`Enviando ${f.name}...`;const d=await uploadAdminMedia(f,{
       configurator:ACTIVE_CONFIGURATOR_ID,
       tecido:$('.cfg-midia-tecido',row).value.trim(),
       cor:$('.cfg-midia-cor',row).value.trim(),
       forro:$('.cfg-midia-forro',row).value.trim()
-    });urls.push(d.url)}hidden.value=urls.join('\n');$('.cfg-galeria-preview',row).innerHTML=urls.map(u=>`<img src="${esc(u)}">`).join('');st.textContent='Salvando vínculo...';await salvarConfiguradorAtualSilencioso();st.textContent='Galeria enviada e salva.'}catch(e){st.textContent=e.message;alert(e.message)}});
+    });urls.push(d.url)}hidden.value=urls.join('\n');$('.cfg-galeria-preview',row).innerHTML=urls.map(u=>`<img src="${esc(u)}">`).join('');st.textContent='Galeria atualizada.'}catch(e){st.textContent=e.message;alert(e.message)}});
   $$('.cfg-upload-video').forEach(inp=>inp.onchange=async()=>{if(!inp.files?.[0])return;const row=inp.closest('.cfg-midia-row'),st=$('.upload-status',row);try{st.textContent='Enviando vídeo...';const d=await uploadAdminMedia(inp.files[0],{
       configurator:ACTIVE_CONFIGURATOR_ID,
       tecido:$('.cfg-midia-tecido',row).value.trim(),
       cor:$('.cfg-midia-cor',row).value.trim(),
       forro:$('.cfg-midia-forro',row).value.trim()
-    });$('.cfg-midia-video',row).value=d.url;$('.cfg-video-preview',row).innerHTML=`<video src="${esc(d.url)}" controls muted></video>`;st.textContent='Salvando vínculo...';await salvarConfiguradorAtualSilencioso();st.textContent='Vídeo enviado e salvo.'}catch(e){st.textContent=e.message;alert(e.message)}});
+    });$('.cfg-midia-video',row).value=d.url;$('.cfg-video-preview',row).innerHTML=`<video src="${esc(d.url)}" controls muted></video>`;st.textContent='Vídeo enviado.'}catch(e){st.textContent=e.message;alert(e.message)}});
 }
 function collectConfigurator(form,base,id){
   const fd=new FormData(form),modo=fd.get('modoCalculo')||'metro_tecido',tecidos={},trilhos={},midia=[];
-  $$('.cfg-tecido-card',form).forEach(card=>{const nome=$('.cfg-tecido-nome',card).value.trim();if(!nome)return;const forros={},forroDescricoes={};$$('.cfg-forro-row',card).forEach(r=>{const f=$('.cfg-forro-nome',r).value.trim();if(f){forros[f]=Number($('.cfg-forro-preco',r).value||0);forroDescricoes[f]=$('.cfg-forro-desc',r).value.trim()}});tecidos[nome]={ativo:true,descricao:$('.cfg-tecido-desc',card).value.trim(),cores:$('.cfg-tecido-cores',card).value.split(',').map(x=>x.trim()).filter(Boolean),forros,forroDescricoes,precoBase:Number($('.cfg-tecido-base',card)?.value||0)}});
+  $$('.cfg-tecido-card',form).forEach(card=>{const nome=$('.cfg-tecido-nome',card).value.trim();if(!nome)return;const forros={},forroDescricoes={};$$('.cfg-forro-row',card).forEach(r=>{const f=$('.cfg-forro-nome',r).value.trim();if(f){forros[f]=Number($('.cfg-forro-preco',r).value||0);forroDescricoes[f]=$('.cfg-forro-desc',r).value.trim()}});const cores=$('.cfg-tecido-cores',card).value.split(',').map(x=>x.trim()).filter(Boolean);tecidos[nome]={ativo:true,descricao:$('.cfg-tecido-desc',card).value.trim(),cores,coresAtivas:collectColorStock(card,cores),forros,forroDescricoes,precoBase:Number($('.cfg-tecido-base',card)?.value||0)}});
   $$('.cfg-trilho-row',form).forEach(r=>{const nome=$('.cfg-trilho-nome',r).value.trim();if(nome)trilhos[nome]={valorMetro:Number($('.cfg-trilho-metro',r).value||0),minimo:Number($('.cfg-trilho-minimo',r).value||0),descricao:$('.cfg-trilho-desc',r).value.trim()}});
   $$('.cfg-midia-row',form).forEach(r=>{const tecido=$('.cfg-midia-tecido',r).value.trim(),cor=$('.cfg-midia-cor',r).value.trim(),forro=$('.cfg-midia-forro',r).value.trim();if(!tecido&&!cor&&!forro&&!$('.cfg-midia-capa',r).value&&!$('.cfg-midia-video',r).value)return;midia.push({tecido,modelo:fd.get('modelo')||base.modelo||'',cor,forro,capa:$('.cfg-midia-capa',r).value.trim(),imagens:$('.cfg-midia-imagens',r).value.split('\n').map(x=>x.trim()).filter(Boolean),video:$('.cfg-midia-video',r).value.trim()})});
   const faixas=[0,1,2,3].map(i=>({ate:Number(fd.get(`faixa${i+1}Ate`)||0),tamanho:Number(fd.get(`faixa${i+1}Barra`)||0)})).filter(x=>x.ate>0&&x.tamanho>0);
@@ -402,12 +438,11 @@ function collectConfigurator(form,base,id){
 async function renderConfiguratorEditor(id){
   ACTIVE_CONFIGURATOR_ID=id; let d; try{d=await api(cfgEndpoint(id))}catch(e){if(id==='wave')throw e;d={configurator:{id,nome:CONFIGURATOR_TYPES.find(x=>x.id===id)?.nome||id,ativo:false,tecidos:{},trilhos:{},midia:[]}}}
   const w=normalizeConfiguratorResponse(d,id),m=w.medidas||{},b=w.barra||{},faixas=b.faixas||[],isPersiana=id==='persiana';
-  ACTIVE_CONFIGURATOR_BASE=w;
   $('#configurator-editor').innerHTML=`<form id="cfg-form"><section class="panel configurator-section"><div class="panel-head"><div><h2>${esc(w.nome||'Configurador')}</h2><p>Descrição, regras, preços, opções e mídia administráveis sem alterar código.</p></div><button class="primary-btn">Salvar</button></div><div class="form-grid"><div class="form-field"><label>Nome exibido</label><input name="nome" value="${esc(w.nome||'')}"></div><div class="form-field"><label>Modelo</label><input name="modelo" value="${esc(w.modelo||'')}"></div><div class="form-field full"><label>Descrição exibida no site</label><textarea name="descricao" rows="3" placeholder="Descreva este produto sob medida">${esc(w.descricao||'')}</textarea></div><div class="form-field"><label>Modo de cálculo</label><select name="modoCalculo"><option value="metro_tecido" ${!isPersiana?'selected':''}>Metro de tecido</option><option value="area" ${isPersiana?'selected':''}>Área (m²)</option></select></div><div class="form-field"><label><input type="checkbox" name="ativo" ${w.ativo!==false?'checked':''}> Publicado / ativo</label></div></div></section><section class="panel configurator-section"><div class="panel-head"><h2>Medidas e limites</h2></div><div class="form-grid"><div class="form-field"><label>Largura mínima (m)</label><input name="larguraMinima" type="number" step="0.01" value="${m.larguraMinima??.5}"></div><div class="form-field"><label>Largura máxima (m)</label><input name="larguraMaxima" type="number" step="0.01" value="${m.larguraMaxima??12}"></div><div class="form-field"><label>Altura mínima (m)</label><input name="alturaMinima" type="number" step="0.01" value="${m.alturaMinima??.5}"></div><div class="form-field"><label>Altura máxima digitável (m)</label><input name="alturaEntradaMaxima" type="number" step="0.01" value="${m.alturaEntradaMaxima??5}"></div><div class="form-field"><label>Calcular automaticamente até (m)</label><input name="calculoMaximo" type="number" step="0.01" value="${m.calculoMaximo??3.2}"></div><div class="form-field"><label>Acréscimo acima de (m)</label><input name="inicioAcrescimo" type="number" step="0.01" value="${m.inicioAcrescimo??2.8}"></div><div class="form-field"><label>Acréscimo (%)</label><input name="acrescimoPercentual" type="number" step="0.01" value="${m.acrescimoPercentual??25}"></div><div class="form-field full"><label>Mensagem fora do cálculo automático</label><input name="textoAcimaMaximo" value="${esc(m.acimaMaximo?.texto||'Medida sob consulta.')}" ></div><div class="form-field"><label>Texto do botão</label><input name="textoBotaoAcimaMaximo" value="${esc(m.acimaMaximo?.textoBotao||'Solicitar orçamento')}"></div><div class="form-field"><label><input name="permitirCarrinho" type="checkbox" ${m.acimaMaximo?.permitirCarrinho?'checked':''}> Permitir carrinho fora do limite</label></div></div></section>${!isPersiana?`<section class="panel configurator-section"><div class="panel-head"><h2>Barra da cortina</h2></div><div class="configurator-rules-grid">${[0,1,2,3].map(i=>`<div class="configurator-rule"><span>Faixa ${i+1}</span><input name="faixa${i+1}Ate" type="number" step="0.01" value="${faixas[i]?.ate??''}" placeholder="Até (m)"><input name="faixa${i+1}Barra" type="number" value="${faixas[i]?.tamanho??''}" placeholder="Barra (cm)"></div>`).join('')}</div><div class="form-field" style="max-width:280px;margin-top:12px"><label>Barra acima do início (cm)</label><input name="barraAcimaInicio" type="number" value="${b.acimaInicio??20}"></div></section>`:`<section class="panel configurator-section"><div class="panel-head"><h2>Regras da persiana</h2></div><div class="form-grid"><div class="form-field"><label>Área mínima cobrada (m²)</label><input name="areaMinima" type="number" step="0.01" value="${Number(w.persiana?.areaMinima||.6)}"></div><div class="form-field"><label>Lados do comando</label><input name="ladosComando" value="${esc((w.persiana?.ladosComando||['Direito','Esquerdo']).join(', '))}"></div><div class="form-field"><label>Voltagens</label><input name="voltagens" value="${esc((w.persiana?.voltagens||['110V','220V','Bivolt']).join(', '))}"></div><div class="form-field full"><label>Acionamentos — nome | adicional R$ | descrição (um por linha)</label><textarea name="acionamentos" rows="4">${esc((w.persiana?.acionamentos||[]).map(x=>`${x.nome||''} | ${Number(x.adicional||0)} | ${x.descricao||''}`).join('\n'))}</textarea></div></div></section>`}<section class="panel configurator-section"><div class="panel-head"><div><h2>Tecidos, cores e preços</h2><p>${isPersiana?'Preço base por m² e opcionais.':'Preço por metro de tecido e descrições.'}</p></div><button type="button" id="add-cfg-tecido" class="ghost-btn">+ Adicionar tecido</button></div><div id="cfg-tecidos" class="configurator-stack">${Object.entries(w.tecidos||{}).map(([n,t])=>cfgTecidoCard(n,t,w.modoCalculo|| (isPersiana?'area':'metro_tecido'))).join('')}</div></section>${!isPersiana?`<section class="panel configurator-section"><div class="panel-head"><h2>Trilhos, varões e acabamentos</h2><button type="button" id="add-cfg-trilho" class="ghost-btn">+ Adicionar</button></div><div id="cfg-trilhos" class="configurator-stack">${Object.entries(w.trilhos||{}).map(([n,x])=>cfgTrilhoRow(n,x)).join('')}</div></section>`:''}<section class="panel configurator-section"><div class="panel-head"><div><h2>Fotos e vídeos</h2><p>Upload direto do computador para o R2. O nome e a extensão original do arquivo não precisam seguir nenhum padrão.</p></div><button type="button" id="add-cfg-midia" class="ghost-btn">+ Nova combinação</button></div><div id="cfg-midias" class="configurator-stack">${(w.midia||[]).map(cfgMidiaRow).join('')}</div></section><div class="form-actions"><button class="primary-btn">Salvar configurador</button></div></form>`;
   $('#add-cfg-tecido').onclick=()=>{$('#cfg-tecidos').insertAdjacentHTML('beforeend',cfgTecidoCard('',{cores:[],forros:{}},isPersiana?'area':'metro_tecido'));bindCfgRows()};
   if($('#add-cfg-trilho'))$('#add-cfg-trilho').onclick=()=>{$('#cfg-trilhos').insertAdjacentHTML('beforeend',cfgTrilhoRow());bindCfgRows()};
   $('#add-cfg-midia').onclick=()=>{$('#cfg-midias').insertAdjacentHTML('beforeend',cfgMidiaRow());bindCfgRows()}; bindCfgRows();
-  $('#cfg-form').onsubmit=async e=>{e.preventDefault();const btn=e.currentTarget.querySelector('.form-actions .primary-btn')||e.currentTarget.querySelector('.primary-btn'),old=btn?.textContent;try{if(btn){btn.disabled=true;btn.textContent='Salvando...'}const cfg=collectConfigurator(e.currentTarget,w,id);const payload=id==='wave'?{wave:cfg}:{configurator:cfg};const res=await api(cfgEndpoint(id),{method:'PUT',body:JSON.stringify(payload)});toast('Configurador salvo com sucesso');ACTIVE_CONFIGURATOR_BASE=res.configurator||res.wave||cfg;if(id!=='wave')ADMIN.cache['configurator_'+id]=res.configurator||cfg}catch(err){alert(err.message)}finally{if(btn){btn.disabled=false;btn.textContent=old||'Salvar'}}};
+  $('#cfg-form').onsubmit=async e=>{e.preventDefault();const btn=e.currentTarget.querySelector('.form-actions .primary-btn')||e.currentTarget.querySelector('.primary-btn'),old=btn?.textContent;try{if(btn){btn.disabled=true;btn.textContent='Salvando...'}const cfg=collectConfigurator(e.currentTarget,w,id);const payload=id==='wave'?{wave:cfg}:{configurator:cfg};const res=await api(cfgEndpoint(id),{method:'PUT',body:JSON.stringify(payload)});toast('Configurador salvo com sucesso');if(id!=='wave')ADMIN.cache['configurator_'+id]=res.configurator||cfg}catch(err){alert(err.message)}finally{if(btn){btn.disabled=false;btn.textContent=old||'Salvar'}}};
 }
 async function renderConfigurators(){
   $('#view-content').innerHTML=`<div class="configurator-layout"><aside class="panel configurator-list"><div class="panel-head"><div><h2>Produtos sob medida</h2><p>Escolha o configurador para editar.</p></div></div><div id="configurator-switcher">${CONFIGURATOR_TYPES.map(x=>`<button type="button" class="configurator-switch ${x.id==='wave'?'active':''}" data-configurator="${x.id}"><span>${x.icon}</span><div><strong>${x.nome}</strong><small>${x.tipo==='persiana'?'Cálculo por área':'Cortina sob medida'}</small></div></button>`).join('')}</div><div class="r2-status" id="r2-status">Verificando armazenamento de mídia...</div></aside><div id="configurator-editor"><div class="empty">Carregando configurador...</div></div></div>`;

@@ -55,6 +55,7 @@ const CONFIG = {
     {valor:3,rotulo:"3x — Mais Volumosa"}
   ],
   mediaConfigurador: [],
+  configuradorTecidos: {},
   configurador: { id:"wave", nome:"Cortina Wave", ativo:true }
 };
 
@@ -81,9 +82,10 @@ function aplicarWave(wave) {
   if(Array.isArray(wave.franzimentos))CONFIG.franzimentos=wave.franzimentos;
   if(wave.trilhos)CONFIG.instalacao=wave.trilhos;
   if(wave.tecidos){
-    CONFIG.cores={};CONFIG.precos={};
+    CONFIG.cores={};CONFIG.precos={};CONFIG.configuradorTecidos={};
     Object.entries(wave.tecidos).forEach(([nome,t])=>{
       if(t?.ativo===false)return;
+      CONFIG.configuradorTecidos[nome]=t&&typeof t==='object'?t:{};
       CONFIG.cores[nome]=Array.isArray(t.cores)?t.cores:[];
       CONFIG.precos[nome]=t.forros&&typeof t.forros==="object"?t.forros:{};
     });
