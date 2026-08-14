@@ -68,7 +68,7 @@ function mesclarConfig(alvo, fonte) {
   return alvo;
 }
 
-function aplicarWave(wave) {
+function aplicarConfigurador(wave) {
   if(!wave||typeof wave!=="object")return;
   const medidas=wave.medidas||{};
   CONFIG.configurador={id:wave.id||"wave",nome:wave.nome||"Cortina Wave",ativo:wave.ativo!==false};
@@ -95,25 +95,131 @@ function aplicarWave(wave) {
 
 window.CONFIG=CONFIG;
 window.CONFIG_READY=(async()=>{
-  try{
-    const [siteResp,waveResp]=await Promise.all([
-      fetch('/api/store-config',{cache:'no-store'}),
-      fetch('/api/configurators/wave',{cache:'no-store'})
+  const params=
+    new URLSearchParams(
+      window.location.search
+    );
+
+  const requestedId=
+    String(
+      params.get("id") ||
+      "wave"
+    )
+      .trim()
+      .toLowerCase();
+
+  const curtainIds=
+    new Set([
+      "wave",
+      "prega-macho",
+      "cortina-varao"
     ]);
-    if(siteResp.ok){const d=await siteResp.json();if(d?.ok&&d.config)mesclarConfig(CONFIG,d.config)}
-    if(waveResp.ok){
-      const d=await waveResp.json();
-      if(d?.ok&&d.wave){
-        aplicarWave(d.wave);
-        console.info('Configurador Wave carregado do Admin:',d.source||'configurator_wave',d.updatedAt||'');
+
+  const configuratorId=
+    curtainIds.has(requestedId)
+      ? requestedId
+      : "wave";
+
+  try{
+    const configUrl=
+      configuratorId==="wave"
+        ? "/api/configurators/wave"
+        : "/api/configurators/" +
+          encodeURIComponent(
+            configuratorId
+          );
+
+    const [siteResp,cfgResp]=
+      await Promise.all([
+        fetch(
+          "/api/store-config",
+          {
+            cache:"no-store"
+          }
+        ),
+        fetch(
+          configUrl,
+          {
+            cache:"no-store"
+          }
+        )
+      ]);
+
+    if(siteResp.ok){
+      const d=
+        await siteResp.json();
+
+      if(
+        d?.ok &&
+        d.config
+      ){
+        mesclarConfig(
+          CONFIG,
+          d.config
+        );
+      }
+    }
+
+    if(cfgResp.ok){
+      const d=
+        await cfgResp.json();
+
+      const cfg=
+        d?.wave ||
+        d?.configurator;
+
+      if(
+        d?.ok &&
+        cfg
+      ){
+        aplicarConfigurador(
+          cfg
+        );
+
+        CONFIG.configurador.id=
+          cfg.id ||
+          configuratorId;
+
+        CONFIG.configurador.modelo=
+          cfg.modelo ||
+          (
+            configuratorId==="prega-macho"
+              ? "Prega Macho"
+              : configuratorId==="cortina-varao"
+                ? "Ilhós"
+                : "Wave"
+          );
+
+        CONFIG.configurador.descricao=
+          cfg.descricao ||
+          "";
+
+        console.info(
+          "Configurador carregado do Admin:",
+          configuratorId,
+          d.source ||
+          "",
+          d.updatedAt ||
+          ""
+        );
       }else{
-        console.warn('API do configurador Wave respondeu sem configuração válida.',d);
+        console.warn(
+          "API respondeu sem configuração válida.",
+          d
+        );
       }
     }else{
-      console.warn('Falha HTTP ao carregar /api/configurators/wave:',waveResp.status);
+      console.warn(
+        "Falha HTTP ao carregar configurador:",
+        cfgResp.status
+      );
     }
   }catch(erro){
-    console.warn('Configuração remota indisponível; usando fallback local.',erro);
+    console.warn(
+      "Configuração remota indisponível; usando fallback local.",
+      erro
+    );
   }
+
   return CONFIG;
 })();

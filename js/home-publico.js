@@ -8,7 +8,7 @@
     const type=String(p?.pageType||'');
 
     if(type==='configurador_wave'){
-      return 'index.html#configurador';
+      return 'configurador.html?id=wave';
     }
 
     if(type==='configurador_prega_macho'){
@@ -20,7 +20,7 @@
     }
 
     if(type==='configurador_persiana'){
-      return 'configurador.html?id=persiana';
+      return 'configurador-persiana.html?id=persiana';
     }
 
     return 'pagina.html?slug='+encodeURIComponent(p.slug);

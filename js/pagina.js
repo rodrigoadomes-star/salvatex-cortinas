@@ -7,10 +7,10 @@ function measureMenu(page,products){const ms=Array.isArray(page.measures)?page.m
 function bindMeasures(page,products){const toggle=document.getElementById('measure-toggle'),menu=document.getElementById('measure-menu'),current=document.getElementById('measure-current'),grid=document.getElementById('collection-grid');if(!toggle||!menu||!grid)return;const aplicarMedida=(id)=>{const m=(page.measures||[]).find(x=>String(x.id)===String(id));if(!m)return false;const ids=new Set(Array.isArray(m.productIds)?m.productIds.map(String):[]);const filtered=ids.size?products.filter(p=>ids.has(String(p.id))):[];current.textContent=m.value||m.label;grid.innerHTML=filtered.length?filtered.map(cardPagina).join(''):'<div class="catalog-empty">Nenhum produto vinculado a esta medida.</div>';menu.classList.remove('open');menu.querySelectorAll('.measure-filter-option').forEach(x=>x.classList.toggle('active',String(x.dataset.measureId)===String(m.id)));return true};toggle.onclick=()=>menu.classList.toggle('open');document.addEventListener('click',e=>{if(!e.target.closest('.measure-filter'))menu.classList.remove('open')});menu.querySelectorAll('[data-measure-id]').forEach(btn=>btn.onclick=()=>aplicarMedida(btn.dataset.measureId));const medidaUrl=new URLSearchParams(location.search).get('medida');if(medidaUrl)aplicarMedida(medidaUrl)}
 async function carregarPagina(){const view=document.getElementById('page-view'),slug=new URLSearchParams(location.search).get('slug');if(!slug){view.innerHTML='<div class="catalog-empty">Página não informada.</div>';return}try{const r=await fetch('/api/pages/'+encodeURIComponent(slug),{cache:'no-store'}),d=await r.json();if(!r.ok||!d.ok)throw new Error(d.message||'Página não encontrada');const p=d.page;
 const destinos={
-  configurador_wave:'index.html#configurador',
+  configurador_wave:'configurador.html?id=wave',
   configurador_prega_macho:'configurador.html?id=prega-macho',
   configurador_ilhos:'configurador.html?id=cortina-varao',
-  configurador_persiana:'configurador.html?id=persiana'
+  configurador_persiana:'configurador-persiana.html?id=persiana'
 };
 if(destinos[p.pageType]){
   location.replace(destinos[p.pageType]);

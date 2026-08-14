@@ -942,7 +942,7 @@ if(ADMIN.token)login(ADMIN.token);
 const CONFIGURATOR_TYPES=[
   {id:'wave',nome:'Cortina Wave',icon:'〰',tipo:'cortina'},
   {id:'prega-macho',nome:'Cortina Prega Macho',icon:'▥',tipo:'cortina'},
-  {id:'cortina-varao',nome:'Cortina de Varão',icon:'━',tipo:'cortina'},
+  {id:'cortina-varao',nome:'Cortina de Ilhós',icon:'━',tipo:'cortina'},
   {id:'persiana',nome:'Persiana sob medida',icon:'▤',tipo:'persiana'}
 ];
 let ACTIVE_CONFIGURATOR_ID='wave';

@@ -4549,10 +4549,202 @@ function atualizarForrosDinamicos() {
     const card = document.createElement("div");
     card.className = "card" + (state.forro === nome ? " selected" : "");
     card.dataset.value = nome;
-    card.innerHTML = `<strong>${nome}</strong><span>Opção configurada no painel administrativo.</span>`;
+    const tecidoCfg =
+      CONFIG.configuradorTecidos?.[
+        state.tecido
+      ] || {};
+
+    const descricao =
+      tecidoCfg.forroDescricoes?.[
+        nome
+      ] ||
+      "Opção disponível para este configurador.";
+
+    card.innerHTML =
+      `<strong>${nome}</strong><span>${descricao}</span>`;
     container.appendChild(card);
   });
   bindCards("forros", "forro");
+}
+
+
+function aplicarIdentidadeConfigurador() {
+
+  const cfg=
+    CONFIG.configurador ||
+    {};
+
+  const id=
+    String(
+      cfg.id ||
+      "wave"
+    );
+
+  let modelo=
+    String(
+      cfg.modelo ||
+      ""
+    ).trim();
+
+  if(
+    !modelo
+  ){
+    modelo=
+      id==="prega-macho"
+        ? "Prega Macho"
+        : id==="cortina-varao"
+          ? "Ilhós"
+          : "Wave";
+  }
+
+  /*
+    O identificador técnico continua "cortina-varao"
+    por compatibilidade com o banco/API, mas a apresentação
+    pública pode ser Ilhós.
+  */
+  if(
+    id==="cortina-varao" &&
+    (
+      modelo==="Varão" ||
+      modelo==="Cortina de Varão"
+    )
+  ){
+    modelo=
+      "Ilhós";
+  }
+
+  state.modelo=
+    modelo;
+
+
+  const tecidos=
+    Object.keys(
+      CONFIG.precos ||
+      {}
+    );
+
+  if(
+    tecidos.length &&
+    !tecidos.includes(
+      state.tecido
+    )
+  ){
+    state.tecido=
+      tecidos[0];
+  }
+
+
+  const forros=
+    Object.keys(
+      CONFIG.precos?.[
+        state.tecido
+      ] ||
+      {}
+    );
+
+  if(
+    forros.length &&
+    !forros.includes(
+      state.forro
+    )
+  ){
+    state.forro=
+      forros[0];
+  }
+
+
+  const modeloContainer=
+    document.getElementById(
+      "modelos"
+    );
+
+  if(
+    modeloContainer
+  ){
+    modeloContainer.innerHTML=
+      `<div class="card selected" data-value="${modelo}">
+        <strong>${modelo}</strong>
+        <span>${cfg.descricao || "Modelo configurado no Painel Admin."}</span>
+      </div>`;
+
+    bindCards(
+      "modelos",
+      "modelo"
+    );
+  }
+
+
+  const pageKicker=
+    document.getElementById(
+      "configurator-page-kicker"
+    );
+
+  const pageTitle=
+    document.getElementById(
+      "configurator-page-title"
+    );
+
+  const pageDescription=
+    document.getElementById(
+      "configurator-page-description"
+    );
+
+
+  if(pageKicker){
+    pageKicker.textContent=
+      "CONFIGURADOR " +
+      modelo.toUpperCase();
+  }
+
+  if(pageTitle){
+    pageTitle.textContent=
+      "Configure sua " +
+      (
+        id==="cortina-varao"
+          ? "cortina de ilhós"
+          : "cortina " +
+            modelo.toLowerCase()
+      ) +
+      " sob medida";
+  }
+
+  if(pageDescription){
+    pageDescription.textContent=
+      cfg.descricao ||
+      "Escolha medidas, tecido, forro, cor e acabamento para montar sua cortina.";
+  }
+
+
+  const sectionTitle=
+    document.querySelector(
+      ".config-wrap .section-title"
+    );
+
+  if(sectionTitle){
+    sectionTitle.textContent=
+      "Configure sua cortina";
+  }
+
+
+  const sumModelo=
+    document.getElementById(
+      "sum-modelo"
+    );
+
+  if(sumModelo){
+    sumModelo.textContent=
+      modelo;
+  }
+
+
+  document.title=
+    (
+      cfg.nome ||
+      "Cortina " +
+      modelo
+    ) +
+    " sob medida | Salvatex";
+
 }
 
 function montarOpcoesConfiguradorWave() {
@@ -4565,7 +4757,14 @@ function montarOpcoesConfiguradorWave() {
       const card = document.createElement("div");
       card.className = "card" + (state.tecido === nome ? " selected" : "");
       card.dataset.value = nome;
-      card.innerHTML = `<strong>${nome}</strong><span>Tecido disponível para este configurador.</span>`;
+      const descricao =
+        CONFIG.configuradorTecidos?.[
+          nome
+        ]?.descricao ||
+        "Tecido disponível para este configurador.";
+
+      card.innerHTML =
+        `<strong>${nome}</strong><span>${descricao}</span>`;
       tecidosContainer.appendChild(card);
     });
     bindCards("tecidos-choice", "tecido");
@@ -4624,6 +4823,8 @@ async function iniciarAplicacaoSalvatex() {
 
   }
 
+
+  aplicarIdentidadeConfigurador();
 
   montarOpcoesConfiguradorWave();
 
