@@ -25,11 +25,15 @@ export async function onRequestPut(context){
   const measures=normalizeMeasures(b.measures);
   await context.env.DB.prepare(`
     UPDATE pages SET title=?1,slug=?2,content_html=?3,seo_title=?4,seo_description=?5,
-      active=?6,page_type=?7,product_ids_json=?8,hero_image_url=?9,measures_json=?10,custom_measure_url=?11,updated_at=?12
-    WHERE id=?13 AND store_id='salvatex'
+      active=?6,page_type=?7,product_ids_json=?8,hero_image_url=?9,measures_json=?10,custom_measure_url=?11,
+      nav_group=?12,nav_order=?13,updated_at=?14
+    WHERE id=?15 AND store_id='salvatex'
   `).bind(
     title,slugify(b.slug||title),clean(b.contentHtml,50000),clean(b.seoTitle,240),clean(b.seoDescription,500),
-    b.active===false?0:1,pageType,JSON.stringify(productIds),clean(b.heroImageUrl,1000)||null,JSON.stringify(measures),clean(b.customMeasureUrl,1000)||null,now,id
+    b.active===false?0:1,pageType,JSON.stringify(productIds),clean(b.heroImageUrl,1000)||null,JSON.stringify(measures),clean(b.customMeasureUrl,1000)||null,
+    ['cortinas_sob_medida','persianas_sob_medida','pronta_entrega','oculto'].includes(b.navGroup)?b.navGroup:'oculto',
+    Number.isFinite(Number(b.navOrder))?Math.round(Number(b.navOrder)):100,
+    now,id
   ).run();
   await logAdmin(context.env.DB,"page_updated","page",id,{title,pageType,productCount:productIds.length,measureCount:measures.length});
   return json({ok:true});

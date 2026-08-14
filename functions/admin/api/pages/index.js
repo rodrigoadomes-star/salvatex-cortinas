@@ -32,12 +32,16 @@ export async function onRequestPost(context){
   await context.env.DB.prepare(`
     INSERT INTO pages(
       id,store_id,title,slug,content_html,seo_title,seo_description,active,
-      page_type,product_ids_json,hero_image_url,measures_json,custom_measure_url,created_at,updated_at
-    ) VALUES(?1,'salvatex',?2,?3,?4,?5,?6,?7,?8,?9,?10,?11,?12,?13,?13)
+      page_type,product_ids_json,hero_image_url,measures_json,custom_measure_url,
+      nav_group,nav_order,created_at,updated_at
+    ) VALUES(?1,'salvatex',?2,?3,?4,?5,?6,?7,?8,?9,?10,?11,?12,?13,?14,?15,?15)
   `).bind(
     id,title,slugify(b.slug||title),clean(b.contentHtml,50000),clean(b.seoTitle,240),
     clean(b.seoDescription,500),b.active===false?0:1,pageType,JSON.stringify(productIds),
-    clean(b.heroImageUrl,1000)||null,JSON.stringify(measures),clean(b.customMeasureUrl,1000)||null,now
+    clean(b.heroImageUrl,1000)||null,JSON.stringify(measures),clean(b.customMeasureUrl,1000)||null,
+    ['cortinas_sob_medida','persianas_sob_medida','pronta_entrega','oculto'].includes(b.navGroup)?b.navGroup:'oculto',
+    Number.isFinite(Number(b.navOrder))?Math.round(Number(b.navOrder)):100,
+    now
   ).run();
   await logAdmin(context.env.DB,"page_created","page",id,{title,pageType,productCount:productIds.length,measureCount:measures.length});
   return json({ok:true,id},201);
