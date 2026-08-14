@@ -7,8 +7,8 @@ async function login(token){ADMIN.token=token;try{await api('session');sessionSt
 function logout(){sessionStorage.removeItem('salvatexAdminToken');ADMIN.token='';location.reload()}
 $('#login-form').addEventListener('submit',e=>{e.preventDefault();login($('#admin-token-input').value.trim())});$('#logout').addEventListener('click',logout);
 $$('#admin-nav button').forEach(b=>b.addEventListener('click',()=>{location.hash=b.dataset.view}));window.addEventListener('hashchange',()=>navigate(location.hash.slice(1)||'dashboard'));$('#refresh-view').addEventListener('click',()=>navigate(ADMIN.view,true));$('#menu-toggle').addEventListener('click',()=>$('.sidebar').classList.toggle('open'));
-const titles={dashboard:['Dashboard','Visão geral da sua loja'],orders:['Pedidos','Gerencie pedidos e andamento'],products:['Produtos','Catálogo e produtos da loja'],categories:['Categorias','Organize o catálogo'],customers:['Clientes','Base formada pelos pedidos'],pages:['Páginas','Conteúdo institucional da loja'],media:['Mídia','Imagens usadas no catálogo'],coupons:['Cupons','Descontos e campanhas'],reports:['Relatórios','Desempenho da operação'],configurators:['Configuradores','Produtos sob medida, regras de cálculo e mídia'],settings:['Configurações','Dados gerais da loja'],integrations:['Integrações','Serviços conectados à loja'],billing:['Plano e cobrança','1% do faturamento ou mínimo de R$ 150'],logs:['Logs do Sistema','Histórico administrativo']};
-async function navigate(view,force=false){ADMIN.view=titles[view]?view:'dashboard';$$('#admin-nav button').forEach(b=>b.classList.toggle('active',b.dataset.view===ADMIN.view));$('#view-title').textContent=titles[ADMIN.view][0];$('#view-subtitle').textContent=titles[ADMIN.view][1];$('.sidebar').classList.remove('open');const c=$('#view-content');c.innerHTML='<div class="empty">Carregando…</div>';try{await ({dashboard:renderDashboard,orders:renderOrders,products:renderProducts,categories:renderCategories,customers:renderCustomers,pages:renderPages,media:renderMedia,coupons:renderCoupons,reports:renderReports,configurators:renderConfigurators,settings:renderSettings,integrations:renderIntegrations,billing:renderBilling,logs:renderLogs}[ADMIN.view])()}catch(e){c.innerHTML='<div class="panel empty">'+esc(e.message)+'</div>'}}
+const titles={dashboard:['Dashboard','Visão geral da sua loja'],orders:['Pedidos','Gerencie pedidos e andamento'],products:['Produtos','Catálogo e produtos da loja'],categories:['Categorias','Organize o catálogo'],customers:['Clientes','Base formada pelos pedidos'],pages:['Páginas','Conteúdo institucional da loja'],layout:['Layout do site','Cabeçalho, página inicial, cores e rodapé'],media:['Mídia','Imagens usadas no catálogo'],coupons:['Cupons','Descontos e campanhas'],reports:['Relatórios','Desempenho da operação'],configurators:['Configuradores','Produtos sob medida, regras de cálculo e mídia'],settings:['Configurações','Dados gerais da loja'],integrations:['Integrações','Serviços conectados à loja'],billing:['Plano e cobrança','1% do faturamento ou mínimo de R$ 150'],logs:['Logs do Sistema','Histórico administrativo']};
+async function navigate(view,force=false){ADMIN.view=titles[view]?view:'dashboard';$$('#admin-nav button').forEach(b=>b.classList.toggle('active',b.dataset.view===ADMIN.view));$('#view-title').textContent=titles[ADMIN.view][0];$('#view-subtitle').textContent=titles[ADMIN.view][1];$('.sidebar').classList.remove('open');const c=$('#view-content');c.innerHTML='<div class="empty">Carregando…</div>';try{await ({dashboard:renderDashboard,orders:renderOrders,products:renderProducts,categories:renderCategories,customers:renderCustomers,pages:renderPages,layout:renderLayout,media:renderMedia,coupons:renderCoupons,reports:renderReports,configurators:renderConfigurators,settings:renderSettings,integrations:renderIntegrations,billing:renderBilling,logs:renderLogs}[ADMIN.view])()}catch(e){c.innerHTML='<div class="panel empty">'+esc(e.message)+'</div>'}}
 function statCard(label,value,icon,cls,foot='Dados registrados no sistema'){return `<div class="stat-card"><div class="stat-head"><div><small>${label}</small><div class="stat-value">${value}</div></div><div class="stat-icon ${cls}">${icon}</div></div><div class="stat-foot">${foot}</div></div>`}
 function statusLabel(s){const names={aguardando_pagamento:'Aguardando pagamento',pago:'Pago',em_producao:'Produção',pronto:'Pronto',enviado:'Enviado',entregue:'Entregue',cancelado:'Cancelado',reembolsado:'Reembolsado'};return names[s]||s||'—'}
 async function renderDashboard(){const d=await api('dashboard');ADMIN.cache.dashboard=d;$('#nav-order-count').textContent=d.stats.totalOrders;const c=$('#view-content');c.innerHTML=`<div class="stats-grid">${statCard('Vendas hoje',brlCents(d.stats.salesToday),'＄','green')}${statCard('Pedidos hoje',d.stats.ordersToday,'▢','blue')}${statCard('Ticket médio',brlCents(d.stats.averageTicket),'▤','yellow')}${statCard('Faturamento mês',brlCents(d.stats.monthRevenue),'⌁','purple')}</div><div class="dashboard-grid"><section class="panel"><div class="panel-head"><h2>Faturamento</h2><span class="select">Últimos 30 dias</span></div><div id="revenue-chart" class="chart"></div></section><section class="panel"><div class="panel-head"><h2>Pedidos por status</h2></div><div id="status-donut" class="donut-wrap"></div></section></div><div class="tables-grid"><section class="panel"><div class="panel-head"><h2>Pedidos recentes</h2><button class="ghost-btn" data-go="orders">Ver todos</button></div><div class="table-wrap">${ordersTable(d.recent,true)}</div></section><section class="panel"><div class="panel-head"><h2>Produtos mais vendidos</h2></div><div class="table-wrap">${topProductsTable(d.topProducts)}</div></section></div><div class="quick-actions"><button class="quick-card" data-go="products"><span class="quick-icon">◇</span><div><strong>Novo produto</strong><small>Cadastrar novo produto</small></div></button><button class="quick-card" data-go="categories"><span class="quick-icon">□</span><div><strong>Nova categoria</strong><small>Criar nova categoria</small></div></button><button class="quick-card" data-go="coupons"><span class="quick-icon">✂</span><div><strong>Novo cupom</strong><small>Criar cupom de desconto</small></div></button><button class="quick-card" data-go="pages"><span class="quick-icon">▤</span><div><strong>Nova página</strong><small>Criar nova página</small></div></button><button class="quick-card" data-go="orders"><span class="quick-icon">▣</span><div><strong>Ver pedidos</strong><small>Gerenciar pedidos</small></div></button></div>`; drawRevenue(d.revenue);drawStatuses(d.statuses,d.stats.totalOrders);$$('[data-go]',c).forEach(b=>b.onclick=()=>location.hash=b.dataset.go);bindOrderRows(c)}
@@ -360,6 +360,569 @@ async function renderConfigurators(){
     saveTopo.onclick=save;
   }
 }
+
+const DEFAULT_LAYOUT_CONFIG={
+  header:{
+    logoText:"SALVATEX",
+    logoSubtext:"CORTINAS",
+    curtainsLabel:"Cortinas sob medida",
+    blindsLabel:"Persianas sob medida",
+    contactLabel:"Contato",
+    cartLabel:"Carrinho",
+    showContact:true,
+    showCart:true
+  },
+
+  home:{
+    hero:{
+      enabled:true,
+      kicker:"Cortinas e persianas",
+      title:"Sob medida para transformar seus ambientes.",
+      subtitle:"Encontre cortinas, persianas e opções pronta entrega com acabamento pensado para cada espaço.",
+      primaryText:"Conhecer opções",
+      primaryTarget:"#colecoes-home",
+      secondaryText:"Falar com a Salvatex",
+      secondaryTarget:"#contato",
+      backgroundImage:"/imagens/gazenatural100bck.jpeg"
+    },
+
+    sections:[
+      {id:"hero",label:"Banner principal",enabled:true,order:10},
+      {id:"collections",label:"Categorias sob medida",enabled:true,order:20},
+      {id:"benefits",label:"Informações e diferenciais",enabled:true,order:30},
+      {id:"configurator",label:"Configurador Wave",enabled:true,order:40}
+    ],
+
+    collections:{
+      kicker:"SALVATEX CORTINAS",
+      title:"Sob medida para transformar seus ambientes",
+      subtitle:"Escolha o modelo e veja opções, medidas e produtos cadastrados diretamente pelo nosso catálogo."
+    },
+
+    benefits:[
+      {title:"Feito sob medida",text:"Perfeito para o seu espaço"},
+      {title:"Materiais selecionados",text:"Acabamento e qualidade"},
+      {title:"Entrega para todo o Brasil",text:"Com segurança e agilidade"},
+      {title:"Atendimento especializado",text:"Suporte antes e depois da compra"}
+    ],
+
+    configurator:{
+      kicker:"CONFIGURADOR WAVE",
+      title:"Configure sua cortina sob medida",
+      subtitle:"Escolha medidas, tecido, forro, cor e acabamento para montar sua cortina."
+    }
+  },
+
+  colors:{
+    primary:"#2f2116",
+    accent:"#9a7547",
+    background:"#fbfaf8",
+    text:"#172033"
+  },
+
+  footer:{
+    brandText:"SALVATEX CORTINAS",
+    description:"Cortinas e persianas sob medida.",
+    whatsapp:"5544998793160",
+    copyright:"SALVATEX CORTINAS · 2026"
+  }
+};
+
+function cloneLayout(v){
+  return JSON.parse(JSON.stringify(v));
+}
+
+function mergeLayout(target,source){
+  if(!source||typeof source!=="object"||Array.isArray(source))return target;
+  Object.entries(source).forEach(([k,v])=>{
+    if(v&&typeof v==="object"&&!Array.isArray(v)){
+      target[k]=mergeLayout(
+        target[k]&&typeof target[k]==="object"&&!Array.isArray(target[k])
+          ? target[k]
+          : {},
+        v
+      );
+    }else{
+      target[k]=v;
+    }
+  });
+  return target;
+}
+
+function layoutSectionRow(item){
+  return `<div class="layout-section-row" draggable="true" data-layout-section="${esc(item.id)}">
+    <span class="layout-drag" title="Arraste para reorganizar">⋮⋮</span>
+    <div class="layout-section-name">
+      <strong>${esc(item.label)}</strong>
+      <small>${item.enabled!==false?'Visível na página':'Oculto na página'}</small>
+    </div>
+    <button type="button" class="layout-eye ${item.enabled!==false?'active':''}" title="${item.enabled!==false?'Ocultar seção':'Exibir seção'}">
+      ${item.enabled!==false?'◉':'○'}
+    </button>
+  </div>`;
+}
+
+function bindLayoutSectionRows(container){
+  let dragging=null;
+
+  $$('.layout-section-row',container).forEach(row=>{
+    row.addEventListener('dragstart',()=>{
+      dragging=row;
+      row.classList.add('dragging');
+    });
+
+    row.addEventListener('dragend',()=>{
+      row.classList.remove('dragging');
+      dragging=null;
+    });
+
+    row.addEventListener('dragover',e=>{
+      e.preventDefault();
+      if(!dragging||dragging===row)return;
+
+      const rect=row.getBoundingClientRect();
+      const before=e.clientY < rect.top + rect.height/2;
+
+      if(before){
+        container.insertBefore(dragging,row);
+      }else{
+        container.insertBefore(dragging,row.nextSibling);
+      }
+    });
+
+    const eye=$('.layout-eye',row);
+    eye.onclick=()=>{
+      const enabled=!row.classList.contains('layout-disabled');
+      row.classList.toggle('layout-disabled',enabled);
+      eye.classList.toggle('active',!enabled);
+      eye.textContent=!enabled?'◉':'○';
+
+      const small=$('small',row);
+      if(small)small.textContent=!enabled?'Visível na página':'Oculto na página';
+    };
+  });
+}
+
+async function renderLayout(){
+  const d=await api('config');
+  const current=mergeLayout(
+    cloneLayout(DEFAULT_LAYOUT_CONFIG),
+    d.config?.layout||{}
+  );
+
+  const sections=[...(current.home.sections||[])]
+    .sort((a,b)=>Number(a.order||0)-Number(b.order||0));
+
+  const benefits=Array.isArray(current.home.benefits)
+    ? current.home.benefits
+    : [];
+
+  $('#view-content').innerHTML=`
+    <div class="layout-editor-grid">
+
+      <aside class="panel layout-editor-nav">
+        <div class="panel-head">
+          <div>
+            <h2>Editar layout</h2>
+            <p>Altere textos, imagens, cores e a ordem da página inicial.</p>
+          </div>
+        </div>
+
+        <button type="button" class="layout-editor-tab active" data-layout-tab="header">Cabeçalho</button>
+        <button type="button" class="layout-editor-tab" data-layout-tab="home">Página inicial</button>
+        <button type="button" class="layout-editor-tab" data-layout-tab="colors">Cores da marca</button>
+        <button type="button" class="layout-editor-tab" data-layout-tab="footer">Rodapé</button>
+
+        <a href="../index.html" target="_blank" class="layout-preview-link">Abrir loja ↗</a>
+      </aside>
+
+      <form id="layout-editor-form">
+
+        <section class="panel layout-editor-page active" data-layout-page="header">
+          <div class="panel-head">
+            <div>
+              <h2>Cabeçalho</h2>
+              <p>Textos que aparecem no menu principal do site.</p>
+            </div>
+          </div>
+
+          <div class="form-grid">
+            <div class="form-field">
+              <label>Nome da marca</label>
+              <input name="headerLogoText" value="${esc(current.header.logoText)}">
+            </div>
+
+            <div class="form-field">
+              <label>Texto abaixo da marca</label>
+              <input name="headerLogoSubtext" value="${esc(current.header.logoSubtext)}">
+            </div>
+
+            <div class="form-field">
+              <label>Menu — Cortinas</label>
+              <input name="headerCurtainsLabel" value="${esc(current.header.curtainsLabel)}">
+            </div>
+
+            <div class="form-field">
+              <label>Menu — Persianas</label>
+              <input name="headerBlindsLabel" value="${esc(current.header.blindsLabel)}">
+            </div>
+
+            <div class="form-field">
+              <label>Menu — Contato</label>
+              <input name="headerContactLabel" value="${esc(current.header.contactLabel)}">
+            </div>
+
+            <div class="form-field">
+              <label>Texto do carrinho</label>
+              <input name="headerCartLabel" value="${esc(current.header.cartLabel)}">
+            </div>
+
+            <div class="form-field">
+              <label><input type="checkbox" name="headerShowContact" ${current.header.showContact!==false?'checked':''}> Exibir Contato</label>
+            </div>
+
+            <div class="form-field">
+              <label><input type="checkbox" name="headerShowCart" ${current.header.showCart!==false?'checked':''}> Exibir Carrinho</label>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel layout-editor-page" data-layout-page="home">
+          <div class="panel-head">
+            <div>
+              <h2>Página inicial</h2>
+              <p>Arraste as seções para mudar a ordem e use o botão ao lado para mostrar ou ocultar.</p>
+            </div>
+          </div>
+
+          <div id="layout-sections-list" class="layout-sections-list">
+            ${sections.map(layoutSectionRow).join('')}
+          </div>
+
+          <div class="layout-editor-divider"></div>
+
+          <h3 class="layout-editor-subtitle">Banner principal</h3>
+
+          <div class="form-grid">
+            <div class="form-field full">
+              <label>Texto pequeno</label>
+              <input name="heroKicker" value="${esc(current.home.hero.kicker)}">
+            </div>
+
+            <div class="form-field full">
+              <label>Título principal</label>
+              <textarea name="heroTitle" rows="2">${esc(current.home.hero.title)}</textarea>
+            </div>
+
+            <div class="form-field full">
+              <label>Subtítulo</label>
+              <textarea name="heroSubtitle" rows="3">${esc(current.home.hero.subtitle)}</textarea>
+            </div>
+
+            <div class="form-field">
+              <label>Texto do botão principal</label>
+              <input name="heroPrimaryText" value="${esc(current.home.hero.primaryText)}">
+            </div>
+
+            <div class="form-field">
+              <label>Destino do botão principal</label>
+              <input name="heroPrimaryTarget" value="${esc(current.home.hero.primaryTarget)}">
+            </div>
+
+            <div class="form-field">
+              <label>Texto do botão secundário</label>
+              <input name="heroSecondaryText" value="${esc(current.home.hero.secondaryText)}">
+            </div>
+
+            <div class="form-field">
+              <label>Destino do botão secundário</label>
+              <input name="heroSecondaryTarget" value="${esc(current.home.hero.secondaryTarget)}">
+            </div>
+
+            <div class="form-field full">
+              <label>Imagem de fundo</label>
+              <input type="hidden" name="heroBackgroundImage" id="layout-hero-image-url" value="${esc(current.home.hero.backgroundImage||'')}">
+
+              <div class="layout-image-upload">
+                <div id="layout-hero-preview" class="layout-image-preview">
+                  ${current.home.hero.backgroundImage
+                    ? `<img src="${esc(current.home.hero.backgroundImage)}">`
+                    : '<span>Sem imagem</span>'}
+                </div>
+
+                <label class="upload-btn">
+                  Enviar imagem do computador
+                  <input type="file" id="layout-hero-file" accept="image/jpeg,image/png,image/webp,image/gif">
+                </label>
+
+                <small id="layout-hero-status" class="upload-status"></small>
+              </div>
+            </div>
+          </div>
+
+          <div class="layout-editor-divider"></div>
+
+          <h3 class="layout-editor-subtitle">Categorias sob medida</h3>
+
+          <div class="form-grid">
+            <div class="form-field">
+              <label>Texto pequeno</label>
+              <input name="collectionsKicker" value="${esc(current.home.collections.kicker)}">
+            </div>
+
+            <div class="form-field">
+              <label>Título</label>
+              <input name="collectionsTitle" value="${esc(current.home.collections.title)}">
+            </div>
+
+            <div class="form-field full">
+              <label>Subtítulo</label>
+              <textarea name="collectionsSubtitle" rows="2">${esc(current.home.collections.subtitle)}</textarea>
+            </div>
+          </div>
+
+          <div class="layout-editor-divider"></div>
+
+          <h3 class="layout-editor-subtitle">Diferenciais</h3>
+
+          <div class="layout-benefits-editor">
+            ${[0,1,2,3].map(i=>{
+              const item=benefits[i]||{title:'',text:''};
+              return `<div class="layout-benefit-edit">
+                <div class="form-field">
+                  <label>Título ${i+1}</label>
+                  <input name="benefitTitle${i}" value="${esc(item.title)}">
+                </div>
+                <div class="form-field">
+                  <label>Texto ${i+1}</label>
+                  <input name="benefitText${i}" value="${esc(item.text)}">
+                </div>
+              </div>`;
+            }).join('')}
+          </div>
+
+          <div class="layout-editor-divider"></div>
+
+          <h3 class="layout-editor-subtitle">Configurador da home</h3>
+
+          <div class="form-grid">
+            <div class="form-field">
+              <label>Texto pequeno</label>
+              <input name="configKicker" value="${esc(current.home.configurator.kicker)}">
+            </div>
+
+            <div class="form-field">
+              <label>Título</label>
+              <input name="configTitle" value="${esc(current.home.configurator.title)}">
+            </div>
+
+            <div class="form-field full">
+              <label>Subtítulo</label>
+              <textarea name="configSubtitle" rows="2">${esc(current.home.configurator.subtitle)}</textarea>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel layout-editor-page" data-layout-page="colors">
+          <div class="panel-head">
+            <div>
+              <h2>Cores da marca</h2>
+              <p>Altere as principais cores utilizadas no novo layout.</p>
+            </div>
+          </div>
+
+          <div class="layout-color-grid">
+            <label>Cor principal<input type="color" name="colorPrimary" value="${esc(current.colors.primary)}"></label>
+            <label>Cor de destaque<input type="color" name="colorAccent" value="${esc(current.colors.accent)}"></label>
+            <label>Fundo<input type="color" name="colorBackground" value="${esc(current.colors.background)}"></label>
+            <label>Texto<input type="color" name="colorText" value="${esc(current.colors.text)}"></label>
+          </div>
+        </section>
+
+        <section class="panel layout-editor-page" data-layout-page="footer">
+          <div class="panel-head">
+            <div>
+              <h2>Rodapé</h2>
+              <p>Informações gerais exibidas no final das páginas.</p>
+            </div>
+          </div>
+
+          <div class="form-grid">
+            <div class="form-field">
+              <label>Nome da marca</label>
+              <input name="footerBrandText" value="${esc(current.footer.brandText)}">
+            </div>
+
+            <div class="form-field">
+              <label>WhatsApp</label>
+              <input name="footerWhatsapp" value="${esc(current.footer.whatsapp)}">
+            </div>
+
+            <div class="form-field full">
+              <label>Descrição</label>
+              <textarea name="footerDescription" rows="2">${esc(current.footer.description)}</textarea>
+            </div>
+
+            <div class="form-field full">
+              <label>Copyright</label>
+              <input name="footerCopyright" value="${esc(current.footer.copyright)}">
+            </div>
+          </div>
+        </section>
+
+        <div class="layout-editor-savebar">
+          <span>As alterações são aplicadas ao site após salvar.</span>
+          <button type="submit" class="primary-btn">Publicar alterações</button>
+        </div>
+      </form>
+    </div>
+  `;
+
+  const form=$('#layout-editor-form');
+
+  $$('.layout-editor-tab').forEach(btn=>{
+    btn.onclick=()=>{
+      $$('.layout-editor-tab').forEach(x=>x.classList.toggle('active',x===btn));
+      $$('.layout-editor-page').forEach(page=>{
+        page.classList.toggle('active',page.dataset.layoutPage===btn.dataset.layoutTab);
+      });
+    };
+  });
+
+  bindLayoutSectionRows($('#layout-sections-list'));
+
+  const heroFile=$('#layout-hero-file');
+
+  if(heroFile){
+    heroFile.onchange=async()=>{
+      const file=heroFile.files?.[0];
+      if(!file)return;
+
+      const status=$('#layout-hero-status');
+
+      try{
+        status.textContent='Enviando imagem...';
+
+        const d=await uploadAdminMedia(
+          file,
+          {
+            configurator:'layout',
+            tecido:'home',
+            cor:'hero',
+            forro:'geral'
+          }
+        );
+
+        $('#layout-hero-image-url').value=d.url;
+        $('#layout-hero-preview').innerHTML=`<img src="${esc(d.url)}">`;
+        status.textContent='Imagem enviada.';
+      }catch(err){
+        status.textContent=err.message;
+        alert(err.message);
+      }
+    };
+  }
+
+  form.onsubmit=async e=>{
+    e.preventDefault();
+
+    const fd=new FormData(form);
+
+    const sectionRows=$$('.layout-section-row',$('#layout-sections-list'));
+
+    const newSections=sectionRows.map((row,index)=>({
+      id:row.dataset.layoutSection,
+      label:$('strong',row)?.textContent||row.dataset.layoutSection,
+      enabled:!row.classList.contains('layout-disabled'),
+      order:(index+1)*10
+    }));
+
+    const benefits=[0,1,2,3].map(i=>({
+      title:fd.get(`benefitTitle${i}`)||'',
+      text:fd.get(`benefitText${i}`)||''
+    }));
+
+    const layout={
+      header:{
+        logoText:fd.get('headerLogoText')||'SALVATEX',
+        logoSubtext:fd.get('headerLogoSubtext')||'CORTINAS',
+        curtainsLabel:fd.get('headerCurtainsLabel')||'Cortinas sob medida',
+        blindsLabel:fd.get('headerBlindsLabel')||'Persianas sob medida',
+        contactLabel:fd.get('headerContactLabel')||'Contato',
+        cartLabel:fd.get('headerCartLabel')||'Carrinho',
+        showContact:fd.get('headerShowContact')==='on',
+        showCart:fd.get('headerShowCart')==='on'
+      },
+
+      home:{
+        hero:{
+          enabled:true,
+          kicker:fd.get('heroKicker')||'',
+          title:fd.get('heroTitle')||'',
+          subtitle:fd.get('heroSubtitle')||'',
+          primaryText:fd.get('heroPrimaryText')||'',
+          primaryTarget:fd.get('heroPrimaryTarget')||'#colecoes-home',
+          secondaryText:fd.get('heroSecondaryText')||'',
+          secondaryTarget:fd.get('heroSecondaryTarget')||'#contato',
+          backgroundImage:fd.get('heroBackgroundImage')||''
+        },
+
+        sections:newSections,
+
+        collections:{
+          kicker:fd.get('collectionsKicker')||'',
+          title:fd.get('collectionsTitle')||'',
+          subtitle:fd.get('collectionsSubtitle')||''
+        },
+
+        benefits,
+
+        configurator:{
+          kicker:fd.get('configKicker')||'',
+          title:fd.get('configTitle')||'',
+          subtitle:fd.get('configSubtitle')||''
+        }
+      },
+
+      colors:{
+        primary:fd.get('colorPrimary')||'#2f2116',
+        accent:fd.get('colorAccent')||'#9a7547',
+        background:fd.get('colorBackground')||'#fbfaf8',
+        text:fd.get('colorText')||'#172033'
+      },
+
+      footer:{
+        brandText:fd.get('footerBrandText')||'SALVATEX CORTINAS',
+        description:fd.get('footerDescription')||'',
+        whatsapp:fd.get('footerWhatsapp')||'',
+        copyright:fd.get('footerCopyright')||''
+      }
+    };
+
+    const btn=form.querySelector('.layout-editor-savebar .primary-btn');
+    const old=btn.textContent;
+
+    try{
+      btn.disabled=true;
+      btn.textContent='Publicando...';
+
+      await api('config',{
+        method:'PUT',
+        body:JSON.stringify({
+          config:{layout}
+        })
+      });
+
+      toast('Layout publicado com sucesso');
+    }catch(err){
+      alert(err.message);
+    }finally{
+      btn.disabled=false;
+      btn.textContent=old;
+    }
+  };
+}
+
 async function renderSettings(){
   const d=await api('config'),cfg=d.config||{};
   $('#view-content').innerHTML=`<section class="panel"><div class="panel-head"><div><h2>Configurações gerais</h2><p style="color:var(--muted);font-size:10px">Dados comerciais da loja. As regras dos produtos sob medida ficam em Configuradores.</p></div></div><form id="settings-form"><div class="form-grid"><div class="form-field"><label>WhatsApp</label><input name="whatsapp" value="${esc(cfg.whatsapp||'')}"></div><div class="form-field"><label>Parcelas sem juros</label><input type="number" min="1" name="parcelas" value="${Number(cfg.parcelas||10)}"></div><div class="form-field"><label>Frete grátis mínimo (R$)</label><input type="number" step="0.01" name="frete" value="${Number(cfg.freteGratisMinimo||500)}"></div><div class="form-field"><label>Prazo de produção</label><input name="producao" value="${esc(cfg.producao||'5 a 10 dias úteis')}"></div><div class="form-field full"><label>Prazo de entrega</label><input name="entrega" value="${esc(cfg.entrega||'6 a 12 dias úteis após o envio')}"></div></div><div class="form-actions"><button class="primary-btn">Salvar configurações</button></div></form></section>`;
