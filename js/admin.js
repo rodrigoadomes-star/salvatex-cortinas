@@ -931,7 +931,10 @@ async function renderLayout(){
         que a alteração realmente persistiu.
       */
       const check=
-        await api('layout');
+        await api(
+          'layout?ts=' +
+          Date.now()
+        );
 
       if(
         !check?.ok ||
@@ -941,6 +944,19 @@ async function renderLayout(){
           'O layout foi enviado, mas não foi possível confirmar a gravação no D1.'
         );
       }
+
+      /*
+        Confirma visualmente de onde o layout foi lido.
+        Se houver qualquer problema futuro, o painel não diz
+        "salvo" sem antes receber a mesma configuração do D1.
+      */
+      console.info(
+        'Layout confirmado no D1:',
+        check.source ||
+        'layout_config',
+        check.updatedAt ||
+        ''
+      );
     }catch(err){
       alert(err.message);
     }finally{

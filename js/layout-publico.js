@@ -100,14 +100,42 @@
       const small=logo.querySelector("small");
       const sub=small?.textContent||"";
 
-      logo.childNodes.forEach(node=>{
-        if(node.nodeType===Node.TEXT_NODE){
-          node.textContent=layout.header.logoText||"SALVATEX";
+      /*
+        A logo possui mais de um nó de texto por causa das
+        quebras de linha do HTML. Alterar todos eles fazia:
+        SALVATEX / CORTINAS / SALVATEX.
+
+        Agora somente o primeiro nó textual da marca é editado.
+      */
+      const textNodes=
+        [...logo.childNodes]
+          .filter(node=>
+            node.nodeType===Node.TEXT_NODE
+          );
+
+      const mainText=
+        textNodes.find(node=>
+          String(node.textContent||"").trim()
+        ) ||
+        textNodes[0];
+
+      if(mainText){
+        mainText.textContent=
+          (layout.header.logoText||"SALVATEX") +
+          "\n      ";
+      }
+
+      textNodes.forEach(node=>{
+        if(node!==mainText){
+          node.textContent="";
         }
       });
 
       if(small){
-        small.textContent=layout.header.logoSubtext||sub||"CORTINAS";
+        small.textContent=
+          layout.header.logoSubtext||
+          sub||
+          "CORTINAS";
       }
     });
 
