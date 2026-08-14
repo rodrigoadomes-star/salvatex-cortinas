@@ -6004,3 +6004,52 @@ body > main.shell{
     border-bottom:0;
   }
 }
+
+
+/* ============================================================
+   CORES EDITÁVEIS PELO PAINEL
+   ============================================================ */
+
+:root{
+  --layout-primary:#2f2116;
+  --layout-accent:#9a7547;
+  --layout-background:#fbfaf8;
+  --layout-text:#172033;
+}
+
+.hero-primary,
+.home-collection-link{
+  background:var(--layout-primary)!important;
+}
+
+.mega-arrow,
+.kicker{
+  color:var(--layout-accent);
+}
+
+.home-collections,
+.home-benefits-strip{
+  background-color:var(--layout-background);
+}
+
+.storefront-topbar,
+.hero-home-new,
+.home-collections{
+  color:var(--layout-text);
+}
+
+
+/* ============================================================
+   CONFIGURADORES DE CORTINAS — PADRÃO ÚNICO WAVE
+   ============================================================ */
+
+body:has(.home-configurator-intro) .home-configurator-intro{
+  padding-top:42px;
+}
+
+body:has(.home-configurator-intro) .config-wrap{
+  margin-top:0;
+}
+
+/* Prega Macho e Ilhós usam exatamente os mesmos cards,
+   resumo lateral, carrossel, medidas e breakpoints do Wave. */
