@@ -642,24 +642,20 @@ async function carregarFotosCarrossel() {
   const fotosFinais = [];
 
 
-  // ========================================================
-  // REGRA DO CARROSSEL
-  //
-  // A cor selecionada aparece primeiro.
-  // Depois mostramos também as demais cores disponíveis,
-  // sempre identificadas pelo nome da cor no carrossel.
-  //
-  // Cada COR é tratada separadamente:
-  //
-  // 1. Se aquela combinação possui mídia no Admin/R2,
-  //    usamos exatamente capa + galeria cadastradas.
-  //
-  // 2. Se aquela cor ainda NÃO possui mídia cadastrada,
-  //    usamos temporariamente as fotos antigas.
-  //
-  // Assim é possível migrar uma cor por vez sem fazer
-  // desaparecer as demais fotos do site.
-  // ========================================================
+  /*
+    REGRA DEFINITIVA DO CARROSSEL
+
+    - A cor selecionada aparece primeiro quando possui galeria.
+    - Depois entram as galerias das outras cores.
+    - Não é obrigatório existir foto para todas as cores.
+    - Se só Bege possui galeria, aparece somente Bege.
+    - Se Bege e Natural possuem galeria, aparecem Bege + Natural.
+    - Imagem de capa NÃO entra aqui.
+    - Capa continua exclusiva dos cards.
+    - Não usamos mais foto-1.png/foto-2.png como fallback do
+      carrossel quando o configurador já está sendo administrado.
+  */
+
 
   for (
     const cor
@@ -683,28 +679,17 @@ async function carregarFotosCarrossel() {
       );
 
 
-    const urlsAdmin = [];
-
-
     if (
-      midiaAdmin?.capa
+      !midiaAdmin ||
+      !Array.isArray(
+        midiaAdmin.imagens
+      )
     ) {
-
-      urlsAdmin.push(
-        String(
-          midiaAdmin.capa
-        ).trim()
-      );
-
+      continue;
     }
 
 
-    if (
-      Array.isArray(
-        midiaAdmin?.imagens
-      )
-    ) {
-
+    const urls =
       midiaAdmin.imagens
         .map(
           (src) =>
@@ -712,34 +697,18 @@ async function carregarFotosCarrossel() {
               src || ""
             ).trim()
         )
-        .filter(Boolean)
-        .forEach(
-          (src) => {
-
-            if (
-              !urlsAdmin.includes(
-                src
-              )
-            ) {
-
-              urlsAdmin.push(
-                src
-              );
-
-            }
-
-          }
-        );
-
-    }
+        .filter(Boolean);
 
 
-    if (
-      urlsAdmin.length
-    ) {
+    urls.forEach(
+      (src) => {
 
-      urlsAdmin.forEach(
-        (src) => {
+        if (
+          !fotosFinais.some(
+            (foto) =>
+              foto.src === src
+          )
+        ) {
 
           fotosFinais.push({
             src,
@@ -749,88 +718,9 @@ async function carregarFotosCarrossel() {
           });
 
         }
-      );
-
-
-      /*
-        Não testamos foto-1...10 para esta cor,
-        pois a combinação já é administrada pelo R2.
-      */
-      continue;
-
-    }
-
-
-    // ======================================================
-    // FALLBACK LEGADO SOMENTE PARA A COR AINDA NÃO MIGRADA
-    // ======================================================
-
-    const candidatosCor = [];
-
-
-    for (
-      let numero = 1;
-      numero <= 10;
-      numero++
-    ) {
-
-      const src =
-        obterCaminhoFoto(
-          tecidoAtual,
-          modeloAtual,
-          cor,
-          forroAtual,
-          numero
-        );
-
-
-      if (src) {
-
-        candidatosCor.push({
-          src,
-          cor,
-          configurada:
-            false
-        });
 
       }
-
-    }
-
-
-    const resultadosCor =
-      await Promise.all(
-
-        candidatosCor.map(
-          async (foto) => {
-
-            const existe =
-              await verificarImagem(
-                foto.src
-              );
-
-
-            return existe
-              ? foto
-              : null;
-
-          }
-        )
-
-      );
-
-
-    resultadosCor
-      .filter(Boolean)
-      .forEach(
-        (foto) => {
-
-          fotosFinais.push(
-            foto
-          );
-
-        }
-      );
+    );
 
   }
 
@@ -839,9 +729,7 @@ async function carregarFotosCarrossel() {
     token !==
     tokenAtualizacaoGaleria
   ) {
-
     return;
-
   }
 
 
