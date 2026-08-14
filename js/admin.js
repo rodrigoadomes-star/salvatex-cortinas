@@ -637,13 +637,50 @@ function cfgBuildOptionPages(form,cfg,activeTab='geral'){
   const tissues=cfgCurrentTissuesFromForm(form);
   const modelo=String(form.elements.modelo?.value||cfg.modelo||cfg.nome||'');
 
-  const validTabs=new Set(['geral',...options]);
+  const temTrilhos=
+    Boolean(
+      $('#cfg-trilhos-section',form)
+    );
+
+  const validTabs=
+    new Set([
+      'geral',
+      ...(temTrilhos?['trilhos-varoes']:[]),
+      ...options
+    ]);
+
   if(!validTabs.has(activeTab))activeTab='geral';
 
   nav.innerHTML=`
-    <button type="button" class="cfg-option-tab ${activeTab==='geral'?'active':''}" data-option-tab="geral">Geral</button>
+    <button type="button" class="cfg-option-tab ${activeTab==='geral'?'active':''}" data-option-tab="geral">
+      <span>Geral</span>
+    </button>
+
+    ${
+      temTrilhos
+        ? `<button type="button"
+                   class="cfg-option-tab ${activeTab==='trilhos-varoes'?'active':''}"
+                   data-option-tab="trilhos-varoes">
+             <span>Trilhos e varões</span>
+           </button>`
+        : ''
+    }
+
     ${options.map(op=>`
-      <button type="button" class="cfg-option-tab ${activeTab===op?'active':''}" data-option-tab="${esc(op)}">${esc(op)}</button>
+      <div class="cfg-option-tab-row ${activeTab===op?'active':''}" data-option-row="${esc(op)}">
+        <button type="button"
+                class="cfg-option-tab ${activeTab===op?'active':''}"
+                data-option-tab="${esc(op)}">
+          <span>${esc(op)}</span>
+        </button>
+
+        <button type="button"
+                class="cfg-option-delete"
+                data-delete-option="${esc(op)}"
+                title="Excluir esta página/opção">
+          ×
+        </button>
+      </div>
     `).join('')}
   `;
 
@@ -651,6 +688,22 @@ function cfgBuildOptionPages(form,cfg,activeTab='geral'){
     <div class="cfg-option-page ${activeTab==='geral'?'active':''}" data-option-page="geral">
       <div id="cfg-general-host"></div>
     </div>
+
+    ${
+      temTrilhos
+        ? `<div class="cfg-option-page ${activeTab==='trilhos-varoes'?'active':''}" data-option-page="trilhos-varoes">
+             <section class="panel cfg-option-panel">
+               <div class="panel-head">
+                 <div>
+                   <h2>Trilhos e varões</h2>
+                   <p>Todos os trilhos, varões, valores e acabamentos deste configurador.</p>
+                 </div>
+               </div>
+               <div id="cfg-trilhos-host"></div>
+             </section>
+           </div>`
+        : ''
+    }
 
     ${options.map(op=>{
       const cards=[];
@@ -700,6 +753,21 @@ function cfgMoveGeneralContent(form){
   if(host&&source){
     host.appendChild(source);
   }
+
+  const trilhosSection=
+    $('#cfg-trilhos-section',form);
+
+  const trilhosHost=
+    $('#cfg-trilhos-host',form);
+
+  if(
+    trilhosSection &&
+    trilhosHost
+  ){
+    trilhosHost.appendChild(
+      trilhosSection
+    );
+  }
 }
 
 function bindCfgOptionTabs(form,cfg){
@@ -713,6 +781,13 @@ function bindCfgOptionTabs(form,cfg){
         x.classList.toggle('active',x===btn)
       );
 
+      $$('.cfg-option-tab-row',form).forEach(row=>
+        row.classList.toggle(
+          'active',
+          row.dataset.optionRow===tab
+        )
+      );
+
       $$('.cfg-option-page',form).forEach(page=>
         page.classList.toggle(
           'active',
@@ -720,6 +795,152 @@ function bindCfgOptionTabs(form,cfg){
         )
       );
     };
+  });
+
+  $$('.cfg-option-delete',form).forEach(btn=>{
+    btn.onclick=async e=>{
+      e.stopPropagation();
+
+      const opcao=
+        String(
+          btn.dataset.deleteOption||''
+        ).trim();
+
+      if(!opcao)return;
+
+      const ok=
+        confirm(
+          `Excluir a página "${opcao}"?\n\n` +
+          `Isso removerá esta opção de todos os tecidos do configurador.\n` +
+          `As mídias vinculadas a esta opção também deixarão de fazer parte do configurador.`
+        );
+
+      if(!ok)return;
+
+      cfgDeleteOptionGlobally(
+        form,
+        opcao
+      );
+
+      cfgRefreshOptionPages(
+        form,
+        cfg,
+        false
+      );
+
+      try{
+        await cfgSaveCurrent(
+          form,
+          cfg,
+          ACTIVE_CONFIGURATOR_ID,
+          false
+        );
+
+        toast(
+          `Opção "${opcao}" excluída`
+        );
+      }catch(err){
+        alert(
+          'A opção foi removida da tela, mas não foi possível salvar.\n\n' +
+          err.message
+        );
+      }
+    };
+  });
+}
+
+
+function cfgRenameOptionGlobally(form,oldName,newName,originInput=null){
+  oldName=
+    String(
+      oldName||''
+    ).trim();
+
+  newName=
+    String(
+      newName||''
+    ).trim();
+
+  if(
+    !oldName ||
+    !newName ||
+    oldName===newName
+  ){
+    return;
+  }
+
+  /*
+    A página de forro/opção é GLOBAL no configurador.
+    Alterar o nome em um tecido altera a mesma opção
+    nos demais tecidos que ainda usam o nome antigo.
+  */
+  $$('.cfg-forro-nome',form).forEach(inp=>{
+    if(
+      inp!==originInput &&
+      inp.value.trim()===oldName
+    ){
+      inp.value=newName;
+      inp.dataset.originalOption=newName;
+    }
+  });
+
+  CONFIG_MEDIA_STATE.forEach(item=>{
+    if(
+      String(
+        item.forro||''
+      ).trim()===oldName
+    ){
+      item.forro=newName;
+    }
+  });
+
+  if(originInput){
+    originInput.dataset.originalOption=newName;
+  }
+}
+
+function cfgDeleteOptionGlobally(form,optionName){
+  optionName=
+    String(
+      optionName||''
+    ).trim();
+
+  if(!optionName)return;
+
+  $$('.cfg-forro-row',form).forEach(row=>{
+    const inp=
+      $('.cfg-forro-nome',row);
+
+    if(
+      inp &&
+      inp.value.trim()===optionName
+    ){
+      row.remove();
+    }
+  });
+
+  /*
+    Removemos do configurador as referências de mídia
+    desta opção. Os arquivos físicos continuam no R2;
+    portanto não há exclusão destrutiva do arquivo.
+  */
+  CONFIG_MEDIA_STATE=
+    CONFIG_MEDIA_STATE.filter(
+      item=>
+        String(
+          item.forro||''
+        ).trim()!==optionName
+    );
+}
+
+function cfgPrepareOptionInputs(form){
+  $$('.cfg-forro-nome',form).forEach(inp=>{
+    if(
+      !inp.dataset.originalOption
+    ){
+      inp.dataset.originalOption=
+        inp.value.trim();
+    }
   });
 }
 
@@ -968,6 +1189,21 @@ function cfgRefreshOptionPages(form,cfg,keepTab=true){
   if(general){
     $('#cfg-general-host')?.appendChild(general);
   }
+
+  const trilhosSection=
+    $('#cfg-trilhos-section',form);
+
+  const trilhosHost=
+    $('#cfg-trilhos-host',form);
+
+  if(
+    trilhosSection &&
+    trilhosHost
+  ){
+    trilhosHost.appendChild(
+      trilhosSection
+    );
+  }
 }
 
 async function renderConfiguratorEditor(id){
@@ -1213,9 +1449,9 @@ async function renderConfiguratorEditor(id){
 
         ${
           !isPersiana
-            ? `<section class="panel configurator-section">
+            ? `<section id="cfg-trilhos-section" class="configurator-section cfg-trilhos-page-section">
                 <div class="panel-head">
-                  <h2>Trilhos, varões e acabamentos</h2>
+                  <h2>Cadastro de trilhos e varões</h2>
                   <button type="button" id="add-cfg-trilho" class="ghost-btn">+ Adicionar</button>
                 </div>
 
@@ -1283,6 +1519,7 @@ async function renderConfiguratorEditor(id){
   }
 
   bindCfgRows();
+  cfgPrepareOptionInputs(form);
 
   /*
     Quando o usuário cria/renomeia/remove um forro ou altera
@@ -1293,10 +1530,47 @@ async function renderConfiguratorEditor(id){
     e=>{
       if(
         e.target.matches(
-          '.cfg-forro-nome, .cfg-tecido-cores, .cfg-tecido-nome'
+          '.cfg-forro-nome'
+        )
+      ){
+        const oldName=
+          String(
+            e.target.dataset.originalOption||''
+          ).trim();
+
+        const newName=
+          e.target.value.trim();
+
+        if(
+          oldName &&
+          newName &&
+          oldName!==newName
+        ){
+          cfgRenameOptionGlobally(
+            form,
+            oldName,
+            newName,
+            e.target
+          );
+        }
+
+        if(newName){
+          e.target.dataset.originalOption=
+            newName;
+        }
+
+        refreshPages();
+        cfgPrepareOptionInputs(form);
+        return;
+      }
+
+      if(
+        e.target.matches(
+          '.cfg-tecido-cores, .cfg-tecido-nome'
         )
       ){
         refreshPages();
+        cfgPrepareOptionInputs(form);
       }
     }
   );
@@ -1310,7 +1584,10 @@ async function renderConfiguratorEditor(id){
         )
       ){
         setTimeout(
-          refreshPages,
+          ()=>{
+            refreshPages();
+            cfgPrepareOptionInputs(form);
+          },
           0
         );
       }
