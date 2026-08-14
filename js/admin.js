@@ -83,6 +83,24 @@ function pageForm(x={},products=[]){
     <div class="form-field full"><label>Nome da página</label><input name="title" value="${esc(x.title||'')}" placeholder="Ex.: Cortina de Trilho Suíço" required><small class="field-hint">Este será o título exibido ao cliente.</small></div>
     <div class="form-field"><label>Tipo de página</label><select name="pageType" id="page-type"><option value="produtos" ${type==='produtos'?'selected':''}>Vitrine de produtos</option><option value="conteudo" ${type==='conteudo'?'selected':''}>Página de conteúdo</option></select></div>
     <div class="form-field"><label>Endereço / slug</label><input name="slug" value="${esc(x.slug||'')}" placeholder="cortina-de-trilho-suico"></div>
+
+    <div class="form-field">
+      <label>Exibir no menu do site</label>
+      <select name="navGroup">
+        <option value="oculto" ${(x.nav_group||'oculto')==='oculto'?'selected':''}>Não exibir no menu</option>
+        <option value="cortinas_sob_medida" ${x.nav_group==='cortinas_sob_medida'?'selected':''}>Cortinas sob medida</option>
+        <option value="persianas_sob_medida" ${x.nav_group==='persianas_sob_medida'?'selected':''}>Persianas sob medida</option>
+        <option value="pronta_entrega" ${x.nav_group==='pronta_entrega'?'selected':''}>Pronta entrega</option>
+      </select>
+      <small class="field-hint">O nome exibido no menu será o mesmo “Nome da página” acima.</small>
+    </div>
+
+    <div class="form-field">
+      <label>Ordem no menu</label>
+      <input name="navOrder" type="number" step="1" value="${Number(x.nav_order??100)}">
+      <small class="field-hint">Menor número aparece primeiro.</small>
+    </div>
+
     <div class="form-field full"><label>Imagem de capa opcional</label><input name="heroImageUrl" value="${esc(x.hero_image_url||'')}" placeholder="https://..."></div>
     <div id="page-products-wrap" class="form-field full"><label>Produtos gerais desta página</label><div class="page-product-picker">${picker}</div><small class="field-hint">Esses produtos aparecem ao abrir a página antes de escolher uma medida.</small></div>
     <div id="page-measures-wrap" class="form-field full"><div class="measure-admin-head"><div><label>Medidas pré-definidas</label><small class="field-hint">Crie as medidas desta página e vincule os produtos corretos a cada uma.</small></div><button type="button" id="add-measure" class="ghost-btn">+ Adicionar medida</button></div><div id="measure-builder" class="measure-builder"></div><div class="form-field full custom-measure-field"><label>Destino para “Tenho uma medida específica”</label><input name="customMeasureUrl" value="${esc(x.custom_measure_url||'index.html#configurador')}" placeholder="index.html#configurador"><small class="field-hint">Pode apontar para o configurador sob medida.</small></div></div>
@@ -105,7 +123,7 @@ function pageForm(x={},products=[]){
   measures.forEach(renderMeasure);
   $('#add-measure').onclick=()=>renderMeasure({});
   const toggle=()=>{const productMode=typeEl.value==='produtos';productsWrap.style.display=productMode?'block':'none';measuresWrap.style.display=productMode?'block':'none';contentWrap.style.display=productMode?'none':'block'};typeEl.onchange=toggle;toggle();
-  f.onsubmit=async e=>{e.preventDefault();const fd=new FormData(f);const measurePayload=$$('.measure-admin-card',builder).map(row=>({id:row.dataset.measureId,label:$('.measure-label',row).value.trim(),value:$('.measure-value',row).value.trim(),productIds:$$('.measure-products input:checked',row).map(i=>i.value)})).filter(m=>m.label);const body={title:fd.get('title'),slug:fd.get('slug'),pageType:fd.get('pageType'),heroImageUrl:fd.get('heroImageUrl'),productIds:fd.getAll('productIds'),measures:measurePayload,customMeasureUrl:fd.get('customMeasureUrl'),contentHtml:fd.get('contentHtml'),seoTitle:fd.get('seoTitle'),seoDescription:fd.get('seoDescription'),active:fd.get('active')==='on'};await api(x.id?'pages/'+x.id:'pages',{method:x.id?'PUT':'POST',body:JSON.stringify(body)});toast('Página salva');closeModal();navigate('pages',true)};
+  f.onsubmit=async e=>{e.preventDefault();const fd=new FormData(f);const measurePayload=$$('.measure-admin-card',builder).map(row=>({id:row.dataset.measureId,label:$('.measure-label',row).value.trim(),value:$('.measure-value',row).value.trim(),productIds:$$('.measure-products input:checked',row).map(i=>i.value)})).filter(m=>m.label);const body={title:fd.get('title'),slug:fd.get('slug'),pageType:fd.get('pageType'),navGroup:fd.get('navGroup'),navOrder:Number(fd.get('navOrder')||100),heroImageUrl:fd.get('heroImageUrl'),productIds:fd.getAll('productIds'),measures:measurePayload,customMeasureUrl:fd.get('customMeasureUrl'),contentHtml:fd.get('contentHtml'),seoTitle:fd.get('seoTitle'),seoDescription:fd.get('seoDescription'),active:fd.get('active')==='on'};await api(x.id?'pages/'+x.id:'pages',{method:x.id?'PUT':'POST',body:JSON.stringify(body)});toast('Página salva');closeModal();navigate('pages',true)};
   if(x.id)$('#delete-page').onclick=async()=>{if(confirm('Excluir página?')){await api('pages/'+x.id,{method:'DELETE'});closeModal();navigate('pages',true)}}
 }
 
