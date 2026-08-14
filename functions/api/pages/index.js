@@ -29,15 +29,18 @@ export async function onRequestGet(context) {
           title,
           slug,
           page_type,
+          hero_image_url,
           measures_json,
           custom_measure_url,
+          nav_group,
+          nav_order,
           active,
           updated_at
         FROM pages
         WHERE
           store_id = 'salvatex'
           AND active = 1
-        ORDER BY updated_at DESC, title ASC
+        ORDER BY nav_order ASC, title ASC
       `).all();
 
 
@@ -87,6 +90,20 @@ export async function onRequestGet(context) {
             pageType:
               row.page_type ||
               "conteudo",
+
+            heroImageUrl:
+              row.hero_image_url ||
+              "",
+
+            navGroup:
+              row.nav_group ||
+              "oculto",
+
+            navOrder:
+              Number(
+                row.nav_order ??
+                100
+              ),
 
             measures,
 
