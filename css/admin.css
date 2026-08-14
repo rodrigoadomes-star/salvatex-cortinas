@@ -42,3 +42,55 @@
 @media(max-width:600px){.configurator-list #configurator-switcher{grid-template-columns:1fr}}
 
 .product-media-upload{max-width:420px}.product-media-upload .media-preview{min-height:180px}.product-media-upload .media-preview img{width:100%;height:220px;object-fit:contain;background:#f6f7f8}
+
+
+/* Disponibilidade / estoque por cor */
+.color-stock-wrap{
+  margin-top:12px;
+  padding:12px;
+  border:1px solid var(--line);
+  border-radius:10px;
+  background:#fafafa;
+}
+.color-stock-title{
+  margin-bottom:8px;
+  font-size:11px;
+  font-weight:700;
+}
+.cfg-color-stock-list{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+}
+.cfg-color-stock-item{
+  display:flex;
+  align-items:center;
+  gap:7px;
+  padding:8px 10px;
+  border:1px solid #dfe4e8;
+  border-radius:9px;
+  background:#fff;
+  cursor:pointer;
+  user-select:none;
+}
+.cfg-color-stock-item input{
+  width:16px;
+  height:16px;
+  margin:0;
+}
+.cfg-color-stock-item span{
+  font-size:11px;
+  font-weight:600;
+}
+.cfg-color-stock-item small{
+  font-size:9px;
+  font-weight:700;
+  color:#2d7a46;
+}
+.cfg-color-stock-item.is-out{
+  opacity:.68;
+  background:#f3f3f3;
+}
+.cfg-color-stock-item.is-out small{
+  color:#a23c3c;
+}
