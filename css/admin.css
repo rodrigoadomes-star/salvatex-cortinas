@@ -109,7 +109,7 @@
 
 .cfg-option-nav{
   position:sticky;
-  top:18px;
+  top:70px;
   display:flex;
   flex-direction:column;
   gap:6px;
@@ -119,6 +119,7 @@
   background:#f7f8f9;
   max-height:calc(100vh - 90px);
   overflow:auto;
+  z-index: 20;
 }
 
 .cfg-option-tab{
