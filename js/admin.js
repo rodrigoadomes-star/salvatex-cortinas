@@ -504,10 +504,10 @@ function bindLayoutSectionRows(container){
 }
 
 async function renderLayout(){
-  const d=await api('config');
+  const d=await api('layout');
   const current=mergeLayout(
     cloneLayout(DEFAULT_LAYOUT_CONFIG),
-    d.config?.layout||{}
+    d.layout||{}
   );
 
   const sections=[...(current.home.sections||[])]
@@ -906,14 +906,41 @@ async function renderLayout(){
       btn.disabled=true;
       btn.textContent='Publicando...';
 
-      await api('config',{
-        method:'PUT',
-        body:JSON.stringify({
-          config:{layout}
-        })
-      });
+      const saved=
+        await api('layout',{
+          method:'PUT',
+          body:JSON.stringify({
+            layout
+          })
+        });
+
+      if(
+        !saved?.ok ||
+        !saved?.layout
+      ){
+        throw new Error(
+          saved?.message ||
+          'O servidor não confirmou o salvamento do layout.'
+        );
+      }
 
       toast('Layout publicado com sucesso');
+
+      /*
+        Recarrega o layout salvo no D1 para confirmar
+        que a alteração realmente persistiu.
+      */
+      const check=
+        await api('layout');
+
+      if(
+        !check?.ok ||
+        !check?.layout
+      ){
+        throw new Error(
+          'O layout foi enviado, mas não foi possível confirmar a gravação no D1.'
+        );
+      }
     }catch(err){
       alert(err.message);
     }finally{
