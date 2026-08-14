@@ -1,5 +1,19 @@
 import { json, requireAdmin, clean, slugify, logAdmin } from "../_auth.js";
 
+const PAGE_TYPES=new Set([
+  'conteudo',
+  'produtos',
+  'configurador_wave',
+  'configurador_prega_macho',
+  'configurador_ilhos',
+  'configurador_persiana'
+]);
+
+function normalizePageType(value){
+  const type=String(value||'conteudo').trim();
+  return PAGE_TYPES.has(type)?type:'conteudo';
+}
+
 function normalizeProductIds(value){
   if(!Array.isArray(value)) return [];
   return [...new Set(value.map(v=>clean(v,160)).filter(Boolean))].slice(0,100);
@@ -20,7 +34,7 @@ export async function onRequestPut(context){
   let b={}; try{b=await context.request.json()}catch{return json({ok:false,message:"JSON inválido"},400)}
   const id=context.params.id,now=new Date().toISOString(),title=clean(b.title,240);
   if(!title) return json({ok:false,message:"Título obrigatório"},400);
-  const pageType=b.pageType==='produtos'?'produtos':'conteudo';
+  const pageType=normalizePageType(b.pageType);
   const productIds=normalizeProductIds(b.productIds);
   const measures=normalizeMeasures(b.measures);
   await context.env.DB.prepare(`
