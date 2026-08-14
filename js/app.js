@@ -217,31 +217,207 @@ function semCache(src) {
 // MÍDIA CONFIGURADA PELO PAINEL ADMIN
 // ============================================================
 
-function obterMidiaAdmin(tecido, modelo, cor, forro) {
-  const lista = Array.isArray(CONFIG.mediaConfigurador)
-    ? CONFIG.mediaConfigurador
-    : [];
+function normalizarChaveMidia(valor) {
 
-  return lista.find((item) =>
-    String(item.tecido || "") === String(tecido || "") &&
-    String(item.modelo || "Wave") === String(modelo || "Wave") &&
-    String(item.cor || "") === String(cor || "") &&
-    String(item.forro || "") === String(forro || "")
-  ) || null;
+  return String(
+    valor || ""
+  )
+    .normalize("NFD")
+    .replace(
+      /[\u0300-\u036f]/g,
+      ""
+    )
+    .toLowerCase()
+    .replace(
+      /[^a-z0-9%]+/g,
+      " "
+    )
+    .trim()
+    .replace(
+      /\s+/g,
+      " "
+    );
+
 }
 
-function obterCapaCorAdmin(tecido, cor) {
-  const lista = Array.isArray(CONFIG.mediaConfigurador)
-    ? CONFIG.mediaConfigurador
-    : [];
-  const item = lista.find((x) =>
-    String(x.tecido || "") === String(tecido || "") &&
-    String(x.cor || "") === String(cor || "") &&
-    (x.capa || (Array.isArray(x.imagens) && x.imagens[0]))
+
+function normalizarForroMidia(valor) {
+
+  return normalizarChaveMidia(
+    valor
+  )
+    /*
+      O nome comercial pode variar entre:
+      "Blackout 80%"
+      "Forro Blackout 80%"
+      "Blackout 80% vedação"
+
+      Para a mídia, essas descrições representam
+      a mesma opção.
+    */
+    .replace(
+      /\bforro\b/g,
+      ""
+    )
+    .replace(
+      /\bvedacao\b/g,
+      ""
+    )
+    .replace(
+      /\s+/g,
+      " "
+    )
+    .trim();
+
+}
+
+
+function obterMidiaAdmin(
+  tecido,
+  modelo,
+  cor,
+  forro
+) {
+
+  const lista =
+    Array.isArray(
+      CONFIG.mediaConfigurador
+    )
+      ? CONFIG.mediaConfigurador
+      : [];
+
+
+  const tecidoBusca =
+    normalizarChaveMidia(
+      tecido
+    );
+
+
+  const modeloBusca =
+    normalizarChaveMidia(
+      modelo || "Wave"
+    );
+
+
+  const corBusca =
+    normalizarChaveMidia(
+      cor
+    );
+
+
+  const forroBusca =
+    normalizarForroMidia(
+      forro
+    );
+
+
+  return (
+    lista.find(
+      (item) => {
+
+        const tecidoItem =
+          normalizarChaveMidia(
+            item.tecido
+          );
+
+
+        const modeloItem =
+          normalizarChaveMidia(
+            item.modelo ||
+            "Wave"
+          );
+
+
+        const corItem =
+          normalizarChaveMidia(
+            item.cor
+          );
+
+
+        const forroItem =
+          normalizarForroMidia(
+            item.forro
+          );
+
+
+        return (
+          tecidoItem ===
+            tecidoBusca &&
+          modeloItem ===
+            modeloBusca &&
+          corItem ===
+            corBusca &&
+          forroItem ===
+            forroBusca
+        );
+
+      }
+    ) ||
+    null
   );
+
+}
+
+
+function obterCapaCorAdmin(
+  tecido,
+  cor
+) {
+
+  const lista =
+    Array.isArray(
+      CONFIG.mediaConfigurador
+    )
+      ? CONFIG.mediaConfigurador
+      : [];
+
+
+  const tecidoBusca =
+    normalizarChaveMidia(
+      tecido
+    );
+
+
+  const corBusca =
+    normalizarChaveMidia(
+      cor
+    );
+
+
+  const item =
+    lista.find(
+      (x) =>
+
+        normalizarChaveMidia(
+          x.tecido
+        ) ===
+          tecidoBusca &&
+
+        normalizarChaveMidia(
+          x.cor
+        ) ===
+          corBusca &&
+
+        (
+          x.capa ||
+          (
+            Array.isArray(
+              x.imagens
+            ) &&
+            x.imagens[0]
+          )
+        )
+    );
+
+
   return item
-    ? (item.capa || item.imagens?.[0] || "")
+    ? (
+        item.capa ||
+        item.imagens?.[0] ||
+        ""
+      )
     : "";
+
 }
 
 // ============================================================
@@ -467,7 +643,11 @@ async function carregarFotosCarrossel() {
 
 
   // ========================================================
-  // REGRA DE MIGRAÇÃO
+  // REGRA DO CARROSSEL
+  //
+  // A cor selecionada aparece primeiro.
+  // Depois mostramos também as demais cores disponíveis,
+  // sempre identificadas pelo nome da cor no carrossel.
   //
   // Cada COR é tratada separadamente:
   //
