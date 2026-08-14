@@ -359,3 +359,38 @@
   background:#7c2c2c;
   color:#fff;
 }
+
+
+/* ============================================================
+   CONFIGURADORES — PÁGINA ÚNICA DE TRILHOS E VARÕES
+   ============================================================ */
+
+.cfg-trilhos-page-section{
+  margin:0;
+  padding:0;
+  border:0;
+  box-shadow:none;
+  background:transparent;
+}
+
+.cfg-trilhos-page-section > .panel-head{
+  margin-bottom:14px;
+}
+
+#cfg-trilhos-host{
+  min-width:0;
+}
+
+#cfg-trilhos-host .configurator-stack{
+  gap:10px;
+}
+
+#cfg-trilhos-host .cfg-trilho-row{
+  background:#fff;
+}
+
+@media(max-width:900px){
+  .cfg-option-tab[data-option-tab="trilhos-varoes"]{
+    flex:0 0 auto;
+  }
+}
