@@ -430,19 +430,950 @@ function collectConfigurator(form,base,id){
   const fd=new FormData(form),modo=fd.get('modoCalculo')||'metro_tecido',tecidos={},trilhos={},midia=[];
   $$('.cfg-tecido-card',form).forEach(card=>{const nome=$('.cfg-tecido-nome',card).value.trim();if(!nome)return;const forros={},forroDescricoes={};$$('.cfg-forro-row',card).forEach(r=>{const f=$('.cfg-forro-nome',r).value.trim();if(f){forros[f]=Number($('.cfg-forro-preco',r).value||0);forroDescricoes[f]=$('.cfg-forro-desc',r).value.trim()}});const cores=$('.cfg-tecido-cores',card).value.split(',').map(x=>x.trim()).filter(Boolean);tecidos[nome]={ativo:true,descricao:$('.cfg-tecido-desc',card).value.trim(),cores,coresAtivas:collectColorStock(card,cores),forros,forroDescricoes,precoBase:Number($('.cfg-tecido-base',card)?.value||0)}});
   $$('.cfg-trilho-row',form).forEach(r=>{const nome=$('.cfg-trilho-nome',r).value.trim();if(nome)trilhos[nome]={valorMetro:Number($('.cfg-trilho-metro',r).value||0),minimo:Number($('.cfg-trilho-minimo',r).value||0),descricao:$('.cfg-trilho-desc',r).value.trim()}});
-  $$('.cfg-midia-row',form).forEach(r=>{const tecido=$('.cfg-midia-tecido',r).value.trim(),cor=$('.cfg-midia-cor',r).value.trim(),forro=$('.cfg-midia-forro',r).value.trim();if(!tecido&&!cor&&!forro&&!$('.cfg-midia-capa',r).value&&!$('.cfg-midia-video',r).value)return;midia.push({tecido,modelo:fd.get('modelo')||base.modelo||'',cor,forro,capa:$('.cfg-midia-capa',r).value.trim(),imagens:$('.cfg-midia-imagens',r).value.split('\n').map(x=>x.trim()).filter(Boolean),video:$('.cfg-midia-video',r).value.trim()})});
+  cfgSyncMediaStateFromDom();
+  CONFIG_MEDIA_STATE.forEach(item=>{
+    const x=cfgCloneMediaItem(item);
+    if(x.tecido||x.cor||x.forro||x.capa||x.video||x.imagens.length){
+      x.modelo=fd.get('modelo')||base.modelo||x.modelo||'';
+      midia.push(x);
+    }
+  });
   const faixas=[0,1,2,3].map(i=>({ate:Number(fd.get(`faixa${i+1}Ate`)||0),tamanho:Number(fd.get(`faixa${i+1}Barra`)||0)})).filter(x=>x.ate>0&&x.tamanho>0);
   const persiana={...(base.persiana||{}),areaMinima:Number(fd.get('areaMinima')||base.persiana?.areaMinima||0.6),ladosComando:String(fd.get('ladosComando')||'').split(',').map(x=>x.trim()).filter(Boolean),voltagens:String(fd.get('voltagens')||'').split(',').map(x=>x.trim()).filter(Boolean),acionamentos:String(fd.get('acionamentos')||'').split('\n').map(l=>l.trim()).filter(Boolean).map(l=>{const [nome,adicional,descricao]=l.split('|').map(x=>x.trim());return {nome,adicional:Number(adicional||0),descricao:descricao||''}})};
   return {...base,id,nome:fd.get('nome'),modelo:fd.get('modelo'),descricao:fd.get('descricao'),ativo:fd.get('ativo')==='on',tipo:id==='persiana'?'persiana':'cortina',modoCalculo:modo,medidas:{larguraMinima:Number(fd.get('larguraMinima')||.5),larguraMaxima:Number(fd.get('larguraMaxima')||12),alturaMinima:Number(fd.get('alturaMinima')||.5),alturaEntradaMaxima:Number(fd.get('alturaEntradaMaxima')||5),calculoMaximo:Number(fd.get('calculoMaximo')||3.2),inicioAcrescimo:Number(fd.get('inicioAcrescimo')||999),acrescimoPercentual:Number(fd.get('acrescimoPercentual')||0),acimaMaximo:{modo:'consulta',texto:fd.get('textoAcimaMaximo'),textoBotao:fd.get('textoBotaoAcimaMaximo'),permitirCarrinho:fd.get('permitirCarrinho')==='on'}},barra:{faixas,acimaInicio:Number(fd.get('barraAcimaInicio')||20)},franzimentos:base.franzimentos||[],tecidos,trilhos,persiana,midia};
 }
+
+let CONFIG_MEDIA_STATE=[];
+let CONFIG_CURRENT_DATA=null;
+
+function cfgMediaKey(tecido,cor,forro){
+  return [
+    String(tecido||'').trim(),
+    String(cor||'').trim(),
+    String(forro||'').trim()
+  ].join('|||');
+}
+
+function cfgCloneMediaItem(item={}){
+  return {
+    tecido:String(item.tecido||''),
+    modelo:String(item.modelo||''),
+    cor:String(item.cor||''),
+    forro:String(item.forro||''),
+    capa:String(item.capa||''),
+    imagens:Array.isArray(item.imagens)?[...item.imagens]:[],
+    video:String(item.video||'')
+  };
+}
+
+function cfgInitMediaState(cfg){
+  CONFIG_MEDIA_STATE=
+    (Array.isArray(cfg?.midia)?cfg.midia:[])
+      .map(cfgCloneMediaItem);
+}
+
+function cfgFindMedia(tecido,cor,forro,modelo=''){
+  const key=cfgMediaKey(tecido,cor,forro);
+  let item=CONFIG_MEDIA_STATE.find(x=>cfgMediaKey(x.tecido,x.cor,x.forro)===key);
+
+  if(!item){
+    item={
+      tecido,
+      modelo,
+      cor,
+      forro,
+      capa:'',
+      imagens:[],
+      video:''
+    };
+    CONFIG_MEDIA_STATE.push(item);
+  }
+
+  return item;
+}
+
+function cfgSyncMediaStateFromDom(){
+  $$('.cfg-option-media-card').forEach(card=>{
+    const item=cfgFindMedia(
+      card.dataset.tecido||'',
+      card.dataset.cor||'',
+      card.dataset.forro||'',
+      card.dataset.modelo||''
+    );
+
+    item.capa=
+      $('.cfg-tab-capa',card)?.value.trim()||'';
+
+    item.imagens=
+      String($('.cfg-tab-imagens',card)?.value||'')
+        .split('\n')
+        .map(x=>x.trim())
+        .filter(Boolean);
+
+    item.video=
+      $('.cfg-tab-video',card)?.value.trim()||'';
+  });
+}
+
+function cfgForroOptionsFromForm(form){
+  const names=new Set();
+
+  $$('.cfg-tecido-card',form).forEach(card=>{
+    $$('.cfg-forro-nome',card).forEach(inp=>{
+      const nome=inp.value.trim();
+      if(nome)names.add(nome);
+    });
+  });
+
+  return [...names];
+}
+
+function cfgCurrentTissuesFromForm(form){
+  const list=[];
+
+  $$('.cfg-tecido-card',form).forEach(card=>{
+    const nome=$('.cfg-tecido-nome',card)?.value.trim();
+    if(!nome)return;
+
+    const cores=
+      String($('.cfg-tecido-cores',card)?.value||'')
+        .split(',')
+        .map(x=>x.trim())
+        .filter(Boolean);
+
+    const forros=
+      $$('.cfg-forro-nome',card)
+        .map(x=>x.value.trim())
+        .filter(Boolean);
+
+    const estoque={};
+    $$('.cfg-cor-estoque',card).forEach(inp=>{
+      estoque[String(inp.dataset.cor||'').trim()]=Boolean(inp.checked);
+    });
+
+    cores.forEach(cor=>{
+      if(!(cor in estoque))estoque[cor]=true;
+    });
+
+    list.push({
+      nome,
+      cores,
+      forros,
+      estoque,
+      card
+    });
+  });
+
+  return list;
+}
+
+function cfgOptionCardHtml(tecido,cor,forro,modelo,media,comEstoque){
+  const imgs=Array.isArray(media.imagens)?media.imagens:[];
+
+  return `<div class="cfg-option-media-card" data-tecido="${esc(tecido)}" data-cor="${esc(cor)}" data-forro="${esc(forro)}" data-modelo="${esc(modelo||'')}">
+    <div class="cfg-option-card-head">
+      <div>
+        <strong>${esc(tecido)} · ${esc(cor)}</strong>
+        <small>${esc(forro)}</small>
+      </div>
+
+      <label class="cfg-option-stock ${comEstoque?'':'is-out'}">
+        <input type="checkbox" class="cfg-tab-stock" ${comEstoque?'checked':''}>
+        <span>${comEstoque?'Com estoque':'Sem estoque'}</span>
+      </label>
+    </div>
+
+    <div class="cfg-option-media-grid">
+      <div class="media-upload-box">
+        <strong>Imagem de capa do card</strong>
+        <p class="cfg-media-help">Usada somente no card da cor. Não entra no carrossel.</p>
+        <input type="hidden" class="cfg-tab-capa" value="${esc(media.capa||'')}">
+        <div class="media-preview cfg-tab-capa-preview">
+          ${media.capa?`<img src="${esc(media.capa)}">`:'<span>Sem capa</span>'}
+        </div>
+        <label class="upload-btn">Enviar capa
+          <input type="file" class="cfg-tab-upload-capa" accept="image/jpeg,image/png,image/webp,image/gif">
+        </label>
+      </div>
+
+      <div class="media-upload-box">
+        <strong>Fotos da galeria</strong>
+        <p class="cfg-media-help">Estas fotos aparecem no carrossel do produto.</p>
+        <textarea class="cfg-tab-imagens" hidden>${esc(imgs.join('\n'))}</textarea>
+        <div class="media-thumbs cfg-tab-galeria-preview">
+          ${imgs.map(u=>`<img src="${esc(u)}">`).join('')||'<span>Sem fotos</span>'}
+        </div>
+        <label class="upload-btn">Adicionar fotos
+          <input type="file" class="cfg-tab-upload-galeria" accept="image/jpeg,image/png,image/webp,image/gif" multiple>
+        </label>
+      </div>
+
+      <div class="media-upload-box">
+        <strong>Vídeo</strong>
+        <p class="cfg-media-help">Vídeo opcional desta combinação.</p>
+        <input type="hidden" class="cfg-tab-video" value="${esc(media.video||'')}">
+        <div class="media-preview cfg-tab-video-preview">
+          ${media.video?`<video src="${esc(media.video)}" controls muted></video>`:'<span>Sem vídeo</span>'}
+        </div>
+        <label class="upload-btn">Enviar vídeo
+          <input type="file" class="cfg-tab-upload-video" accept="video/mp4,video/webm,video/quicktime">
+        </label>
+      </div>
+    </div>
+
+    <small class="upload-status"></small>
+  </div>`;
+}
+
+function cfgBuildOptionPages(form,cfg,activeTab='geral'){
+  cfgSyncMediaStateFromDom();
+
+  const nav=$('#cfg-option-nav');
+  const pages=$('#cfg-option-pages');
+
+  if(!nav||!pages)return;
+
+  const options=cfgForroOptionsFromForm(form);
+  const tissues=cfgCurrentTissuesFromForm(form);
+  const modelo=String(form.elements.modelo?.value||cfg.modelo||cfg.nome||'');
+
+  const validTabs=new Set(['geral',...options]);
+  if(!validTabs.has(activeTab))activeTab='geral';
+
+  nav.innerHTML=`
+    <button type="button" class="cfg-option-tab ${activeTab==='geral'?'active':''}" data-option-tab="geral">Geral</button>
+    ${options.map(op=>`
+      <button type="button" class="cfg-option-tab ${activeTab===op?'active':''}" data-option-tab="${esc(op)}">${esc(op)}</button>
+    `).join('')}
+  `;
+
+  pages.innerHTML=`
+    <div class="cfg-option-page ${activeTab==='geral'?'active':''}" data-option-page="geral">
+      <div id="cfg-general-host"></div>
+    </div>
+
+    ${options.map(op=>{
+      const cards=[];
+
+      tissues.forEach(t=>{
+        if(!t.forros.includes(op))return;
+
+        t.cores.forEach(cor=>{
+          const media=cfgFindMedia(t.nome,cor,op,modelo);
+          cards.push(
+            cfgOptionCardHtml(
+              t.nome,
+              cor,
+              op,
+              modelo,
+              media,
+              t.estoque[cor]!==false
+            )
+          );
+        });
+      });
+
+      return `<div class="cfg-option-page ${activeTab===op?'active':''}" data-option-page="${esc(op)}">
+        <section class="panel cfg-option-panel">
+          <div class="panel-head">
+            <div>
+              <h2>${esc(op)}</h2>
+              <p>Cores, estoque, capa, galeria e vídeo desta opção.</p>
+            </div>
+          </div>
+          <div class="cfg-option-cards">
+            ${cards.join('')||'<div class="empty">Nenhuma cor cadastrada para esta opção.</div>'}
+          </div>
+        </section>
+      </div>`;
+    }).join('')}
+  `;
+
+  bindCfgOptionTabs(form,cfg);
+  bindCfgOptionMedia(form,cfg);
+}
+
+function cfgMoveGeneralContent(form){
+  const host=$('#cfg-general-host');
+  const source=$('#cfg-general-source');
+
+  if(host&&source){
+    host.appendChild(source);
+  }
+}
+
+function bindCfgOptionTabs(form,cfg){
+  $$('.cfg-option-tab',form).forEach(btn=>{
+    btn.onclick=()=>{
+      cfgSyncMediaStateFromDom();
+
+      const tab=btn.dataset.optionTab||'geral';
+
+      $$('.cfg-option-tab',form).forEach(x=>
+        x.classList.toggle('active',x===btn)
+      );
+
+      $$('.cfg-option-page',form).forEach(page=>
+        page.classList.toggle(
+          'active',
+          page.dataset.optionPage===tab
+        )
+      );
+    };
+  });
+}
+
+function cfgFindUnderlyingStock(form,tecido,cor){
+  const card=
+    $$('.cfg-tecido-card',form)
+      .find(c=>
+        $('.cfg-tecido-nome',c)?.value.trim()===tecido
+      );
+
+  if(!card)return null;
+
+  return $$('.cfg-cor-estoque',card)
+    .find(inp=>
+      String(inp.dataset.cor||'').trim()===cor
+    ) || null;
+}
+
+async function cfgSaveCurrent(form,cfg,id,showToast=false){
+  cfgSyncMediaStateFromDom();
+
+  const data=
+    collectConfigurator(
+      form,
+      cfg,
+      id
+    );
+
+  data.midia=
+    CONFIG_MEDIA_STATE
+      .filter(item=>
+        item.tecido ||
+        item.cor ||
+        item.forro ||
+        item.capa ||
+        item.video ||
+        item.imagens?.length
+      )
+      .map(cfgCloneMediaItem);
+
+  const payload=
+    id==='wave'
+      ? {wave:data}
+      : {configurator:data};
+
+  const res=
+    await api(
+      cfgEndpoint(id),
+      {
+        method:'PUT',
+        body:JSON.stringify(payload)
+      }
+    );
+
+  CONFIG_CURRENT_DATA=
+    res.configurator ||
+    res.wave ||
+    data;
+
+  if(showToast){
+    toast('Configurador salvo com sucesso');
+  }
+
+  return res;
+}
+
+function bindCfgOptionMedia(form,cfg){
+  $$('.cfg-option-media-card',form).forEach(card=>{
+    const tecido=card.dataset.tecido||'';
+    const cor=card.dataset.cor||'';
+    const forro=card.dataset.forro||'';
+    const status=$('.upload-status',card);
+
+    const stock=$('.cfg-tab-stock',card);
+
+    if(stock){
+      stock.onchange=async()=>{
+        const label=stock.closest('.cfg-option-stock');
+        label?.classList.toggle('is-out',!stock.checked);
+        const span=label?.querySelector('span');
+        if(span)span.textContent=stock.checked?'Com estoque':'Sem estoque';
+
+        const underlying=
+          cfgFindUnderlyingStock(
+            form,
+            tecido,
+            cor
+          );
+
+        if(underlying){
+          underlying.checked=stock.checked;
+          underlying.dispatchEvent(new Event('change'));
+        }
+
+        try{
+          status.textContent='Salvando disponibilidade...';
+          await cfgSaveCurrent(form,cfg,ACTIVE_CONFIGURATOR_ID,false);
+          status.textContent='Disponibilidade salva.';
+        }catch(e){
+          status.textContent=e.message;
+          alert(e.message);
+        }
+      };
+    }
+
+    const capa=$('.cfg-tab-upload-capa',card);
+
+    if(capa){
+      capa.onchange=async()=>{
+        const file=capa.files?.[0];
+        if(!file)return;
+
+        try{
+          status.textContent='Enviando capa...';
+
+          const d=
+            await uploadAdminMedia(
+              file,
+              {
+                configurator:ACTIVE_CONFIGURATOR_ID,
+                tecido,
+                cor,
+                forro
+              }
+            );
+
+          $('.cfg-tab-capa',card).value=d.url;
+          $('.cfg-tab-capa-preview',card).innerHTML=`<img src="${esc(d.url)}">`;
+
+          cfgSyncMediaStateFromDom();
+
+          await cfgSaveCurrent(form,cfg,ACTIVE_CONFIGURATOR_ID,false);
+
+          status.textContent='Capa enviada e salva.';
+        }catch(e){
+          status.textContent=e.message;
+          alert(e.message);
+        }
+      };
+    }
+
+    const galeria=$('.cfg-tab-upload-galeria',card);
+
+    if(galeria){
+      galeria.onchange=async()=>{
+        const files=[...(galeria.files||[])];
+        if(!files.length)return;
+
+        const hidden=$('.cfg-tab-imagens',card);
+
+        const urls=
+          String(hidden.value||'')
+            .split('\n')
+            .map(x=>x.trim())
+            .filter(Boolean);
+
+        try{
+          for(const file of files){
+            status.textContent=`Enviando ${file.name}...`;
+
+            const d=
+              await uploadAdminMedia(
+                file,
+                {
+                  configurator:ACTIVE_CONFIGURATOR_ID,
+                  tecido,
+                  cor,
+                  forro
+                }
+              );
+
+            urls.push(d.url);
+          }
+
+          hidden.value=urls.join('\n');
+
+          $('.cfg-tab-galeria-preview',card).innerHTML=
+            urls.map(u=>`<img src="${esc(u)}">`).join('');
+
+          cfgSyncMediaStateFromDom();
+
+          await cfgSaveCurrent(form,cfg,ACTIVE_CONFIGURATOR_ID,false);
+
+          status.textContent='Galeria enviada e salva.';
+        }catch(e){
+          status.textContent=e.message;
+          alert(e.message);
+        }
+      };
+    }
+
+    const video=$('.cfg-tab-upload-video',card);
+
+    if(video){
+      video.onchange=async()=>{
+        const file=video.files?.[0];
+        if(!file)return;
+
+        try{
+          status.textContent='Enviando vídeo...';
+
+          const d=
+            await uploadAdminMedia(
+              file,
+              {
+                configurator:ACTIVE_CONFIGURATOR_ID,
+                tecido,
+                cor,
+                forro
+              }
+            );
+
+          $('.cfg-tab-video',card).value=d.url;
+
+          $('.cfg-tab-video-preview',card).innerHTML=
+            `<video src="${esc(d.url)}" controls muted></video>`;
+
+          cfgSyncMediaStateFromDom();
+
+          await cfgSaveCurrent(form,cfg,ACTIVE_CONFIGURATOR_ID,false);
+
+          status.textContent='Vídeo enviado e salvo.';
+        }catch(e){
+          status.textContent=e.message;
+          alert(e.message);
+        }
+      };
+    }
+  });
+}
+
+function cfgRefreshOptionPages(form,cfg,keepTab=true){
+  const active=
+    keepTab
+      ? $('.cfg-option-tab.active',form)?.dataset.optionTab||'geral'
+      : 'geral';
+
+  const general=$('#cfg-general-source');
+
+  cfgBuildOptionPages(
+    form,
+    cfg,
+    active
+  );
+
+  if(general){
+    $('#cfg-general-host')?.appendChild(general);
+  }
+}
+
 async function renderConfiguratorEditor(id){
-  ACTIVE_CONFIGURATOR_ID=id; let d; try{d=await api(cfgEndpoint(id))}catch(e){if(id==='wave')throw e;d={configurator:{id,nome:CONFIGURATOR_TYPES.find(x=>x.id===id)?.nome||id,ativo:false,tecidos:{},trilhos:{},midia:[]}}}
-  const w=normalizeConfiguratorResponse(d,id),m=w.medidas||{},b=w.barra||{},faixas=b.faixas||[],isPersiana=id==='persiana';
-  $('#configurator-editor').innerHTML=`<form id="cfg-form"><section class="panel configurator-section"><div class="panel-head"><div><h2>${esc(w.nome||'Configurador')}</h2><p>Descrição, regras, preços, opções e mídia administráveis sem alterar código.</p></div><button class="primary-btn">Salvar</button></div><div class="form-grid"><div class="form-field"><label>Nome exibido</label><input name="nome" value="${esc(w.nome||'')}"></div><div class="form-field"><label>Modelo</label><input name="modelo" value="${esc(w.modelo||'')}"></div><div class="form-field full"><label>Descrição exibida no site</label><textarea name="descricao" rows="3" placeholder="Descreva este produto sob medida">${esc(w.descricao||'')}</textarea></div><div class="form-field"><label>Modo de cálculo</label><select name="modoCalculo"><option value="metro_tecido" ${!isPersiana?'selected':''}>Metro de tecido</option><option value="area" ${isPersiana?'selected':''}>Área (m²)</option></select></div><div class="form-field"><label><input type="checkbox" name="ativo" ${w.ativo!==false?'checked':''}> Publicado / ativo</label></div></div></section><section class="panel configurator-section"><div class="panel-head"><h2>Medidas e limites</h2></div><div class="form-grid"><div class="form-field"><label>Largura mínima (m)</label><input name="larguraMinima" type="number" step="0.01" value="${m.larguraMinima??.5}"></div><div class="form-field"><label>Largura máxima (m)</label><input name="larguraMaxima" type="number" step="0.01" value="${m.larguraMaxima??12}"></div><div class="form-field"><label>Altura mínima (m)</label><input name="alturaMinima" type="number" step="0.01" value="${m.alturaMinima??.5}"></div><div class="form-field"><label>Altura máxima digitável (m)</label><input name="alturaEntradaMaxima" type="number" step="0.01" value="${m.alturaEntradaMaxima??5}"></div><div class="form-field"><label>Calcular automaticamente até (m)</label><input name="calculoMaximo" type="number" step="0.01" value="${m.calculoMaximo??3.2}"></div><div class="form-field"><label>Acréscimo acima de (m)</label><input name="inicioAcrescimo" type="number" step="0.01" value="${m.inicioAcrescimo??2.8}"></div><div class="form-field"><label>Acréscimo (%)</label><input name="acrescimoPercentual" type="number" step="0.01" value="${m.acrescimoPercentual??25}"></div><div class="form-field full"><label>Mensagem fora do cálculo automático</label><input name="textoAcimaMaximo" value="${esc(m.acimaMaximo?.texto||'Medida sob consulta.')}" ></div><div class="form-field"><label>Texto do botão</label><input name="textoBotaoAcimaMaximo" value="${esc(m.acimaMaximo?.textoBotao||'Solicitar orçamento')}"></div><div class="form-field"><label><input name="permitirCarrinho" type="checkbox" ${m.acimaMaximo?.permitirCarrinho?'checked':''}> Permitir carrinho fora do limite</label></div></div></section>${!isPersiana?`<section class="panel configurator-section"><div class="panel-head"><h2>Barra da cortina</h2></div><div class="configurator-rules-grid">${[0,1,2,3].map(i=>`<div class="configurator-rule"><span>Faixa ${i+1}</span><input name="faixa${i+1}Ate" type="number" step="0.01" value="${faixas[i]?.ate??''}" placeholder="Até (m)"><input name="faixa${i+1}Barra" type="number" value="${faixas[i]?.tamanho??''}" placeholder="Barra (cm)"></div>`).join('')}</div><div class="form-field" style="max-width:280px;margin-top:12px"><label>Barra acima do início (cm)</label><input name="barraAcimaInicio" type="number" value="${b.acimaInicio??20}"></div></section>`:`<section class="panel configurator-section"><div class="panel-head"><h2>Regras da persiana</h2></div><div class="form-grid"><div class="form-field"><label>Área mínima cobrada (m²)</label><input name="areaMinima" type="number" step="0.01" value="${Number(w.persiana?.areaMinima||.6)}"></div><div class="form-field"><label>Lados do comando</label><input name="ladosComando" value="${esc((w.persiana?.ladosComando||['Direito','Esquerdo']).join(', '))}"></div><div class="form-field"><label>Voltagens</label><input name="voltagens" value="${esc((w.persiana?.voltagens||['110V','220V','Bivolt']).join(', '))}"></div><div class="form-field full"><label>Acionamentos — nome | adicional R$ | descrição (um por linha)</label><textarea name="acionamentos" rows="4">${esc((w.persiana?.acionamentos||[]).map(x=>`${x.nome||''} | ${Number(x.adicional||0)} | ${x.descricao||''}`).join('\n'))}</textarea></div></div></section>`}<section class="panel configurator-section"><div class="panel-head"><div><h2>Tecidos, cores e preços</h2><p>${isPersiana?'Preço base por m² e opcionais.':'Preço por metro de tecido e descrições.'}</p></div><button type="button" id="add-cfg-tecido" class="ghost-btn">+ Adicionar tecido</button></div><div id="cfg-tecidos" class="configurator-stack">${Object.entries(w.tecidos||{}).map(([n,t])=>cfgTecidoCard(n,t,w.modoCalculo|| (isPersiana?'area':'metro_tecido'))).join('')}</div></section>${!isPersiana?`<section class="panel configurator-section"><div class="panel-head"><h2>Trilhos, varões e acabamentos</h2><button type="button" id="add-cfg-trilho" class="ghost-btn">+ Adicionar</button></div><div id="cfg-trilhos" class="configurator-stack">${Object.entries(w.trilhos||{}).map(([n,x])=>cfgTrilhoRow(n,x)).join('')}</div></section>`:''}<section class="panel configurator-section"><div class="panel-head"><div><h2>Fotos e vídeos</h2><p>Upload direto do computador para o R2. O nome e a extensão original do arquivo não precisam seguir nenhum padrão.</p></div><button type="button" id="add-cfg-midia" class="ghost-btn">+ Nova combinação</button></div><div id="cfg-midias" class="configurator-stack">${(w.midia||[]).map(cfgMidiaRow).join('')}</div></section><div class="form-actions"><button class="primary-btn">Salvar configurador</button></div></form>`;
-  $('#add-cfg-tecido').onclick=()=>{$('#cfg-tecidos').insertAdjacentHTML('beforeend',cfgTecidoCard('',{cores:[],forros:{}},isPersiana?'area':'metro_tecido'));bindCfgRows()};
-  if($('#add-cfg-trilho'))$('#add-cfg-trilho').onclick=()=>{$('#cfg-trilhos').insertAdjacentHTML('beforeend',cfgTrilhoRow());bindCfgRows()};
-  $('#add-cfg-midia').onclick=()=>{$('#cfg-midias').insertAdjacentHTML('beforeend',cfgMidiaRow());bindCfgRows()}; bindCfgRows();
-  $('#cfg-form').onsubmit=async e=>{e.preventDefault();const btn=e.currentTarget.querySelector('.form-actions .primary-btn')||e.currentTarget.querySelector('.primary-btn'),old=btn?.textContent;try{if(btn){btn.disabled=true;btn.textContent='Salvando...'}const cfg=collectConfigurator(e.currentTarget,w,id);const payload=id==='wave'?{wave:cfg}:{configurator:cfg};const res=await api(cfgEndpoint(id),{method:'PUT',body:JSON.stringify(payload)});toast('Configurador salvo com sucesso');if(id!=='wave')ADMIN.cache['configurator_'+id]=res.configurator||cfg}catch(err){alert(err.message)}finally{if(btn){btn.disabled=false;btn.textContent=old||'Salvar'}}};
+  ACTIVE_CONFIGURATOR_ID=id;
+
+  let d;
+
+  try{
+    d=await api(cfgEndpoint(id));
+  }catch(e){
+    if(id==='wave')throw e;
+
+    d={
+      configurator:{
+        id,
+        nome:
+          CONFIGURATOR_TYPES.find(
+            x=>x.id===id
+          )?.nome||id,
+        ativo:false,
+        tecidos:{},
+        trilhos:{},
+        midia:[]
+      }
+    };
+  }
+
+  const w=
+    normalizeConfiguratorResponse(
+      d,
+      id
+    );
+
+  CONFIG_CURRENT_DATA=w;
+  cfgInitMediaState(w);
+
+  const m=w.medidas||{};
+  const b=w.barra||{};
+  const faixas=b.faixas||[];
+  const isPersiana=id==='persiana';
+
+  $('#configurator-editor').innerHTML=`
+    <form id="cfg-form">
+      <div class="cfg-editor-shell">
+        <aside id="cfg-option-nav" class="cfg-option-nav"></aside>
+
+        <div id="cfg-option-pages" class="cfg-option-pages">
+          <div class="cfg-option-page active" data-option-page="geral">
+            <div id="cfg-general-host"></div>
+          </div>
+        </div>
+      </div>
+
+      <div id="cfg-general-source">
+        <section class="panel configurator-section">
+          <div class="panel-head">
+            <div>
+              <h2>${esc(w.nome||'Configurador')}</h2>
+              <p>Configurações gerais, cálculo, tecidos, cores, preços e estrutura.</p>
+            </div>
+            <button class="primary-btn">Salvar</button>
+          </div>
+
+          <div class="form-grid">
+            <div class="form-field">
+              <label>Nome exibido</label>
+              <input name="nome" value="${esc(w.nome||'')}">
+            </div>
+
+            <div class="form-field">
+              <label>Modelo</label>
+              <input name="modelo" value="${esc(w.modelo||'')}">
+            </div>
+
+            <div class="form-field full">
+              <label>Descrição exibida no site</label>
+              <textarea name="descricao" rows="3" placeholder="Descreva este produto sob medida">${esc(w.descricao||'')}</textarea>
+            </div>
+
+            <div class="form-field">
+              <label>Modo de cálculo</label>
+              <select name="modoCalculo">
+                <option value="metro_tecido" ${!isPersiana?'selected':''}>Metro de tecido</option>
+                <option value="area" ${isPersiana?'selected':''}>Área (m²)</option>
+              </select>
+            </div>
+
+            <div class="form-field">
+              <label>
+                <input type="checkbox" name="ativo" ${w.ativo!==false?'checked':''}>
+                Publicado / ativo
+              </label>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel configurator-section">
+          <div class="panel-head">
+            <h2>Medidas e limites</h2>
+          </div>
+
+          <div class="form-grid">
+            <div class="form-field">
+              <label>Largura mínima (m)</label>
+              <input name="larguraMinima" type="number" step="0.01" value="${m.larguraMinima??.5}">
+            </div>
+
+            <div class="form-field">
+              <label>Largura máxima (m)</label>
+              <input name="larguraMaxima" type="number" step="0.01" value="${m.larguraMaxima??12}">
+            </div>
+
+            <div class="form-field">
+              <label>Altura mínima (m)</label>
+              <input name="alturaMinima" type="number" step="0.01" value="${m.alturaMinima??.5}">
+            </div>
+
+            <div class="form-field">
+              <label>Altura máxima digitável (m)</label>
+              <input name="alturaEntradaMaxima" type="number" step="0.01" value="${m.alturaEntradaMaxima??5}">
+            </div>
+
+            <div class="form-field">
+              <label>Calcular automaticamente até (m)</label>
+              <input name="calculoMaximo" type="number" step="0.01" value="${m.calculoMaximo??3.2}">
+            </div>
+
+            <div class="form-field">
+              <label>Acréscimo acima de (m)</label>
+              <input name="inicioAcrescimo" type="number" step="0.01" value="${m.inicioAcrescimo??2.8}">
+            </div>
+
+            <div class="form-field">
+              <label>Acréscimo (%)</label>
+              <input name="acrescimoPercentual" type="number" step="0.01" value="${m.acrescimoPercentual??25}">
+            </div>
+
+            <div class="form-field full">
+              <label>Mensagem fora do cálculo automático</label>
+              <input name="textoAcimaMaximo" value="${esc(m.acimaMaximo?.texto||'Medida sob consulta.')}">
+            </div>
+
+            <div class="form-field">
+              <label>Texto do botão</label>
+              <input name="textoBotaoAcimaMaximo" value="${esc(m.acimaMaximo?.textoBotao||'Solicitar orçamento')}">
+            </div>
+
+            <div class="form-field">
+              <label>
+                <input name="permitirCarrinho" type="checkbox" ${m.acimaMaximo?.permitirCarrinho?'checked':''}>
+                Permitir carrinho fora do limite
+              </label>
+            </div>
+          </div>
+        </section>
+
+        ${
+          !isPersiana
+            ? `<section class="panel configurator-section">
+                <div class="panel-head">
+                  <h2>Barra da cortina</h2>
+                </div>
+
+                <div class="configurator-rules-grid">
+                  ${[0,1,2,3].map(i=>`
+                    <div class="configurator-rule">
+                      <span>Faixa ${i+1}</span>
+                      <input name="faixa${i+1}Ate" type="number" step="0.01" value="${faixas[i]?.ate??''}" placeholder="Até (m)">
+                      <input name="faixa${i+1}Barra" type="number" value="${faixas[i]?.tamanho??''}" placeholder="Barra (cm)">
+                    </div>
+                  `).join('')}
+                </div>
+
+                <div class="form-field" style="max-width:280px;margin-top:12px">
+                  <label>Barra acima do início (cm)</label>
+                  <input name="barraAcimaInicio" type="number" value="${b.acimaInicio??20}">
+                </div>
+              </section>`
+            : `<section class="panel configurator-section">
+                <div class="panel-head">
+                  <h2>Regras da persiana</h2>
+                </div>
+
+                <div class="form-grid">
+                  <div class="form-field">
+                    <label>Área mínima cobrada (m²)</label>
+                    <input name="areaMinima" type="number" step="0.01" value="${Number(w.persiana?.areaMinima||.6)}">
+                  </div>
+
+                  <div class="form-field">
+                    <label>Lados do comando</label>
+                    <input name="ladosComando" value="${esc((w.persiana?.ladosComando||['Direito','Esquerdo']).join(', '))}">
+                  </div>
+
+                  <div class="form-field">
+                    <label>Voltagens</label>
+                    <input name="voltagens" value="${esc((w.persiana?.voltagens||['110V','220V','Bivolt']).join(', '))}">
+                  </div>
+
+                  <div class="form-field full">
+                    <label>Acionamentos — nome | adicional R$ | descrição (um por linha)</label>
+                    <textarea name="acionamentos" rows="4">${esc((w.persiana?.acionamentos||[]).map(x=>`${x.nome||''} | ${Number(x.adicional||0)} | ${x.descricao||''}`).join('\n'))}</textarea>
+                  </div>
+                </div>
+              </section>`
+        }
+
+        <section class="panel configurator-section">
+          <div class="panel-head">
+            <div>
+              <h2>Tecidos, cores e preços</h2>
+              <p>
+                ${
+                  isPersiana
+                    ? 'Preço base por m² e opcionais.'
+                    : 'Preço por metro de tecido e descrições.'
+                }
+              </p>
+            </div>
+
+            <button type="button" id="add-cfg-tecido" class="ghost-btn">+ Adicionar tecido</button>
+          </div>
+
+          <div id="cfg-tecidos" class="configurator-stack">
+            ${Object.entries(w.tecidos||{}).map(([n,t])=>
+              cfgTecidoCard(
+                n,
+                t,
+                w.modoCalculo||
+                (
+                  isPersiana
+                    ? 'area'
+                    : 'metro_tecido'
+                )
+              )
+            ).join('')}
+          </div>
+
+          <p class="field-hint cfg-auto-page-hint">
+            As páginas de mídia acima são criadas automaticamente conforme os forros/opções cadastrados aqui.
+          </p>
+        </section>
+
+        ${
+          !isPersiana
+            ? `<section class="panel configurator-section">
+                <div class="panel-head">
+                  <h2>Trilhos, varões e acabamentos</h2>
+                  <button type="button" id="add-cfg-trilho" class="ghost-btn">+ Adicionar</button>
+                </div>
+
+                <div id="cfg-trilhos" class="configurator-stack">
+                  ${Object.entries(w.trilhos||{}).map(([n,x])=>cfgTrilhoRow(n,x)).join('')}
+                </div>
+              </section>`
+            : ''
+        }
+
+        <div class="form-actions">
+          <button class="primary-btn">Salvar configurador</button>
+        </div>
+      </div>
+    </form>
+  `;
+
+  const form=$('#cfg-form');
+
+  cfgBuildOptionPages(
+    form,
+    w,
+    'geral'
+  );
+
+  cfgMoveGeneralContent(form);
+
+  const refreshPages=()=>{
+    cfgRefreshOptionPages(
+      form,
+      w,
+      true
+    );
+  };
+
+  $('#add-cfg-tecido').onclick=()=>{
+    $('#cfg-tecidos').insertAdjacentHTML(
+      'beforeend',
+      cfgTecidoCard(
+        '',
+        {
+          cores:[],
+          coresAtivas:{},
+          forros:{}
+        },
+        isPersiana
+          ? 'area'
+          : 'metro_tecido'
+      )
+    );
+
+    bindCfgRows();
+    refreshPages();
+  };
+
+  if($('#add-cfg-trilho')){
+    $('#add-cfg-trilho').onclick=()=>{
+      $('#cfg-trilhos').insertAdjacentHTML(
+        'beforeend',
+        cfgTrilhoRow()
+      );
+
+      bindCfgRows();
+    };
+  }
+
+  bindCfgRows();
+
+  /*
+    Quando o usuário cria/renomeia/remove um forro ou altera
+    as cores, as páginas internas são reconstruídas.
+  */
+  form.addEventListener(
+    'change',
+    e=>{
+      if(
+        e.target.matches(
+          '.cfg-forro-nome, .cfg-tecido-cores, .cfg-tecido-nome'
+        )
+      ){
+        refreshPages();
+      }
+    }
+  );
+
+  form.addEventListener(
+    'click',
+    e=>{
+      if(
+        e.target.closest(
+          '.add-cfg-forro, .remove-cfg-forro, .remove-cfg-tecido'
+        )
+      ){
+        setTimeout(
+          refreshPages,
+          0
+        );
+      }
+    }
+  );
+
+  form.onsubmit=async e=>{
+    e.preventDefault();
+
+    const btn=
+      e.currentTarget.querySelector(
+        '.form-actions .primary-btn'
+      ) ||
+      e.currentTarget.querySelector(
+        '.primary-btn'
+      );
+
+    const old=
+      btn?.textContent;
+
+    try{
+      if(btn){
+        btn.disabled=true;
+        btn.textContent='Salvando...';
+      }
+
+      const res=
+        await cfgSaveCurrent(
+          e.currentTarget,
+          w,
+          id,
+          true
+        );
+
+      if(id!=='wave'){
+        ADMIN.cache[
+          'configurator_'+id
+        ]=
+          res.configurator||
+          CONFIG_CURRENT_DATA;
+      }
+
+      /*
+        Depois de salvar, reconstruímos para criar/remover
+        imediatamente as páginas correspondentes aos forros.
+      */
+      cfgRefreshOptionPages(
+        form,
+        CONFIG_CURRENT_DATA||w,
+        true
+      );
+
+    }catch(err){
+      alert(err.message);
+    }finally{
+      if(btn){
+        btn.disabled=false;
+        btn.textContent=
+          old||
+          'Salvar';
+      }
+    }
+  };
 }
 async function renderConfigurators(){
   $('#view-content').innerHTML=`<div class="configurator-layout"><aside class="panel configurator-list"><div class="panel-head"><div><h2>Produtos sob medida</h2><p>Escolha o configurador para editar.</p></div></div><div id="configurator-switcher">${CONFIGURATOR_TYPES.map(x=>`<button type="button" class="configurator-switch ${x.id==='wave'?'active':''}" data-configurator="${x.id}"><span>${x.icon}</span><div><strong>${x.nome}</strong><small>${x.tipo==='persiana'?'Cálculo por área':'Cortina sob medida'}</small></div></button>`).join('')}</div><div class="r2-status" id="r2-status">Verificando armazenamento de mídia...</div></aside><div id="configurator-editor"><div class="empty">Carregando configurador...</div></div></div>`;
