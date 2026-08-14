@@ -81,7 +81,18 @@ function pageForm(x={},products=[]){
   const picker=productPicker('productIds',selected);
   openModal(`<h2>${x.id?'Editar página':'Nova página'}</h2><form id="page-form"><div class="form-grid">
     <div class="form-field full"><label>Nome da página</label><input name="title" value="${esc(x.title||'')}" placeholder="Ex.: Cortina de Trilho Suíço" required><small class="field-hint">Este será o título exibido ao cliente.</small></div>
-    <div class="form-field"><label>Tipo de página</label><select name="pageType" id="page-type"><option value="produtos" ${type==='produtos'?'selected':''}>Vitrine de produtos</option><option value="conteudo" ${type==='conteudo'?'selected':''}>Página de conteúdo</option></select></div>
+    <div class="form-field">
+      <label>Tipo de página</label>
+      <select name="pageType" id="page-type">
+        <option value="produtos" ${type==='produtos'?'selected':''}>Vitrine de produtos</option>
+        <option value="conteudo" ${type==='conteudo'?'selected':''}>Página de conteúdo</option>
+        <option value="configurador_wave" ${type==='configurador_wave'?'selected':''}>Cortina Wave sob medida</option>
+        <option value="configurador_prega_macho" ${type==='configurador_prega_macho'?'selected':''}>Cortina Prega Macho sob medida</option>
+        <option value="configurador_ilhos" ${type==='configurador_ilhos'?'selected':''}>Cortina de Ilhós sob medida</option>
+        <option value="configurador_persiana" ${type==='configurador_persiana'?'selected':''}>Persiana sob medida</option>
+      </select>
+      <small class="field-hint">Nos tipos sob medida, o link abre automaticamente o configurador correto.</small>
+    </div>
     <div class="form-field"><label>Endereço / slug</label><input name="slug" value="${esc(x.slug||'')}" placeholder="cortina-de-trilho-suico"></div>
 
     <div class="form-field">
@@ -122,7 +133,40 @@ function pageForm(x={},products=[]){
   }
   measures.forEach(renderMeasure);
   $('#add-measure').onclick=()=>renderMeasure({});
-  const toggle=()=>{const productMode=typeEl.value==='produtos';productsWrap.style.display=productMode?'block':'none';measuresWrap.style.display=productMode?'block':'none';contentWrap.style.display=productMode?'none':'block'};typeEl.onchange=toggle;toggle();
+  const toggle=()=>{
+    const productMode=typeEl.value==='produtos';
+    const contentMode=typeEl.value==='conteudo';
+    const configuratorMode=typeEl.value.startsWith('configurador_');
+
+    productsWrap.style.display=productMode?'block':'none';
+    measuresWrap.style.display=productMode?'block':'none';
+    contentWrap.style.display=contentMode?'block':'none';
+
+    let info=$('#page-configurator-info');
+    if(!info){
+      info=document.createElement('div');
+      info.id='page-configurator-info';
+      info.className='page-configurator-info';
+      typeEl.closest('.form-grid').appendChild(info);
+    }
+
+    if(configuratorMode){
+      const labels={
+        configurador_wave:'Cortina Wave',
+        configurador_prega_macho:'Cortina Prega Macho',
+        configurador_ilhos:'Cortina de Ilhós',
+        configurador_persiana:'Persiana sob medida'
+      };
+
+      info.style.display='block';
+      info.innerHTML=`<b>Destino automático:</b> ao clicar nesta página no site, o cliente será levado diretamente ao configurador <strong>${esc(labels[typeEl.value]||'sob medida')}</strong>. Você continua usando Nome da página, imagem de capa e posição no menu normalmente.`;
+    }else{
+      info.style.display='none';
+      info.innerHTML='';
+    }
+  };
+  typeEl.onchange=toggle;
+  toggle();
   f.onsubmit=async e=>{e.preventDefault();const fd=new FormData(f);const measurePayload=$$('.measure-admin-card',builder).map(row=>({id:row.dataset.measureId,label:$('.measure-label',row).value.trim(),value:$('.measure-value',row).value.trim(),productIds:$$('.measure-products input:checked',row).map(i=>i.value)})).filter(m=>m.label);const body={title:fd.get('title'),slug:fd.get('slug'),pageType:fd.get('pageType'),navGroup:fd.get('navGroup'),navOrder:Number(fd.get('navOrder')||100),heroImageUrl:fd.get('heroImageUrl'),productIds:fd.getAll('productIds'),measures:measurePayload,customMeasureUrl:fd.get('customMeasureUrl'),contentHtml:fd.get('contentHtml'),seoTitle:fd.get('seoTitle'),seoDescription:fd.get('seoDescription'),active:fd.get('active')==='on'};await api(x.id?'pages/'+x.id:'pages',{method:x.id?'PUT':'POST',body:JSON.stringify(body)});toast('Página salva');closeModal();navigate('pages',true)};
   if(x.id)$('#delete-page').onclick=async()=>{if(confirm('Excluir página?')){await api('pages/'+x.id,{method:'DELETE'});closeModal();navigate('pages',true)}}
 }

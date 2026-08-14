@@ -4,7 +4,27 @@
     "&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"
   }[c]));
 
-  const url=p=>"pagina.html?slug="+encodeURIComponent(p.slug);
+  function url(p){
+    const type=String(p?.pageType||'');
+
+    if(type==='configurador_wave'){
+      return 'index.html#configurador';
+    }
+
+    if(type==='configurador_prega_macho'){
+      return 'configurador.html?id=prega-macho';
+    }
+
+    if(type==='configurador_ilhos'){
+      return 'configurador.html?id=cortina-varao';
+    }
+
+    if(type==='configurador_persiana'){
+      return 'configurador.html?id=persiana';
+    }
+
+    return 'pagina.html?slug='+encodeURIComponent(p.slug);
+  }
 
   function homeCard(p){
     const label=p.navGroup==="pronta_entrega"?"Pronta entrega":"Sob medida";

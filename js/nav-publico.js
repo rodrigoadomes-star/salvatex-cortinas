@@ -10,7 +10,27 @@
     "&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"
   }[c]));
 
-  const pageUrl=p=>"pagina.html?slug="+encodeURIComponent(p.slug);
+  function pageUrl(p){
+    const type=String(p?.pageType||'');
+
+    if(type==='configurador_wave'){
+      return 'index.html#configurador';
+    }
+
+    if(type==='configurador_prega_macho'){
+      return 'configurador.html?id=prega-macho';
+    }
+
+    if(type==='configurador_ilhos'){
+      return 'configurador.html?id=cortina-varao';
+    }
+
+    if(type==='configurador_persiana'){
+      return 'configurador.html?id=persiana';
+    }
+
+    return 'pagina.html?slug='+encodeURIComponent(p.slug);
+  }
 
   function card(p){
     return `<a class="mega-product-card" href="${pageUrl(p)}">
