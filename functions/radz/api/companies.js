@@ -1,7 +1,7 @@
-import { json, requireAdmin } from "../../admin/api/_auth.js";
+import { json, requireRadzAdmin } from "./_auth.js";
 
 export async function onRequestGet(context) {
-  const auth = await requireAdmin(context);
+  const auth = await requireRadzAdmin(context);
   if (!auth.ok) return auth.response;
   const result = await context.env.DB.prepare(`SELECT c.id,c.slug,c.legal_name,c.trade_name,c.document_type,c.document_number,
       c.email,c.phone,c.segment,c.status,c.plan_code,c.platform_fee_basis_points,c.created_at,
@@ -16,7 +16,7 @@ export async function onRequestGet(context) {
 }
 
 export async function onRequestPatch(context) {
-  const auth = await requireAdmin(context);
+  const auth = await requireRadzAdmin(context);
   if (!auth.ok) return auth.response;
   let body;
   try { body=await context.request.json(); } catch { return json({ok:false,message:"Dados inválidos."},400); }
@@ -33,5 +33,4 @@ export async function onRequestPatch(context) {
     VALUES (?1,'platform.company.updated','company',?1,?2,?3)`).bind(id,JSON.stringify({status,fee}),now).run();
   return json({ok:true});
 }
-
 
