@@ -38,6 +38,7 @@
 .account-timeline li span{font-size:9px;line-height:1.35;margin-top:4px}
 .account-timeline-exception{margin-top:16px;padding:12px 14px;border-radius:10px;background:#fff0ef;color:#9c251d}
 .account-timeline-exception strong,.account-timeline-exception span{display:block}.account-timeline-exception span{font-size:11px;margin-top:4px}
+@media(min-width:821px){.account-timeline li{display:block;height:66px;padding-top:25px}.account-timeline li:not(:last-child)::after{top:33px;left:18px;right:-2px}.account-timeline li i{display:block}.account-timeline li div{position:static;padding:0}.account-timeline li strong{position:absolute;top:0;left:0;white-space:nowrap}.account-timeline li span{position:absolute;top:46px;left:0;white-space:nowrap}}
 @media(max-width:820px){.account-order-summary{grid-template-columns:1fr}.account-product{grid-template-columns:1fr}.account-product-price{text-align:left;padding-left:120px}.account-order-detail{width:min(100%,calc(100vw - 16px));max-height:calc(100vh - 16px)}}
 @media(max-width:820px){.account-timeline ol{grid-template-columns:1fr;gap:0}.account-timeline li{min-height:58px}.account-timeline li:not(:last-child)::after{left:8px;top:18px;bottom:-2px;right:auto;width:2px;height:auto}.account-timeline li div{padding-left:4px}.account-timeline li strong{font-size:12px}.account-timeline li span{font-size:10px}}
 @media(max-width:520px){.account-product-main{grid-template-columns:76px minmax(0,1fr)}.account-product-main img,.account-product-placeholder{width:76px;height:76px}.account-product-price{padding-left:92px}}
