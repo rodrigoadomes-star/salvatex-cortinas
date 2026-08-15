@@ -23,13 +23,13 @@ async function readConfig(db) {
 }
 
 export async function onRequestGet(context) {
-  const a=requireAdmin(context); if(!a.ok) return a.response;
+  const a=await requireAdmin(context); if(!a.ok) return a.response;
   const data=await readConfig(context.env.DB);
   return json({ok:true,...data});
 }
 
 export async function onRequestPut(context) {
-  const a=requireAdmin(context); if(!a.ok) return a.response;
+  const a=await requireAdmin(context); if(!a.ok) return a.response;
   let body={}; try{body=await context.request.json()}catch{return json({ok:false,message:"JSON inválido"},400)}
   const patch=body.config&&typeof body.config==='object'?body.config:null;
   if(!patch) return json({ok:false,message:"Configuração inválida"},400);

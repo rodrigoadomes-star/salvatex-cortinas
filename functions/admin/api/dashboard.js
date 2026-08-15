@@ -1,7 +1,7 @@
 import { json, requireAdmin, parseJson } from "./_auth.js";
 
 export async function onRequestGet(context) {
-  const auth = requireAdmin(context); if (!auth.ok) return auth.response;
+  const auth = await requireAdmin(context); if (!auth.ok) return auth.response;
   const db = context.env.DB;
   const now = new Date();
   const today = now.toISOString().slice(0,10);
