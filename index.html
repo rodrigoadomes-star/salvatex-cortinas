@@ -24,7 +24,7 @@
     href="css/style.css?v=final-20260814-1"
   >
 
-</head>
+<link rel="stylesheet" href="css/contact.css?v=20260815-1">\n</head>
 
 
 <body>
@@ -1300,20 +1300,20 @@
      RODAPÉ
      ========================================================= -->
 
-<footer
-  id="contato"
-  class="footer"
->
-
-  <div class="shell">
-
-    SALVATEX CORTINAS ·
-    Cortinas sob medida ·
-    2026
-
+<section id="contato" class="contact-section">
+  <div class="shell contact-grid">
+    <div class="contact-info"><div class="kicker">ATENDIMENTO</div><h2>Contato</h2><p>Envie sua dúvida, solicitação de orçamento ou mensagem sobre um pedido. Retornaremos pelos dados informados.</p><a class="contact-channel" data-contact-whatsapp href="#">WhatsApp Salvatex</a></div>
+    <form id="contact-form" class="contact-form">
+      <label>Nome completo<input name="name" maxlength="120" autocomplete="name" required></label>
+      <label>E-mail<input name="email" type="email" maxlength="254" autocomplete="email" required></label>
+      <label>Telefone<input name="phone" type="tel" maxlength="30" autocomplete="tel"></label>
+      <label>Mensagem<textarea name="message" maxlength="4000" required></textarea></label>
+      <label class="contact-honeypot" aria-hidden="true">Site<input name="website" tabindex="-1" autocomplete="off"></label>
+      <div class="contact-turnstile"></div><button type="submit">ENVIAR MENSAGEM</button><p class="contact-feedback" aria-live="polite"></p>
+    </form>
   </div>
-
-</footer>
+</section>
+<footer class="footer"><div class="shell">SALVATEX CORTINAS · Cortinas sob medida · 2026</div></footer>
 
 
 <!-- =========================================================
@@ -1342,6 +1342,6 @@
 <script src="js/home-publico.js?v=tipos-pagina-1"></script>
 <script src="js/marketing.js?v=final-20260814-1"></script>
 <script src="js/customer-account.js?v=final-20260814-1"></script>
-</body>
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" async defer></script>\n<script src="js/contact.js?v=20260815-1"></script>\n</body>
 
 </html>
