@@ -41,6 +41,7 @@ export async function onRequestPost(context) {
 
   const db = context.env.DB;
   const now = new Date().toISOString();
+  const session = await readSession(context);
 
   try {
     const existing = await db.prepare(
@@ -51,7 +52,6 @@ export async function onRequestPost(context) {
     ).bind(order.clientReference).first();
 
     if (existing) {
-      const session = await readSession(context);
       if (!session || String(session.email).toLowerCase() !== String(existing.customer_email || "").toLowerCase()) {
         return json({ ok:false, message:"Este pedido não pode ser alterado por esta sessão." }, 409);
       }
@@ -192,6 +192,10 @@ export async function onRequestPost(context) {
       );
     }
 
+    if (session?.userId) {
+      statements.push(db.prepare("UPDATE orders SET customer_account_id=?1 WHERE id=?2").bind(session.userId, orderId));
+    }
+
     for (const item of order.items) {
       statements.push(
         db.prepare(
@@ -277,3 +281,4 @@ export async function onRequestGet() {
   // A listagem ficará protegida pelo painel Admin. Não exponha pedidos publicamente.
   return json({ ok: false, message: "Método não permitido nesta rota pública." }, 405, { allow: "POST" });
 }
+
