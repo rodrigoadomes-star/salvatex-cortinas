@@ -55,3 +55,8 @@
 .sale-product-details .order-detail-line{display:inline-flex;gap:4px;margin-right:10px;font-size:10px}
 .sale-product-details .order-detail-line span:after{content:":"}
 @media(max-width:900px){.sale-products-head{display:none}.sale-product-item{grid-template-columns:1fr 70px}.sale-product-item>span,.sale-product-item>strong{grid-column:2}.sale-note-tip{left:auto;right:0}.sale-menu-popover{right:0}}
+
+.sales-panel{overflow:visible!important}
+.sales-table-wrap{overflow:visible!important;max-height:none!important}
+.sales-table-wrap .sales-table{overflow:visible!important}
+.sales-table tbody,.sales-table tr,.sales-table td{overflow:visible}
