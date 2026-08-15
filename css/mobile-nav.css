@@ -11,6 +11,7 @@
   .storefront-topbar .navlinks{display:none!important;position:absolute;top:100%;left:10px;right:10px;z-index:120;width:auto;max-height:calc(100vh - 86px);overflow-y:auto;margin:0;padding:8px 16px 16px;flex-direction:column;align-items:stretch;gap:0;background:var(--layout-card-bg,#fff);border:1px solid var(--layout-border,var(--line));border-radius:0 0 14px 14px;box-shadow:0 20px 45px rgba(0,0,0,.16)}
   .storefront-topbar .nav.mobile-menu-open .navlinks{display:flex!important}
   .storefront-topbar .nav-mega-trigger,.storefront-topbar .navlinks>a{min-height:48px;padding:0 2px;color:var(--layout-text,var(--ink));font-size:13px;font-weight:700;text-decoration:none}
+  .storefront-topbar .navlinks>.customer-account-link{display:flex!important;width:100%;min-height:48px;margin:0;padding:0 2px;align-items:center;justify-content:flex-start;border-bottom:1px solid var(--layout-border,var(--line));line-height:1.2}
   .storefront-topbar .mega-menu{background:var(--layout-card-bg,#fff)}
   .storefront-topbar .mega-main,.storefront-topbar .mega-ready{padding:16px 4px}
   .storefront-topbar .mega-card-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
