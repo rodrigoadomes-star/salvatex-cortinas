@@ -6,7 +6,7 @@ import {
 
 export async function onRequestDelete(context) {
   const auth =
-    requireAdmin(context);
+    await requireAdmin(context);
 
   if (!auth.ok) {
     return auth.response;
@@ -34,7 +34,7 @@ export async function onRequestDelete(context) {
       ""
     ).trim();
 
-  if (!key) {
+  if (!key || key.startsWith("private/") || !key.startsWith("configuradores/")) {
     return json(
       {
         ok: false,

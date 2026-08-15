@@ -102,7 +102,7 @@ async function readLayout(db){
 }
 
 export async function onRequestGet(context){
-  const auth=requireAdmin(context);
+  const auth=await requireAdmin(context);
   if(!auth.ok)return auth.response;
 
   if(!context.env.DB){
@@ -142,7 +142,7 @@ export async function onRequestGet(context){
 }
 
 export async function onRequestPut(context){
-  const auth=requireAdmin(context);
+  const auth=await requireAdmin(context);
   if(!auth.ok)return auth.response;
 
   if(!context.env.DB){

@@ -6,10 +6,14 @@ import {
   createOrderNumber,
   normalizeOrder
 } from "../_lib.js";
+import { readSession } from "../_customer-auth.js";
+import { bodyWithin, requireTurnstile, sameOrigin } from "../_security.js";
 
 const STORE_ID = "salvatex";
 
 export async function onRequestPost(context) {
+  if (!sameOrigin(context)) return json({ ok:false, message:"Origem não autorizada." }, 403);
+  if (!bodyWithin(context, 256 * 1024)) return json({ ok:false, message:"Pedido acima do limite permitido." }, 413);
   if (!context.env.DB) {
     return json({
       ok: false,
@@ -25,6 +29,9 @@ export async function onRequestPost(context) {
     return json({ ok: false, message: "JSON inválido." }, 400);
   }
 
+  const turnstile = await requireTurnstile(context, payload.turnstileToken);
+  if (!turnstile.ok) return turnstile.response;
+
   let order;
   try {
     order = normalizeOrder(payload);
@@ -37,11 +44,18 @@ export async function onRequestPost(context) {
 
   try {
     const existing = await db.prepare(
-      `SELECT id, order_number, status, created_at
+      `SELECT id, order_number, status, created_at, customer_email
        FROM orders
        WHERE client_reference = ?1
        LIMIT 1`
     ).bind(order.clientReference).first();
+
+    if (existing) {
+      const session = await readSession(context);
+      if (!session || String(session.email).toLowerCase() !== String(existing.customer_email || "").toLowerCase()) {
+        return json({ ok:false, message:"Este pedido não pode ser alterado por esta sessão." }, 409);
+      }
+    }
 
     let orderId;
     let orderNumber;

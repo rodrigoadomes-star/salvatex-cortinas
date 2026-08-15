@@ -28,7 +28,7 @@ function safeObject(value, fallback = {}) {
 }
 
 export async function onRequestGet(context) {
-  const auth = requireAdmin(context);
+  const auth = await requireAdmin(context);
   if (!auth.ok) return auth.response;
 
   const id = context.params.id;
@@ -79,7 +79,7 @@ export async function onRequestGet(context) {
 }
 
 export async function onRequestPatch(context) {
-  const auth = requireAdmin(context);
+  const auth = await requireAdmin(context);
   if (!auth.ok) return auth.response;
 
   const id = context.params.id;

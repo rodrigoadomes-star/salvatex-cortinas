@@ -45,7 +45,7 @@ function slug(value, fallback = "geral") {
 }
 
 export async function onRequestGet(context) {
-  const auth = requireAdmin(context);
+  const auth = await requireAdmin(context);
 
   if (!auth.ok) {
     return auth.response;
@@ -63,7 +63,7 @@ export async function onRequestGet(context) {
 }
 
 export async function onRequestPost(context) {
-  const auth = requireAdmin(context);
+  const auth = await requireAdmin(context);
 
   if (!auth.ok) {
     return auth.response;
@@ -130,6 +130,13 @@ export async function onRequestPost(context) {
       },
       400
     );
+  }
+
+  const suppliedExtension = String(file.name || "").toLowerCase().split(".").pop();
+  const expectedExtension = extensionFromType(type);
+  const extensionAliases = expectedExtension === "jpg" ? ["jpg", "jpeg"] : [expectedExtension];
+  if (!extensionAliases.includes(suppliedExtension)) {
+    return json({ ok:false, message:"A extensão do arquivo não corresponde ao MIME informado." }, 400);
   }
 
   const max =

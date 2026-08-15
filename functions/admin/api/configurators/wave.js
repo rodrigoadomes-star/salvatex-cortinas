@@ -380,7 +380,7 @@ export async function onRequestGet(
 ) {
 
   const auth =
-    requireAdmin(context);
+    await requireAdmin(context);
 
   if (!auth.ok) {
     return auth.response;
@@ -439,7 +439,7 @@ export async function onRequestPut(
 ) {
 
   const auth =
-    requireAdmin(context);
+    await requireAdmin(context);
 
   if (!auth.ok) {
     return auth.response;

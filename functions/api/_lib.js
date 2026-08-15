@@ -24,8 +24,10 @@ export function safeJson(value, fallback = null) {
 }
 
 export function cleanText(value, max = 500) {
-  return String(value ?? "").trim().slice(0, max);
+  return String(value ?? "").trim().replace(/[\u0000-\u001F\u007F]/g, "").slice(0, max);
 }
+
+export function validEmail(value) { return /^[^\s@]{1,64}@[^\s@]{1,190}\.[^\s@]{2,63}$/i.test(cleanText(value, 254)); }
 
 export function createOrderNumber() {
   const now = new Date();
@@ -81,7 +83,7 @@ export function normalizeOrder(body) {
   const cliente = body.cliente && typeof body.cliente === "object" ? body.cliente : {};
 
   if (!cleanText(cliente.nome, 240)) throw new Error("Nome do cliente é obrigatório.");
-  if (!cleanText(cliente.email, 320)) throw new Error("E-mail do cliente é obrigatório.");
+  if (!validEmail(cliente.email)) throw new Error("E-mail do cliente inválido.");
 
   const freightValue = body?.frete?.valor;
   const freight = freightValue === null || freightValue === undefined || freightValue === ""
@@ -102,8 +104,8 @@ export function normalizeOrder(body) {
     clientReference: cleanText(body.id || body.clientReference || crypto.randomUUID(), 180),
     source: cleanText(body.origem || "loja_online", 80),
     channel: cleanText(body.canal || "site", 80),
-    status: cleanText(body.status || "aguardando_pagamento", 80),
-    stage: cleanText(body.etapa || "pagamento", 80),
+    status: "aguardando_pagamento",
+    stage: "pagamento",
     cliente,
     entrega: body.entrega || null,
     frete: body.frete || null,
@@ -111,7 +113,7 @@ export function normalizeOrder(body) {
     antifraude: body.antifraude || { provedor: "", status: "nao_iniciado" },
     prazos: body.prazos || null,
     totaisPorCategoria: body.totaisPorCategoria || {},
-    observacoesInternas: cleanText(body.observacoesInternas, 4000),
+    observacoesInternas: "",
     items,
     subtotal,
     freight,
