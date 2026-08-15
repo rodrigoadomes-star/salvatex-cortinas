@@ -1,5 +1,44 @@
 (function(){
 
+  function ensureMobileStyles(){
+    if(document.querySelector('link[data-salvatex-mobile-nav]'))return;
+    const link=document.createElement('link');
+    link.rel='stylesheet';
+    link.href='css/mobile-nav.css?v=20260815-1';
+    link.dataset.salvatexMobileNav='true';
+    document.head.appendChild(link);
+  }
+
+  function closeMobileMenu(nav){
+    nav.classList.remove('mobile-menu-open');
+    nav.querySelector('.mobile-menu-toggle')?.setAttribute('aria-expanded','false');
+    nav.querySelectorAll('.nav-mega-item.open').forEach(item=>item.classList.remove('open'));
+  }
+
+  function ensureMobileMenu(nav,links,carrinho){
+    if(!links.id)links.id='salvatex-menu-'+Math.random().toString(36).slice(2,8);
+    let button=nav.querySelector('.mobile-menu-toggle');
+    if(!button){
+      button=document.createElement('button');
+      button.type='button';
+      button.className='mobile-menu-toggle';
+      button.setAttribute('aria-label','Abrir menu');
+      button.setAttribute('aria-expanded','false');
+      button.innerHTML='<span aria-hidden="true"></span><span aria-hidden="true"></span><span aria-hidden="true"></span>';
+      if(carrinho)nav.insertBefore(button,carrinho);else nav.insertBefore(button,links);
+      button.addEventListener('click',()=>{
+        const open=nav.classList.toggle('mobile-menu-open');
+        button.setAttribute('aria-expanded',String(open));
+        button.setAttribute('aria-label',open?'Fechar menu':'Abrir menu');
+        if(!open)nav.querySelectorAll('.nav-mega-item.open').forEach(item=>item.classList.remove('open'));
+      });
+    }
+    button.setAttribute('aria-controls',links.id);
+    links.addEventListener('click',event=>{
+      if(event.target.closest('a'))closeMobileMenu(nav);
+    });
+  }
+
   const GROUPS={
     cortinas_sob_medida:"Cortinas sob medida",
     persianas_sob_medida:"Persianas sob medida",
@@ -97,6 +136,7 @@
   }
 
   function build(pages){
+    ensureMobileStyles();
     document.querySelectorAll(".topbar .nav").forEach(nav=>{
       const logo=nav.querySelector(".logo");
       const carrinho=nav.querySelector(".carrinho-link-topo");
@@ -126,6 +166,8 @@
 
         <a href="index.html#contato">Contato</a>
       `;
+
+      ensureMobileMenu(nav,links,carrinho);
 
       nav.querySelectorAll(".nav-mega-trigger").forEach(btn=>{
         btn.addEventListener("click",e=>{
@@ -159,6 +201,17 @@
     if(!e.target.closest(".nav-mega-item")){
       document.querySelectorAll(".nav-mega-item.open").forEach(x=>x.classList.remove("open"));
     }
+    if(!e.target.closest('.storefront-topbar')){
+      document.querySelectorAll('.storefront-topbar .nav.mobile-menu-open').forEach(closeMobileMenu);
+    }
+  });
+
+  document.addEventListener('keydown',event=>{
+    if(event.key==='Escape')document.querySelectorAll('.storefront-topbar .nav.mobile-menu-open').forEach(closeMobileMenu);
+  });
+
+  window.addEventListener('resize',()=>{
+    if(window.innerWidth>900)document.querySelectorAll('.storefront-topbar .nav.mobile-menu-open').forEach(closeMobileMenu);
   });
 
   if(document.readyState==="loading"){
@@ -168,3 +221,4 @@
   }
 
 })();
+
