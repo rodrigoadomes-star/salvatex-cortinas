@@ -148,13 +148,19 @@
       throw new Error("Pedido não encontrado.");
     }
 
+    const turnstile = window.SalvatexTurnstile;
+    const turnstileToken = turnstile?.getToken?.() || "";
+    if (turnstile?.isRequired?.() && !turnstileToken) {
+      throw new Error("Confirme a verificação de segurança antes de continuar.");
+    }
+
     const resposta = await fetch("/api/pedidos", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         "Accept": "application/json"
       },
-      body: JSON.stringify(atual)
+      body: JSON.stringify({ ...atual, turnstileToken })
     });
 
     let dados = null;
@@ -166,6 +172,7 @@
     }
 
     if (!resposta.ok || !dados?.ok || !dados?.pedido) {
+      turnstile?.reset?.();
       const mensagem =
         dados?.message ||
         "Não foi possível registrar o pedido no servidor.";
