@@ -4,7 +4,7 @@
     if(document.querySelector('link[data-salvatex-mobile-nav]'))return;
     const link=document.createElement('link');
     link.rel='stylesheet';
-    link.href='css/mobile-nav.css?v=20260815-1';
+    link.href='css/mobile-nav.css?v=20260815-2';
     link.dataset.salvatexMobileNav='true';
     document.head.appendChild(link);
   }
