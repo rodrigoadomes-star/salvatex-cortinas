@@ -1,0 +1,1 @@
+import { json } from "../_lib.js";import { readSession } from "../_customer-auth.js";export async function onRequestGet(context){const user=await readSession(context);return json({ok:true,authenticated:Boolean(user),user:user||null})}
