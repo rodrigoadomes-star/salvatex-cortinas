@@ -42,10 +42,7 @@ window.SalvatexMedia = {
       forro
     );
 
-    const token =
-      localStorage.getItem(
-        "salvatexAdminToken"
-      ) || "";
+    const csrf = sessionStorage.getItem("salvatexAdminCsrf") || "";
 
     const response =
       await fetch(
@@ -54,14 +51,8 @@ window.SalvatexMedia = {
           method:
             "POST",
 
-          headers:
-            token
-              ? {
-                  Authorization:
-                    "Bearer " +
-                    token
-                }
-              : {},
+          credentials: "same-origin",
+          headers: { "x-csrf-token": csrf },
 
           body:
             form
@@ -91,10 +82,7 @@ window.SalvatexMedia = {
 
   async remove(key) {
 
-    const token =
-      localStorage.getItem(
-        "salvatexAdminToken"
-      ) || "";
+    const csrf = sessionStorage.getItem("salvatexAdminCsrf") || "";
 
     const response =
       await fetch(
@@ -106,14 +94,8 @@ window.SalvatexMedia = {
           method:
             "DELETE",
 
-          headers:
-            token
-              ? {
-                  Authorization:
-                    "Bearer " +
-                    token
-                }
-              : {}
+          credentials: "same-origin",
+          headers: { "x-csrf-token": csrf }
         }
       );
 
