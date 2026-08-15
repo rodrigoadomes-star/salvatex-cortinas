@@ -1,0 +1,25 @@
+.mobile-menu-toggle{display:none}
+@media(max-width:900px){
+  .storefront-topbar .nav{position:relative;min-height:68px;height:auto;display:flex;flex-wrap:wrap;align-items:center;padding-top:10px;padding-bottom:10px}
+  .storefront-topbar .logo{flex:0 1 auto}
+  .mobile-menu-toggle{order:1;display:inline-flex;width:42px;height:42px;flex:0 0 42px;margin-left:auto;align-items:center;justify-content:center;flex-direction:column;gap:5px;border:1px solid var(--layout-border,var(--line));border-radius:50%;background:transparent;color:var(--layout-text,var(--ink));cursor:pointer}
+  .mobile-menu-toggle span{display:block;width:18px;height:2px;border-radius:2px;background:currentColor;transition:transform .2s ease,opacity .2s ease}
+  .mobile-menu-open .mobile-menu-toggle span:nth-child(1){transform:translateY(7px) rotate(45deg)}
+  .mobile-menu-open .mobile-menu-toggle span:nth-child(2){opacity:0}
+  .mobile-menu-open .mobile-menu-toggle span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
+  .storefront-topbar .carrinho-link-topo{order:2;margin-left:0}
+  .storefront-topbar .navlinks{display:none!important;position:absolute;top:100%;left:10px;right:10px;z-index:120;width:auto;max-height:calc(100vh - 86px);overflow-y:auto;margin:0;padding:8px 16px 16px;flex-direction:column;align-items:stretch;gap:0;background:var(--layout-card-bg,#fff);border:1px solid var(--layout-border,var(--line));border-radius:0 0 14px 14px;box-shadow:0 20px 45px rgba(0,0,0,.16)}
+  .storefront-topbar .nav.mobile-menu-open .navlinks{display:flex!important}
+  .storefront-topbar .nav-mega-trigger,.storefront-topbar .navlinks>a{min-height:48px;padding:0 2px;color:var(--layout-text,var(--ink));font-size:13px;font-weight:700;text-decoration:none}
+  .storefront-topbar .mega-menu{background:var(--layout-card-bg,#fff)}
+  .storefront-topbar .mega-main,.storefront-topbar .mega-ready{padding:16px 4px}
+  .storefront-topbar .mega-card-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+  .storefront-topbar .mega-product-image{aspect-ratio:1.4}
+}
+@media(max-width:520px){
+  .storefront-topbar .navlinks{left:0;right:0;border-left:0;border-right:0;border-radius:0}
+  .storefront-topbar .mega-card-grid{grid-template-columns:1fr 1fr}
+  .storefront-topbar .mega-product-card strong{font-size:11px}
+  .storefront-topbar .mega-ready-row{padding:10px 0}
+}
+
