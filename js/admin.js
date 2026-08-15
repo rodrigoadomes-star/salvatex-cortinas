@@ -1,6 +1,3 @@
-Warning: truncated output (original token count: 36578)
-Total output lines: 2355
-
 const ADMIN={csrf:sessionStorage.getItem('salvatexAdminCsrf')||'',view:'dashboard',cache:{},currency:new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'})};
 const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
 const brlCents=v=>ADMIN.currency.format(Number(v||0)/100); const dateTime=v=>v?new Date(v).toLocaleString('pt-BR'):'—'; const esc=v=>String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
@@ -11,7 +8,7 @@ async function logout(){try{if(ADMIN.csrf)await api('logout',{method:'POST',body
 $('#login-form').addEventListener('submit',e=>{e.preventDefault();login($('#admin-token-input').value.trim())});$('#logout').addEventListener('click',logout);
 $$('#admin-nav button').forEach(b=>b.addEventListener('click',()=>{location.hash=b.dataset.view}));window.addEventListener('hashchange',()=>navigate(location.hash.slice(1)||'dashboard'));$('#refresh-view').addEventListener('click',()=>navigate(ADMIN.view,true));$('#menu-toggle').addEventListener('click',()=>$('.sidebar').classList.toggle('open'));
 const titles={dashboard:['Dashboard','Visão geral da sua loja'],orders:['Pedidos','Gerencie pedidos e andamento'],products:['Produtos','Catálogo e produtos da loja'],categories:['Categorias','Organize o catálogo'],customers:['Clientes','Contas cadastradas e compradores'],messages:['Mensagens','Atendimento recebido pelo site'],pages:['Páginas','Conteúdo institucional da loja'],layout:['Layout do site','Cabeçalho, página inicial, cores e rodapé'],media:['Mídia','Imagens usadas no catálogo'],coupons:['Cupons','Descontos e campanhas'],reports:['Relatórios','Desempenho da operação'],configurators:['Configuradores','Produtos sob medida, regras de cálculo e mídia'],settings:['Configurações','Dados gerais da loja'],integrations:['Integrações','Serviços conectados à loja'],billing:['Plano e cobrança','1% do faturamento ou mínimo de R$ 150'],logs:['Logs do Sistema','Histórico administrativo']};
-async function navigate(view,force=false){ADMIN.view=titles[view]?view:'dashboard';$$('#admin-nav button').forEach(b=>b.classList.toggle('active',b.dataset.view===ADMIN.view));$('#view-title').textContent=titles[ADMIN.view][0];$('#view-subtitle').textContent=titles[ADMIN.view][1];$('.sidebar').classList.remove('open');const c=$('#view-content');c.innerHTML='<div class="empty">Carregando…</div>';try{await ({dashboard:renderDashboard,orders:renderOrders,products:renderProducts,categories:renderCategories,customers:renderCustomers,messages:renderMessages,pages:renderPages,layout:renderLayout,media:renderMedia,coupons:renderCoupons,reports:renderReports,configurators:renderConfigurators,settings:renderSettings,integrations:renderIntegrations,billing:renderBilling,logs:renderLogs}[ADMIN.view])()}catch(e){c.innerHTML='<div class="panel empty">'+esc(e.message)+'</div>'}}
+async function navigate(view,force=false){ADMIN.view=titles[view]?view:'dashboard';$('#admin-nav button').forEach(b=>b.classList.toggle('active',b.dataset.view===ADMIN.view));$('#view-title').textContent=titles[ADMIN.view][0];$('#view-subtitle').textContent=titles[ADMIN.view][1];$('.sidebar').classList.remove('open');const c=$('#view-content');c.innerHTML='<div class="empty">Carregando…</div>';try{await ({dashboard:renderDashboard,orders:renderOrders,products:renderProducts,categories:renderCategories,customers:renderCustomers,messages:renderMessages,pages:renderPages,layout:renderLayout,media:renderMedia,coupons:renderCoupons,reports:renderReports,configurators:renderConfigurators,settings:renderSettings,integrations:renderIntegrations,billing:renderBilling,logs:renderLogs}[ADMIN.view])()}catch(e){c.innerHTML='<div class="panel empty">'+esc(e.message)+'</div>'}}
 function statCard(label,value,icon,cls,foot='Dados registrados no sistema'){return `<div class="stat-card"><div class="stat-head"><div><small>${label}</small><div class="stat-value">${value}</div></div><div class="stat-icon ${cls}">${icon}</div></div><div class="stat-foot">${foot}</div></div>`}
 function statusLabel(s){const names={aguardando_pagamento:'Aguardando pagamento',pago:'Pago',em_producao:'Produção',pronto:'Pronto',enviado:'Enviado',entregue:'Entregue',cancelado:'Cancelado',reembolsado:'Reembolsado'};return names[s]||s||'—'}
 async function renderDashboard(){const d=await api('dashboard');ADMIN.cache.dashboard=d;$('#nav-order-count').textContent=d.stats.totalOrders;const c=$('#view-content');c.innerHTML=`<div class="stats-grid">${statCard('Vendas hoje',brlCents(d.stats.salesToday),'＄','green')}${statCard('Pedidos hoje',d.stats.ordersToday,'▢','blue')}${statCard('Ticket médio',brlCents(d.stats.averageTicket),'▤','yellow')}${statCard('Faturamento mês',brlCents(d.stats.monthRevenue),'⌁','purple')}</div><div class="dashboard-grid"><section class="panel"><div class="panel-head"><h2>Faturamento</h2><span class="select">Últimos 30 dias</span></div><div id="revenue-chart" class="chart"></div></section><section class="panel"><div class="panel-head"><h2>Pedidos por status</h2></div><div id="status-donut" class="donut-wrap"></div></section></div><div class="tables-grid"><section class="panel"><div class="panel-head"><h2>Pedidos recentes</h2><button class="ghost-btn" data-go="orders">Ver todos</button></div><div class="table-wrap">${ordersTable(d.recent,true)}</div></section><section class="panel"><div class="panel-head"><h2>Produtos mais vendidos</h2></div><div class="table-wrap">${topProductsTable(d.topProducts)}</div></section></div><div class="quick-actions"><button class="quick-card" data-go="products"><span class="quick-icon">◇</span><div><strong>Novo produto</strong><small>Cadastrar novo produto</small></div></button><button class="quick-card" data-go="categories"><span class="quick-icon">□</span><div><strong>Nova categoria</strong><small>Criar nova categoria</small></div></button><button class="quick-card" data-go="coupons"><span class="quick-icon">✂</span><div><strong>Novo cupom</strong><small>Criar cupom de desconto</small></div></button><button class="quick-card" data-go="pages"><span class="quick-icon">▤</span><div><strong>Nova página</strong><small>Criar nova página</small></div></button><button class="quick-card" data-go="orders"><span class="quick-icon">▣</span><div><strong>Ver pedidos</strong><small>Gerenciar pedidos</small></div></button></div>`; drawRevenue(d.revenue);drawStatuses(d.statuses,d.stats.totalOrders);$$('[data-go]',c).forEach(b=>b.onclick=()=>location.hash=b.dataset.go);bindOrderRows(c)}
@@ -77,7 +74,7 @@ async function renderCategories(){const d=await api('catalog/categories');const 
 function categoryForm(x={}){openModal(`<h2>${x.id?'Editar categoria':'Nova categoria'}</h2><form id="cat-form"><div class="form-grid"><div class="form-field full"><label>Nome</label><input name="name" value="${esc(x.name||'')}" required></div><div class="form-field full"><label>Descrição</label><textarea name="description">${esc(x.description||'')}</textarea></div><div class="form-field"><label>Ordem</label><input name="sortOrder" type="number" value="${x.sort_order||0}"></div><div class="form-field"><label><input name="active" type="checkbox" ${x.active!==0?'checked':''}> Ativa</label></div></div><div class="form-actions">${x.id?'<button id="delete-cat" type="button" class="danger-btn">Excluir</button>':''}<button class="primary-btn">Salvar</button></div></form>`);const f=$('#cat-form');f.onsubmit=async e=>{e.preventDefault();const fd=new FormData(f),body={name:fd.get('name'),description:fd.get('description'),sortOrder:fd.get('sortOrder'),active:fd.get('active')==='on'};await api(x.id?'catalog/categories/'+x.id:'catalog/categories',{method:x.id?'PUT':'POST',body:JSON.stringify(body)});closeModal();navigate('categories',true)};if(x.id)$('#delete-cat').onclick=async()=>{if(confirm('Excluir categoria? Produtos ficarão sem categoria.')){await api('catalog/categories/'+x.id,{method:'DELETE'});closeModal();navigate('categories',true)}}}
 async function renderCustomers(){const d=await api('customers');$('#view-content').innerHTML=`<section class="panel"><div class="table-wrap"><table class="admin-table"><thead><tr><th>Cliente</th><th>E-mail</th><th>Telefone</th><th>Cadastro</th><th>Pedidos</th><th>Total comprado</th><th>Último pedido</th></tr></thead><tbody>${d.customers.map(x=>`<tr><td><b>${esc(x.name||'—')}</b></td><td>${esc(x.email)}</td><td>${esc(x.phone||'—')}</td><td>${x.registered?'<span class="customer-origin">CONTA CRIADA</span>':'Compra sem conta'}</td><td>${x.orders}</td><td>${brlCents(x.spent)}</td><td>${x.last_order?dateTime(x.last_order):'Sem compras'}</td></tr>`).join('')||'<tr><td colspan="7" class="empty">Nenhum cliente.</td></tr>'}</tbody></table></div></section>`}
 function messageStatus(value){return value==='responded'?'Respondida':value==='read'?'Lida':'Não respondida'}
-async function renderMessages(){const c=$('#view-content');const load=async()=>{const q=encodeURIComponent($('#message-search')?.value||''),status=encodeURIComponent($('#message-status')?.value||''),d=await api(`messages?q=${q}&status=${status}`);$('#nav-message-count').textContent=d.unread||0;$('#message-list').innerHTML=d.messages.map(x=>`<article class="message-row ${esc(x.status)}"><div class="message-person"><strong>${esc(x.name)}</strong><span>${esc(x.email)}</span><small>${esc(x.phone||'Sem telefone')}</small></div><div class="message-text">${esc(x.message)}</div><div><span class="message-status ${esc(x.status)}">${messageStatus(x.status)}</span><div class="message-date">${dateTime(x.created_at)}</div></div><div class="message-actions"><a class="ghost-btn" href="mailto:${encodeURIComponent(x.email)}?subject=${encodeURIComponent('Retorno Salvatex')}">Responder</a>${x.status!=='responded'?`<button class="ghost-btn" data-message-done="${esc(x.id)}">Marcar respondida</button>`:''}</div></article>`).join('')||'<div class="empty">Nenhuma mensagem.</div>';$$('[data-message-done]',c).forEach(b=>b.onclick=async()=>{await api('messages/'+encodeURIComponent(b.dataset.messageDone),{method:'PATCH',body:JSON.stringify({status:'responded'})});toast('Mensagem marcada como respondida');await load()})};c.innerHTML=`<div class="message-toolbar"><div class="message-filters"><input id="message-search" class="search" placeholder="Buscar nome, e-mail, telefone ou mensagem"><select id="message-status" class="select"><option value="">Todos os status</option><option value="unread">Não respondidas</option><option value="read">Lidas</option><option value="responded">Respondidas</option></select><button id="message-filter" class="ghost-btn">Filtrar</button></div></div><section class="panel"><div id="message-list" class="message-list"><div class="empty">Carregando…</div></div></section>`;$('#message-filter').onclick=load;$('#message-search').addEventListener('keydown',e=>{if(e.key==='Enter')load()});$('#message-status').onchange=load;await load()}
+async function renderMessages(){const c=$('#view-content');const load=async()=>{const q=encodeURIComponent($('#message-search')?.value||''),status=encodeURIComponent($('#message-status')?.value||''),d=await api(`messages?q=${q}&status=${status}`);$('#nav-message-count').textContent=d.unread||0;$('#message-list').innerHTML=d.messages.map(x=>`<article class="message-row ${esc(x.status)}"><div class="message-person"><strong>${esc(x.name)}</strong><span>${esc(x.email)}</span><small>${esc(x.phone||'Sem telefone')}</small></div><div class="message-text">${esc(x.message)}</div><div><span class="message-status ${esc(x.status)}">${messageStatus(x.status)}</span><div class="message-date">${dateTime(x.created_at)}</div></div><div class="message-actions"><a class="ghost-btn" href="mailto:${encodeURIComponent(x.email)}?subject=${encodeURIComponent('Retorno Salvatex')}">Responder</a>${x.status!=='responded'?`<button class="ghost-btn" data-message-done="${esc(x.id)}">Marcar respondida</button>`:''}</div></article>`).join('')||'<div class="empty">Nenhuma mensagem.</div>';$('[data-message-done]',c).forEach(b=>b.onclick=async()=>{await api('messages/'+encodeURIComponent(b.dataset.messageDone),{method:'PATCH',body:JSON.stringify({status:'responded'})});toast('Mensagem marcada como respondida');await load()})};c.innerHTML=`<div class="message-toolbar"><div class="message-filters"><input id="message-search" class="search" placeholder="Buscar nome, e-mail, telefone ou mensagem"><select id="message-status" class="select"><option value="">Todos os status</option><option value="unread">Não respondidas</option><option value="read">Lidas</option><option value="responded">Respondidas</option></select><button id="message-filter" class="ghost-btn">Filtrar</button></div></div><section class="panel"><div id="message-list" class="message-list"><div class="empty">Carregando…</div></div></section>`;$('#message-filter').onclick=load;$('#message-search').addEventListener('keydown',e=>{if(e.key==='Enter')load()});$('#message-status').onchange=load;await load()}
 async function renderPages(){
   const [d,p]=await Promise.all([api('pages'),api('catalog/products')]);
   ADMIN.cache.pageProducts=p.products||[];
@@ -309,7 +306,550 @@ function collectWave(form,wave){
   $$('.wave-tecido-card').forEach(card=>{const nome=$('.wave-tecido-nome',card).value.trim();if(!nome)return;const forros={};$$('.wave-forro-row',card).forEach(r=>{const f=$('.wave-forro-nome',r).value.trim();if(f)forros[f]=Number($('.wave-forro-preco',r).value||0)});const cores=$('.wave-tecido-cores',card).value.split(',').map(x=>x.trim()).filter(Boolean);tecidos[nome]={ativo:true,cores,coresAtivas:collectColorStock(card,cores),forros}});
   $$('.wave-trilho-row').forEach(r=>{const nome=$('.wave-trilho-nome',r).value.trim();if(nome)trilhos[nome]={valorMetro:Number($('.wave-trilho-metro',r).value||0),minimo:Number($('.wave-trilho-minimo',r).value||0)}});
   $$('.wave-midia-row').forEach(r=>{const tecido=$('.wave-midia-tecido',r).value.trim(),cor=$('.wave-midia-cor',r).value.trim(),forro=$('.wave-midia-forro',r).value.trim();if(!tecido||!cor||!forro)return;midia.push({tecido,modelo:'Wave',cor,forro,capa:$('.wave-midia-capa',r).value.trim(),imagens:$('.wave-midia-imagens',r).value.split('\n').map(x=>x.trim()).filter(Boolean),video:$('.wave-midia-video',r).value.trim()})});
-  return {...wave,nome:fd.get('nome'),ativo:fd.get('ativo')==='on',medidas:{larguraMinima:Number(fd.get('larguraMinima')||0.5),larguraMaxima:Number(fd.get('larguraMaxima')||12),alturaMinima:Number(fd.ge…6578 tokens truncated…ns('layout-disabled'),
+  return {...wave,nome:fd.get('nome'),ativo:fd.get('ativo')==='on',medidas:{larguraMinima:Number(fd.get('larguraMinima')||0.5),larguraMaxima:Number(fd.get('larguraMaxima')||12),alturaMinima:Number(fd.get('alturaMinima')||0.5),alturaEntradaMaxima:Number(fd.get('alturaEntradaMaxima')||5),calculoMaximo:Number(fd.get('calculoMaximo')||3.2),inicioAcrescimo:Number(fd.get('inicioAcrescimo')||2.8),acrescimoPercentual:Number(fd.get('acrescimoPercentual')||0),acimaMaximo:{modo:'consulta',texto:fd.get('textoAcimaMaximo'),textoBotao:fd.get('textoBotaoAcimaMaximo'),permitirCarrinho:fd.get('permitirCarrinho')==='on'}},barra:{faixas:[{ate:Number(fd.get('faixa1Ate')),tamanho:Number(fd.get('faixa1Barra'))},{ate:Number(fd.get('faixa2Ate')),tamanho:Number(fd.get('faixa2Barra'))},{ate:Number(fd.get('faixa3Ate')),tamanho:Number(fd.get('faixa3Barra'))},{ate:Number(fd.get('faixa4Ate')),tamanho:Number(fd.get('faixa4Barra'))}],acimaInicio:Number(fd.get('barraAcimaInicio')||20)},franzimentos:wave.franzimentos||[],tecidos,trilhos,midia};
+}
+async function renderConfigurators(){
+  const d=await api('configurators/wave'),w=d.wave||{},m=w.medidas||{},b=w.barra||{},faixas=b.faixas||[];
+  $('#view-content').innerHTML=`<div class="page-toolbar"><div><span class="select">Configurador ativo na loja: Wave</span></div><button id="save-wave" class="primary-btn">Salvar configurador</button></div><form id="wave-form"><section class="panel configurator-section"><div class="panel-head"><div><h2>Configurador Wave</h2><p>Edite regras, preços, opções e mídia sem alterar código.</p></div></div><div class="form-grid"><div class="form-field"><label>Nome exibido</label><input name="nome" value="${esc(w.nome||'Cortina Wave')}"></div><div class="form-field"><label><input type="checkbox" name="ativo" ${w.ativo!==false?'checked':''}> Configurador ativo</label></div></div></section><section class="panel configurator-section"><div class="panel-head"><h2>Regras de medidas e altura</h2></div><div class="form-grid"><div class="form-field"><label>Largura mínima (m)</label><input name="larguraMinima" type="number" step="0.01" value="${m.larguraMinima??0.5}"></div><div class="form-field"><label>Largura máxima (m)</label><input name="larguraMaxima" type="number" step="0.01" value="${m.larguraMaxima??12}"></div><div class="form-field"><label>Altura mínima (m)</label><input name="alturaMinima" type="number" step="0.01" value="${m.alturaMinima??0.5}"></div><div class="form-field"><label>Altura máxima que cliente pode digitar (m)</label><input name="alturaEntradaMaxima" type="number" step="0.01" value="${m.alturaEntradaMaxima??5}"></div><div class="form-field"><label>Calcular automaticamente até (m)</label><input name="calculoMaximo" type="number" step="0.01" value="${m.calculoMaximo??3.2}"></div><div class="form-field"><label>Aplicar acréscimo acima de (m)</label><input name="inicioAcrescimo" type="number" step="0.01" value="${m.inicioAcrescimo??2.8}"></div><div class="form-field"><label>Acréscimo (%)</label><input name="acrescimoPercentual" type="number" step="0.01" value="${m.acrescimoPercentual??25}"></div><div class="form-field full"><label>Mensagem acima do limite automático</label><input name="textoAcimaMaximo" value="${esc(m.acimaMaximo?.texto||'Alturas acima de 3,20 m precisam de orçamento personalizado.')}"></div><div class="form-field"><label>Texto do botão</label><input name="textoBotaoAcimaMaximo" value="${esc(m.acimaMaximo?.textoBotao||'Solicitar orçamento')}"></div><div class="form-field"><label><input type="checkbox" name="permitirCarrinho" ${m.acimaMaximo?.permitirCarrinho?'checked':''}> Permitir carrinho acima do limite</label></div></div></section><section class="panel configurator-section"><div class="panel-head"><h2>Regras da barra</h2></div><div class="configurator-rules-grid">${[0,1,2,3].map((i)=>`<div class="configurator-rule"><span>Faixa ${i+1}</span><input name="faixa${i+1}Ate" type="number" step="0.01" value="${faixas[i]?.ate??''}" placeholder="Até (m)"><input name="faixa${i+1}Barra" type="number" step="1" value="${faixas[i]?.tamanho??''}" placeholder="Barra (cm)"></div>`).join('')}</div><div class="form-field" style="max-width:260px;margin-top:12px"><label>Barra acima do início do acréscimo (cm)</label><input name="barraAcimaInicio" type="number" value="${b.acimaInicio??20}"></div></section><section class="panel configurator-section"><div class="panel-head"><div><h2>Tecidos, cores, forros e preços</h2><p>O preço é informado por metro de tecido.</p></div><button type="button" id="add-wave-tecido" class="ghost-btn">+ Adicionar tecido</button></div><div id="wave-tecidos" class="configurator-stack">${Object.entries(w.tecidos||{}).map(([n,t])=>waveTecidoCard(n,t)).join('')}</div></section><section class="panel configurator-section"><div class="panel-head"><h2>Trilhos e varões</h2><button type="button" id="add-wave-trilho" class="ghost-btn">+ Adicionar</button></div><div id="wave-trilhos" class="configurator-stack">${Object.entries(w.trilhos||{}).map(([n,x])=>waveTrilhoRow(n,x)).join('')}</div></section><section class="panel configurator-section"><div class="panel-head"><div><h2>Fotos e vídeos do configurador</h2><p>Vincule mídia à combinação tecido + cor + forro. Pode usar caminhos existentes em /imagens ou URLs.</p></div><button type="button" id="add-wave-midia" class="ghost-btn">+ Adicionar mídia</button></div><div id="wave-midias" class="configurator-stack">${(w.midia||[]).map(waveMidiaRow).join('')}</div></section><div class="form-actions"><button class="primary-btn">Salvar configurador Wave</button></div></form>`;
+  bindWaveBuilder();
+  const salvarBotoes=()=>[
+    $('#save-wave'),
+    ...$$('#wave-form button.primary-btn')
+  ].filter(Boolean);
+
+  const save=async(evento)=>{
+    if(evento&&typeof evento.preventDefault==='function')evento.preventDefault();
+
+    const botoes=salvarBotoes();
+    const textos=botoes.map(b=>b.textContent);
+
+    try{
+      botoes.forEach(b=>{
+        b.disabled=true;
+        b.textContent='Salvando...';
+      });
+
+      const wave=collectWave($('#wave-form'),w);
+
+      if(!wave.nome||!String(wave.nome).trim()){
+        throw new Error('Informe o nome do configurador.');
+      }
+
+      if(!wave.medidas||Number(wave.medidas.calculoMaximo)<=0){
+        throw new Error('Informe a altura máxima calculada.');
+      }
+
+      const resposta=await api('configurators/wave',{
+        method:'PUT',
+        body:JSON.stringify({wave})
+      });
+
+      if(!resposta||resposta.ok!==true){
+        throw new Error(resposta?.message||'Não foi possível salvar o configurador.');
+      }
+
+      toast('Configurador Wave salvo com sucesso');
+      ADMIN.cache.configuratorWave=resposta.wave||wave;
+
+    }catch(erro){
+      console.error('Erro ao salvar configurador Wave:',erro);
+      toast('Erro ao salvar: '+(erro?.message||'falha desconhecida'));
+      alert('Não foi possível salvar o configurador Wave.\n\n'+(erro?.message||'Falha desconhecida.'));
+    }finally{
+      botoes.forEach((b,i)=>{
+        b.disabled=false;
+        b.textContent=textos[i]||'Salvar configurador';
+      });
+    }
+  };
+
+  $('#wave-form').onsubmit=save;
+
+  const saveTopo=$('#save-wave');
+  if(saveTopo){
+    saveTopo.type='button';
+    saveTopo.onclick=save;
+  }
+}
+
+const DEFAULT_LAYOUT_CONFIG={
+  header:{
+    logoText:"SALVATEX",
+    logoSubtext:"CORTINAS",
+    curtainsLabel:"Cortinas sob medida",
+    blindsLabel:"Persianas sob medida",
+    contactLabel:"Contato",
+    cartLabel:"Carrinho",
+    showContact:true,
+    showCart:true
+  },
+
+  home:{
+    hero:{
+      enabled:true,
+      kicker:"Cortinas e persianas",
+      title:"Sob medida para transformar seus ambientes.",
+      subtitle:"Encontre cortinas, persianas e opções pronta entrega com acabamento pensado para cada espaço.",
+      primaryText:"Conhecer opções",
+      primaryTarget:"#colecoes-home",
+      secondaryText:"Falar com a Salvatex",
+      secondaryTarget:"#contato",
+      backgroundImage:"/imagens/gazenatural100bck.jpeg"
+    },
+
+    sections:[
+      {id:"hero",label:"Banner principal",enabled:true,order:10},
+      {id:"collections",label:"Categorias sob medida",enabled:true,order:20},
+      {id:"benefits",label:"Informações e diferenciais",enabled:true,order:30},
+      {id:"configurator",label:"Configurador Wave",enabled:true,order:40}
+    ],
+
+    collections:{
+      kicker:"SALVATEX CORTINAS",
+      title:"Sob medida para transformar seus ambientes",
+      subtitle:"Escolha o modelo e veja opções, medidas e produtos cadastrados diretamente pelo nosso catálogo."
+    },
+
+    benefits:[
+      {title:"Feito sob medida",text:"Perfeito para o seu espaço"},
+      {title:"Materiais selecionados",text:"Acabamento e qualidade"},
+      {title:"Entrega para todo o Brasil",text:"Com segurança e agilidade"},
+      {title:"Atendimento especializado",text:"Suporte antes e depois da compra"}
+    ],
+
+    configurator:{
+      kicker:"CONFIGURADOR WAVE",
+      title:"Configure sua cortina sob medida",
+      subtitle:"Escolha medidas, tecido, forro, cor e acabamento para montar sua cortina."
+    }
+  },
+
+  configuratorLabels:{formTitle:"Configure sua cortina",formSubtitle:"Escolha as características abaixo para calcular sua cortina sob medida.",mediaTitle:"Transforme seu ambiente!",summaryTitle:"Resumo do orçamento",step1:"Cortina Pronta",step2:"Tecido",step3:"Forro",step4:"Acabamento",step5:"Resumo"},
+
+  colors:{primary:"#2f2116",accent:"#9a7547",background:"#fbfaf8",text:"#172033",muted:"#756f68",headerBackground:"#ffffff",cardBackground:"#ffffff",border:"#e9e2da",buttonText:"#ffffff"},
+
+  footer:{
+    brandText:"SALVATEX CORTINAS",
+    description:"Cortinas e persianas sob medida.",
+    whatsapp:"5544998793160",
+    copyright:"SALVATEX CORTINAS · 2026"
+  }
+};
+
+function cloneLayout(v){
+  return JSON.parse(JSON.stringify(v));
+}
+
+function mergeLayout(target,source){
+  if(!source||typeof source!=="object"||Array.isArray(source))return target;
+  Object.entries(source).forEach(([k,v])=>{
+    if(v&&typeof v==="object"&&!Array.isArray(v)){
+      target[k]=mergeLayout(
+        target[k]&&typeof target[k]==="object"&&!Array.isArray(target[k])
+          ? target[k]
+          : {},
+        v
+      );
+    }else{
+      target[k]=v;
+    }
+  });
+  return target;
+}
+
+function layoutSectionRow(item){
+  return `<div class="layout-section-row" draggable="true" data-layout-section="${esc(item.id)}">
+    <span class="layout-drag" title="Arraste para reorganizar">⋮⋮</span>
+    <div class="layout-section-name">
+      <strong>${esc(item.label)}</strong>
+      <small>${item.enabled!==false?'Visível na página':'Oculto na página'}</small>
+    </div>
+    <button type="button" class="layout-eye ${item.enabled!==false?'active':''}" title="${item.enabled!==false?'Ocultar seção':'Exibir seção'}">
+      ${item.enabled!==false?'◉':'○'}
+    </button>
+  </div>`;
+}
+
+function bindLayoutSectionRows(container){
+  let dragging=null;
+
+  $$('.layout-section-row',container).forEach(row=>{
+    row.addEventListener('dragstart',()=>{
+      dragging=row;
+      row.classList.add('dragging');
+    });
+
+    row.addEventListener('dragend',()=>{
+      row.classList.remove('dragging');
+      dragging=null;
+    });
+
+    row.addEventListener('dragover',e=>{
+      e.preventDefault();
+      if(!dragging||dragging===row)return;
+
+      const rect=row.getBoundingClientRect();
+      const before=e.clientY < rect.top + rect.height/2;
+
+      if(before){
+        container.insertBefore(dragging,row);
+      }else{
+        container.insertBefore(dragging,row.nextSibling);
+      }
+    });
+
+    const eye=$('.layout-eye',row);
+    eye.onclick=()=>{
+      const enabled=!row.classList.contains('layout-disabled');
+      row.classList.toggle('layout-disabled',enabled);
+      eye.classList.toggle('active',!enabled);
+      eye.textContent=!enabled?'◉':'○';
+
+      const small=$('small',row);
+      if(small)small.textContent=!enabled?'Visível na página':'Oculto na página';
+    };
+  });
+}
+
+async function renderLayout(){
+  const d=await api('layout');
+  const current=mergeLayout(
+    cloneLayout(DEFAULT_LAYOUT_CONFIG),
+    d.layout||{}
+  );
+
+  const sections=[...(current.home.sections||[])]
+    .sort((a,b)=>Number(a.order||0)-Number(b.order||0));
+
+  const benefits=Array.isArray(current.home.benefits)
+    ? current.home.benefits
+    : [];
+
+  $('#view-content').innerHTML=`
+    <div class="layout-editor-grid">
+
+      <aside class="panel layout-editor-nav">
+        <div class="panel-head">
+          <div>
+            <h2>Editar layout</h2>
+            <p>Altere textos, imagens, cores e a ordem da página inicial.</p>
+          </div>
+        </div>
+
+        <button type="button" class="layout-editor-tab active" data-layout-tab="header">Cabeçalho</button>
+        <button type="button" class="layout-editor-tab" data-layout-tab="home">Página inicial</button>
+        <button type="button" class="layout-editor-tab" data-layout-tab="labels">Textos do configurador</button>
+        <button type="button" class="layout-editor-tab" data-layout-tab="colors">Cores da marca</button>
+        <button type="button" class="layout-editor-tab" data-layout-tab="footer">Rodapé</button>
+
+        <a href="../index.html" target="_blank" class="layout-preview-link">Abrir loja ↗</a>
+      </aside>
+
+      <form id="layout-editor-form">
+
+        <section class="panel layout-editor-page active" data-layout-page="header">
+          <div class="panel-head">
+            <div>
+              <h2>Cabeçalho</h2>
+              <p>Textos que aparecem no menu principal do site.</p>
+            </div>
+          </div>
+
+          <div class="form-grid">
+            <div class="form-field">
+              <label>Nome da marca</label>
+              <input name="headerLogoText" value="${esc(current.header.logoText)}">
+            </div>
+
+            <div class="form-field">
+              <label>Texto abaixo da marca</label>
+              <input name="headerLogoSubtext" value="${esc(current.header.logoSubtext)}">
+            </div>
+
+            <div class="form-field">
+              <label>Menu — Cortinas</label>
+              <input name="headerCurtainsLabel" value="${esc(current.header.curtainsLabel)}">
+            </div>
+
+            <div class="form-field">
+              <label>Menu — Persianas</label>
+              <input name="headerBlindsLabel" value="${esc(current.header.blindsLabel)}">
+            </div>
+
+            <div class="form-field">
+              <label>Menu — Contato</label>
+              <input name="headerContactLabel" value="${esc(current.header.contactLabel)}">
+            </div>
+
+            <div class="form-field">
+              <label>Texto do carrinho</label>
+              <input name="headerCartLabel" value="${esc(current.header.cartLabel)}">
+            </div>
+
+            <div class="form-field">
+              <label><input type="checkbox" name="headerShowContact" ${current.header.showContact!==false?'checked':''}> Exibir Contato</label>
+            </div>
+
+            <div class="form-field">
+              <label><input type="checkbox" name="headerShowCart" ${current.header.showCart!==false?'checked':''}> Exibir Carrinho</label>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel layout-editor-page" data-layout-page="home">
+          <div class="panel-head">
+            <div>
+              <h2>Página inicial</h2>
+              <p>Arraste as seções para mudar a ordem e use o botão ao lado para mostrar ou ocultar.</p>
+            </div>
+          </div>
+
+          <div id="layout-sections-list" class="layout-sections-list">
+            ${sections.map(layoutSectionRow).join('')}
+          </div>
+
+          <div class="layout-editor-divider"></div>
+
+          <h3 class="layout-editor-subtitle">Banner principal</h3>
+
+          <div class="form-grid">
+            <div class="form-field full">
+              <label>Texto pequeno</label>
+              <input name="heroKicker" value="${esc(current.home.hero.kicker)}">
+            </div>
+
+            <div class="form-field full">
+              <label>Título principal</label>
+              <textarea name="heroTitle" rows="2">${esc(current.home.hero.title)}</textarea>
+            </div>
+
+            <div class="form-field full">
+              <label>Subtítulo</label>
+              <textarea name="heroSubtitle" rows="3">${esc(current.home.hero.subtitle)}</textarea>
+            </div>
+
+            <div class="form-field">
+              <label>Texto do botão principal</label>
+              <input name="heroPrimaryText" value="${esc(current.home.hero.primaryText)}">
+            </div>
+
+            <div class="form-field">
+              <label>Destino do botão principal</label>
+              <input name="heroPrimaryTarget" value="${esc(current.home.hero.primaryTarget)}">
+            </div>
+
+            <div class="form-field">
+              <label>Texto do botão secundário</label>
+              <input name="heroSecondaryText" value="${esc(current.home.hero.secondaryText)}">
+            </div>
+
+            <div class="form-field">
+              <label>Destino do botão secundário</label>
+              <input name="heroSecondaryTarget" value="${esc(current.home.hero.secondaryTarget)}">
+            </div>
+
+            <div class="form-field full">
+              <label>Imagem de fundo</label>
+              <input type="hidden" name="heroBackgroundImage" id="layout-hero-image-url" value="${esc(current.home.hero.backgroundImage||'')}">
+
+              <div class="layout-image-upload">
+                <div id="layout-hero-preview" class="layout-image-preview">
+                  ${current.home.hero.backgroundImage
+                    ? `<img src="${esc(current.home.hero.backgroundImage)}">`
+                    : '<span>Sem imagem</span>'}
+                </div>
+
+                <label class="upload-btn">
+                  Enviar imagem do computador
+                  <input type="file" id="layout-hero-file" accept="image/jpeg,image/png,image/webp,image/gif">
+                </label>
+
+                <small id="layout-hero-status" class="upload-status"></small>
+              </div>
+            </div>
+          </div>
+
+          <div class="layout-editor-divider"></div>
+
+          <h3 class="layout-editor-subtitle">Categorias sob medida</h3>
+
+          <div class="form-grid">
+            <div class="form-field">
+              <label>Texto pequeno</label>
+              <input name="collectionsKicker" value="${esc(current.home.collections.kicker)}">
+            </div>
+
+            <div class="form-field">
+              <label>Título</label>
+              <input name="collectionsTitle" value="${esc(current.home.collections.title)}">
+            </div>
+
+            <div class="form-field full">
+              <label>Subtítulo</label>
+              <textarea name="collectionsSubtitle" rows="2">${esc(current.home.collections.subtitle)}</textarea>
+            </div>
+          </div>
+
+          <div class="layout-editor-divider"></div>
+
+          <h3 class="layout-editor-subtitle">Diferenciais</h3>
+
+          <div class="layout-benefits-editor">
+            ${[0,1,2,3].map(i=>{
+              const item=benefits[i]||{title:'',text:''};
+              return `<div class="layout-benefit-edit">
+                <div class="form-field">
+                  <label>Título ${i+1}</label>
+                  <input name="benefitTitle${i}" value="${esc(item.title)}">
+                </div>
+                <div class="form-field">
+                  <label>Texto ${i+1}</label>
+                  <input name="benefitText${i}" value="${esc(item.text)}">
+                </div>
+              </div>`;
+            }).join('')}
+          </div>
+
+          <div class="layout-editor-divider"></div>
+
+          <h3 class="layout-editor-subtitle">Configurador da home</h3>
+
+          <div class="form-grid">
+            <div class="form-field">
+              <label>Texto pequeno</label>
+              <input name="configKicker" value="${esc(current.home.configurator.kicker)}">
+            </div>
+
+            <div class="form-field">
+              <label>Título</label>
+              <input name="configTitle" value="${esc(current.home.configurator.title)}">
+            </div>
+
+            <div class="form-field full">
+              <label>Subtítulo</label>
+              <textarea name="configSubtitle" rows="2">${esc(current.home.configurator.subtitle)}</textarea>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel layout-editor-page" data-layout-page="labels"><div class="panel-head"><div><h2>Textos do configurador</h2><p>Edite os textos fixos usados por Wave, Prega Macho e Ilhós.</p></div></div><div class="form-grid"><div class="form-field"><label>Título do formulário</label><input name="labelFormTitle" value="${esc(current.configuratorLabels?.formTitle||'Configure sua cortina')}"></div><div class="form-field"><label>Título da galeria</label><input name="labelMediaTitle" value="${esc(current.configuratorLabels?.mediaTitle||'Transforme seu ambiente!')}"></div><div class="form-field full"><label>Subtítulo do formulário</label><input name="labelFormSubtitle" value="${esc(current.configuratorLabels?.formSubtitle||'')}"></div><div class="form-field"><label>Título do resumo</label><input name="labelSummaryTitle" value="${esc(current.configuratorLabels?.summaryTitle||'Resumo do orçamento')}"></div><div class="form-field"><label>Etapa 1</label><input name="labelStep1" value="${esc(current.configuratorLabels?.step1||'Cortina Pronta')}"></div><div class="form-field"><label>Etapa 2</label><input name="labelStep2" value="${esc(current.configuratorLabels?.step2||'Tecido')}"></div><div class="form-field"><label>Etapa 3</label><input name="labelStep3" value="${esc(current.configuratorLabels?.step3||'Forro')}"></div><div class="form-field"><label>Etapa 4</label><input name="labelStep4" value="${esc(current.configuratorLabels?.step4||'Acabamento')}"></div><div class="form-field"><label>Etapa 5</label><input name="labelStep5" value="${esc(current.configuratorLabels?.step5||'Resumo')}"></div></div></section>
+
+        <section class="panel layout-editor-page" data-layout-page="colors">
+          <div class="panel-head">
+            <div>
+              <h2>Cores da marca</h2>
+              <p>Altere as principais cores utilizadas no novo layout.</p>
+            </div>
+          </div>
+
+          <div class="layout-color-grid">
+            <label>Cor principal<input type="color" name="colorPrimary" value="${esc(current.colors.primary)}"></label>
+            <label>Cor de destaque<input type="color" name="colorAccent" value="${esc(current.colors.accent)}"></label>
+            <label>Fundo<input type="color" name="colorBackground" value="${esc(current.colors.background)}"></label>
+            <label>Texto<input type="color" name="colorText" value="${esc(current.colors.text)}"></label>
+            <label>Texto secundário<input type="color" name="colorMuted" value="${esc(current.colors.muted||'#756f68')}"></label>
+            <label>Fundo do cabeçalho<input type="color" name="colorHeaderBackground" value="${esc(current.colors.headerBackground||'#ffffff')}"></label>
+            <label>Fundo dos cards<input type="color" name="colorCardBackground" value="${esc(current.colors.cardBackground||'#ffffff')}"></label>
+            <label>Bordas<input type="color" name="colorBorder" value="${esc(current.colors.border||'#e9e2da')}"></label>
+            <label>Texto dos botões<input type="color" name="colorButtonText" value="${esc(current.colors.buttonText||'#ffffff')}"></label>
+          </div>
+        </section>
+
+        <section class="panel layout-editor-page" data-layout-page="footer">
+          <div class="panel-head">
+            <div>
+              <h2>Rodapé</h2>
+              <p>Informações gerais exibidas no final das páginas.</p>
+            </div>
+          </div>
+
+          <div class="form-grid">
+            <div class="form-field">
+              <label>Nome da marca</label>
+              <input name="footerBrandText" value="${esc(current.footer.brandText)}">
+            </div>
+
+            <div class="form-field">
+              <label>WhatsApp</label>
+              <input name="footerWhatsapp" value="${esc(current.footer.whatsapp)}">
+            </div>
+
+            <div class="form-field full">
+              <label>Descrição</label>
+              <textarea name="footerDescription" rows="2">${esc(current.footer.description)}</textarea>
+            </div>
+
+            <div class="form-field full">
+              <label>Copyright</label>
+              <input name="footerCopyright" value="${esc(current.footer.copyright)}">
+            </div>
+          </div>
+        </section>
+
+        <div class="layout-editor-savebar">
+          <span>As alterações são aplicadas ao site após salvar.</span>
+          <button type="submit" class="primary-btn">Publicar alterações</button>
+        </div>
+      </form>
+    </div>
+  `;
+
+  const form=$('#layout-editor-form');
+
+  $$('.layout-editor-tab').forEach(btn=>{
+    btn.onclick=()=>{
+      $$('.layout-editor-tab').forEach(x=>x.classList.toggle('active',x===btn));
+      $$('.layout-editor-page').forEach(page=>{
+        page.classList.toggle('active',page.dataset.layoutPage===btn.dataset.layoutTab);
+      });
+    };
+  });
+
+  bindLayoutSectionRows($('#layout-sections-list'));
+
+  const heroFile=$('#layout-hero-file');
+
+  if(heroFile){
+    heroFile.onchange=async()=>{
+      const file=heroFile.files?.[0];
+      if(!file)return;
+
+      const status=$('#layout-hero-status');
+
+      try{
+        status.textContent='Enviando imagem...';
+
+        const d=await uploadAdminMedia(
+          file,
+          {
+            configurator:'layout',
+            tecido:'home',
+            cor:'hero',
+            forro:'geral'
+          }
+        );
+
+        $('#layout-hero-image-url').value=d.url;
+        $('#layout-hero-preview').innerHTML=`<img src="${esc(d.url)}">`;
+        status.textContent='Imagem enviada.';
+      }catch(err){
+        status.textContent=err.message;
+        alert(err.message);
+      }
+    };
+  }
+
+  form.onsubmit=async e=>{
+    e.preventDefault();
+
+    const fd=new FormData(form);
+
+    const sectionRows=$$('.layout-section-row',$('#layout-sections-list'));
+
+    const newSections=sectionRows.map((row,index)=>({
+      id:row.dataset.layoutSection,
+      label:$('strong',row)?.textContent||row.dataset.layoutSection,
+      enabled:!row.classList.contains('layout-disabled'),
       order:(index+1)*10
     }));
 
@@ -1812,4 +2352,3 @@ async function renderMedia(){
 }
 
 async function renderIntegrations(){let health='Conectado',r2='A configurar';try{const r=await fetch('/api/health');const d=await r.json();health=d.database?'Conectado':'Falha'}catch{health='Falha'}try{const s=await api('media/upload');r2=s.configured?'Conectado':'A configurar'}catch{}$('#view-content').innerHTML=`<div class="integration-grid"><div class="integration-card"><h3>Cloudflare D1</h3><p>Banco de dados de pedidos e administração.</p><span class="integration-status">${health}</span></div><div class="integration-card"><h3>Cloudflare R2</h3><p>Imagens e vídeos enviados pelo computador no painel. Binding esperado: <b>MEDIA</b>.</p><span class="integration-status">${r2}</span></div><div class="integration-card"><h3>Gateway de pagamento</h3><p>PIX e cartão. Estrutura do checkout pronta para conexão futura.</p><span class="integration-status">A configurar</span></div><div class="integration-card"><h3>ClearSale</h3><p>Antifraude após a integração do pagamento.</p><span class="integration-status">Planejado</span></div><div class="integration-card"><h3>E-mail transacional</h3><p>Confirmação de pedido e rastreio automático.</p><span class="integration-status">A configurar</span></div><div class="integration-card"><h3>WhatsApp oficial</h3><p>Rastreio e notificações automáticas em etapa futura.</p><span class="integration-status">A configurar</span></div></div>`}
-
