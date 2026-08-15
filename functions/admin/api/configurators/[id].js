@@ -74,14 +74,14 @@ async function readConfig(db,id){
 }
 
 export async function onRequestGet(context){
-  const auth=requireAdmin(context); if(!auth.ok)return auth.response;
+  const auth=await requireAdmin(context); if(!auth.ok)return auth.response;
   const id=String(context.params.id||'').toLowerCase();
   if(!IDS.has(id)) return json({ok:false,message:'Configurador não suportado.'},404);
   try{return json({ok:true,...await readConfig(context.env.DB,id)});}catch(error){console.error(error);return json({ok:false,message:'Não foi possível carregar o configurador.'},500)}
 }
 
 export async function onRequestPut(context){
-  const auth=requireAdmin(context); if(!auth.ok)return auth.response;
+  const auth=await requireAdmin(context); if(!auth.ok)return auth.response;
   const id=String(context.params.id||'').toLowerCase();
   if(!IDS.has(id)) return json({ok:false,message:'Configurador não suportado.'},404);
   let body={}; try{body=await context.request.json()}catch{return json({ok:false,message:'JSON inválido.'},400)}
