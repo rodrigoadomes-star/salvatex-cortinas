@@ -3,6 +3,7 @@ import {
   cents,
   safeJson,
   cleanText,
+  validCpf,
   createOrderNumber,
   normalizeOrder
 } from "../_lib.js";
@@ -74,6 +75,13 @@ export async function onRequestPost(context) {
     }
 
     const customer = order.cliente || {};
+    const cpfDigits = String(customer.cpf || "").replace(/\D/g, "");
+    let customerAccount = null;
+    if (session?.userId) {
+      customerAccount = await db.prepare("SELECT cpf,cpf_locked FROM customer_accounts WHERE id=?1").bind(session.userId).first();
+      if (customerAccount?.cpf_locked && cpfDigits && cpfDigits !== customerAccount.cpf) return json({ok:false,message:"O CPF confirmado nesta conta não pode ser alterado."},409);
+      if (!customerAccount?.cpf_locked && cpfDigits && !validCpf(cpfDigits)) return json({ok:false,message:"CPF inválido."},400);
+    }
     const delivery = order.entrega || {
       cep: customer.cep || "",
       endereco: customer.endereco || "",
@@ -194,6 +202,7 @@ export async function onRequestPost(context) {
 
     if (session?.userId) {
       statements.push(db.prepare("UPDATE orders SET customer_account_id=?1 WHERE id=?2").bind(session.userId, orderId));
+      if (!customerAccount?.cpf_locked && cpfDigits) statements.push(db.prepare("UPDATE customer_accounts SET cpf=?1,cpf_locked=1,updated_at=?2 WHERE id=?3 AND cpf_locked=0").bind(cpfDigits,now,session.userId));
     }
 
     for (const item of order.items) {
