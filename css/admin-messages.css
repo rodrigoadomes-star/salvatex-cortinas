@@ -23,3 +23,6 @@
 .message-row{overflow:visible}
 .message-list,.message-list>.message-row{position:relative}
 @media(max-width:720px){.message-menu-popover{right:0;width:min(220px,calc(100vw - 44px))}}
+
+.message-menu-popover .message-delete{color:#b42318;border-top:1px solid #eef0f3;border-radius:0 0 8px 8px;margin-top:3px;padding-top:11px}
+.message-menu-popover .message-delete:hover{background:#fff1f0;color:#97180f}
