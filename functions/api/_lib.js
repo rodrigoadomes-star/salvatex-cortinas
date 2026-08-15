@@ -29,6 +29,8 @@ export function cleanText(value, max = 500) {
 
 export function validEmail(value) { return /^[^\s@]{1,64}@[^\s@]{1,190}\.[^\s@]{2,63}$/i.test(cleanText(value, 254)); }
 
+export function validCpf(value) { const cpf=String(value||'').replace(/\D/g,'');if(cpf.length!==11||/^(\d)\1{10}$/.test(cpf))return false;const digit=n=>{let sum=0;for(let i=0;i<n;i++)sum+=Number(cpf[i])*(n+1-i);const r=(sum*10)%11;return r===10?0:r};return digit(9)===Number(cpf[9])&&digit(10)===Number(cpf[10]); }
+
 export function createOrderNumber() {
   const now = new Date();
   const y = now.getUTCFullYear();
@@ -121,3 +123,4 @@ export function normalizeOrder(body) {
     total
   };
 }
+
