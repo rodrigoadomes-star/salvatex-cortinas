@@ -26,3 +26,32 @@
 
 .message-menu-popover .message-delete{color:#b42318;border-top:1px solid #eef0f3;border-radius:0 0 8px 8px;margin-top:3px;padding-top:11px}
 .message-menu-popover .message-delete:hover{background:#fff1f0;color:#97180f}
+
+
+/* Lista de vendas, observações, produtos expansíveis e ações */
+.sales-table{overflow:visible}
+.sales-table th:last-child,.sales-table td:last-child{text-align:center}
+.sale-number-wrap{display:flex;align-items:center;gap:7px}
+.sale-number{color:#0759ce;font-size:13px}
+.sale-note{position:relative;color:#0759ce;cursor:help;font-size:16px;line-height:1}
+.sale-note-tip{display:none;position:absolute;left:20px;top:-8px;z-index:40;width:260px;padding:10px 12px;border-radius:8px;background:#172033;color:#fff;font-size:11px;font-weight:500;line-height:1.45;box-shadow:0 9px 25px rgba(0,0,0,.22)}
+.sale-note:hover .sale-note-tip,.sale-note:focus .sale-note-tip{display:block}
+.sale-action-menu{position:relative;display:inline-flex}
+.sale-more{width:34px;height:34px;border:1px solid #cfd8e6;border-radius:50%;background:#fff;color:#172033;font-size:21px;line-height:1;display:grid;place-items:center;cursor:pointer}
+.sale-more:hover,.sale-more[aria-expanded="true"]{border-color:#1c64d1;background:#eef5ff;color:#0759ce}
+.sale-menu-popover{display:none;position:absolute;right:0;top:40px;z-index:50;width:245px;padding:7px;background:#fff;border:1px solid #dfe3ea;border-radius:12px;box-shadow:0 12px 32px rgba(20,28,45,.18);text-align:left}
+.sale-menu-popover.open{display:grid}
+.sale-menu-popover button{border:0;border-radius:7px;background:transparent;padding:10px;color:#172033;font:inherit;text-align:left;cursor:pointer}
+.sale-menu-popover button:hover{background:#f2f6fb}
+.sale-menu-popover .sale-cancel{color:#b42318;border-top:1px solid #eef0f3;border-radius:0 0 7px 7px}
+.sale-products-toggle{border:0;background:transparent;color:#0759ce;font-weight:700;cursor:pointer;white-space:nowrap}
+.sale-products-row>td{padding:0!important;background:#fbfcfe}
+.sale-products-head,.sale-product-item{display:grid;grid-template-columns:minmax(320px,1fr) 100px 140px 130px;gap:18px;align-items:center;padding:11px 18px}
+.sale-products-head{border-top:1px solid #e1e5eb;border-bottom:1px solid #e1e5eb;background:#f7f8fa;font-size:11px}
+.sale-product-item{border-bottom:1px solid #e8ebef}
+.sale-product-info{display:flex;gap:12px;align-items:flex-start}
+.sale-product-info img,.sale-product-placeholder{width:54px;height:54px;border-radius:7px;object-fit:cover;background:#eef0f3;display:grid;place-items:center;flex:0 0 auto}
+.sale-product-info strong{display:block;color:#0759ce;margin-bottom:5px}
+.sale-product-details .order-detail-line{display:inline-flex;gap:4px;margin-right:10px;font-size:10px}
+.sale-product-details .order-detail-line span:after{content:":"}
+@media(max-width:900px){.sale-products-head{display:none}.sale-product-item{grid-template-columns:1fr 70px}.sale-product-item>span,.sale-product-item>strong{grid-column:2}.sale-note-tip{left:auto;right:0}.sale-menu-popover{right:0}}
