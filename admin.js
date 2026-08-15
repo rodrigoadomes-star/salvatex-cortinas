@@ -1,10 +1,10 @@
-const ADMIN={token:sessionStorage.getItem('salvatexAdminToken')||'',view:'dashboard',cache:{},currency:new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'})};
+const ADMIN={csrf:sessionStorage.getItem('salvatexAdminCsrf')||'',view:'dashboard',cache:{},currency:new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'})};
 const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
 const brlCents=v=>ADMIN.currency.format(Number(v||0)/100); const dateTime=v=>v?new Date(v).toLocaleString('pt-BR'):'—'; const esc=v=>String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
 function toast(msg){const t=$('#admin-toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2200)}
-async function api(path,options={}){const r=await fetch('/admin/api/'+path,{...options,headers:{'content-type':'application/json','authorization':'Bearer '+ADMIN.token,...(options.headers||{})}});let d={};try{d=await r.json()}catch{}if(r.status===401){logout();throw new Error('Sessão inválida')}if(!r.ok)throw new Error(d.message||'Erro ao acessar o servidor');return d}
-async function login(token){ADMIN.token=token;try{await api('session');sessionStorage.setItem('salvatexAdminToken',token);$('#admin-login').style.display='none';$('#admin-app').hidden=false;await navigate(location.hash.slice(1)||'dashboard')}catch(e){ADMIN.token='';sessionStorage.removeItem('salvatexAdminToken');$('#login-error').textContent=e.message}}
-function logout(){sessionStorage.removeItem('salvatexAdminToken');ADMIN.token='';location.reload()}
+async function api(path,options={}){const method=(options.method||'GET').toUpperCase();const headers={...(options.headers||{})};if(!(options.body instanceof FormData))headers['content-type']='application/json';if(!['GET','HEAD','OPTIONS'].includes(method)&&ADMIN.csrf)headers['x-csrf-token']=ADMIN.csrf;const r=await fetch('/admin/api/'+path,{...options,credentials:'same-origin',headers});let d={};try{d=await r.json()}catch{}if(r.status===401){sessionStorage.removeItem('salvatexAdminCsrf');ADMIN.csrf='';throw new Error('Sessão inválida ou expirada')}if(!r.ok)throw new Error(d.message||'Erro ao acessar o servidor');return d}
+async function login(token){try{const r=await fetch('/admin/api/login',{method:'POST',credentials:'same-origin',headers:{'content-type':'application/json'},body:JSON.stringify({token})});const d=await r.json();if(!r.ok)throw new Error(d.message||'Credencial inválida');ADMIN.csrf=d.csrfToken;sessionStorage.setItem('salvatexAdminCsrf',ADMIN.csrf);$('#admin-token-input').value='';$('#admin-login').style.display='none';$('#admin-app').hidden=false;await navigate(location.hash.slice(1)||'dashboard')}catch(e){ADMIN.csrf='';sessionStorage.removeItem('salvatexAdminCsrf');$('#login-error').textContent=e.message}}
+async function logout(){try{if(ADMIN.csrf)await api('logout',{method:'POST',body:'{}'})}catch{}sessionStorage.removeItem('salvatexAdminCsrf');ADMIN.csrf='';location.reload()}
 $('#login-form').addEventListener('submit',e=>{e.preventDefault();login($('#admin-token-input').value.trim())});$('#logout').addEventListener('click',logout);
 $$('#admin-nav button').forEach(b=>b.addEventListener('click',()=>{location.hash=b.dataset.view}));window.addEventListener('hashchange',()=>navigate(location.hash.slice(1)||'dashboard'));$('#refresh-view').addEventListener('click',()=>navigate(ADMIN.view,true));$('#menu-toggle').addEventListener('click',()=>$('.sidebar').classList.toggle('open'));
 const titles={dashboard:['Dashboard','Visão geral da sua loja'],orders:['Pedidos','Gerencie pedidos e andamento'],products:['Produtos','Catálogo e produtos da loja'],categories:['Categorias','Organize o catálogo'],customers:['Clientes','Base formada pelos pedidos'],pages:['Páginas','Conteúdo institucional da loja'],media:['Mídia','Imagens usadas no catálogo'],coupons:['Cupons','Descontos e campanhas'],reports:['Relatórios','Desempenho da operação'],configurators:['Configuradores','Produtos sob medida, regras de cálculo e mídia'],settings:['Configurações','Dados gerais da loja'],integrations:['Integrações','Serviços conectados à loja'],billing:['Plano e cobrança','1% do faturamento ou mínimo de R$ 150'],logs:['Logs do Sistema','Histórico administrativo']};
@@ -307,7 +307,7 @@ async function renderIntegrations(){let health='Conectado';try{const r=await fet
 async function renderBilling(){const d=await api('billing');$('#view-content').innerHTML=`<div class="billing-hero"><section class="panel"><small>Faturamento considerado · ${esc(d.referenceMonth)}</small><div class="billing-big">${brlCents(d.grossSalesCents)}</div><p style="color:var(--muted);font-size:11px">Vendas não canceladas registradas no site.</p></section><section class="panel"><small>Mensalidade da plataforma</small><div class="billing-big">${brlCents(d.amountDueCents)}</div><p style="color:var(--muted);font-size:11px">Maior entre ${(d.feePercent*100).toFixed(2).replace('.',',')}% do faturamento (${brlCents(d.calculatedFeeCents)}) e mínimo de ${brlCents(d.minimumFeeCents)}.</p></section></div><section class="panel" style="margin-top:16px"><div class="panel-head"><h2>Cobrança</h2></div><p style="font-size:12px">A estrutura está pronta para gerar cobrança mensal por <b>PIX ou boleto</b> quando o gateway da plataforma for conectado.</p></section>`}
 async function renderLogs(){const d=await api('logs');$('#view-content').innerHTML=`<section class="panel"><table class="admin-table"><thead><tr><th>Data</th><th>Ação</th><th>Entidade</th><th>ID</th></tr></thead><tbody>${d.logs.map(x=>`<tr><td>${dateTime(x.created_at)}</td><td>${esc(x.action)}</td><td>${esc(x.entity_type||'—')}</td><td>${esc(x.entity_id||'—')}</td></tr>`).join('')||'<tr><td colspan="4" class="empty">Nenhum log administrativo.</td></tr>'}</tbody></table></section>`}
 function openModal(html){$('#modal-content').innerHTML=html;$('#admin-modal').hidden=false;$$('[data-close-modal]',$('#admin-modal')).forEach(x=>x.onclick=closeModal)}function closeModal(){$('#admin-modal').hidden=true;$('#modal-content').innerHTML=''}
-if(ADMIN.token)login(ADMIN.token);
+if(ADMIN.csrf){api('session').then(()=>{$('#admin-login').style.display='none';$('#admin-app').hidden=false;navigate(location.hash.slice(1)||'dashboard')}).catch(()=>{})}
 
 
 /* ==========================================================
@@ -374,11 +374,8 @@ async function uploadAdminMedia(file,meta={}){
         method:
           'POST',
 
-        headers:{
-          authorization:
-            'Bearer ' +
-            ADMIN.token
-        },
+        credentials:'same-origin',
+        headers:{'x-csrf-token':ADMIN.csrf},
 
         body:
           fd
