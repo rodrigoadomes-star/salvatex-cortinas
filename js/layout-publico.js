@@ -51,11 +51,10 @@
       }
     },
 
+    configuratorLabels:{formTitle:"Configure sua cortina",formSubtitle:"Escolha as características abaixo para calcular sua cortina sob medida.",mediaTitle:"Transforme seu ambiente!",summaryTitle:"Resumo do orçamento",step1:"Cortina Pronta",step2:"Tecido",step3:"Forro",step4:"Acabamento",step5:"Resumo"},
+
     colors:{
-      primary:"#2f2116",
-      accent:"#9a7547",
-      background:"#fbfaf8",
-      text:"#172033"
+      primary:"#2f2116",accent:"#9a7547",background:"#fbfaf8",text:"#172033",muted:"#756f68",headerBackground:"#ffffff",cardBackground:"#ffffff",border:"#e9e2da",buttonText:"#ffffff"
     },
 
     footer:{
@@ -170,6 +169,11 @@
     root.style.setProperty("--layout-accent",layout.colors.accent||"#9a7547");
     root.style.setProperty("--layout-background",layout.colors.background||"#fbfaf8");
     root.style.setProperty("--layout-text",layout.colors.text||"#172033");
+    root.style.setProperty("--layout-muted",layout.colors.muted||"#756f68");
+    root.style.setProperty("--layout-header-bg",layout.colors.headerBackground||"#ffffff");
+    root.style.setProperty("--layout-card-bg",layout.colors.cardBackground||"#ffffff");
+    root.style.setProperty("--layout-border",layout.colors.border||"#e9e2da");
+    root.style.setProperty("--layout-button-text",layout.colors.buttonText||"#ffffff");
   }
 
   function applyHome(layout){
@@ -265,6 +269,15 @@
     });
   }
 
+  function applyConfiguratorLabels(layout){
+    const l=layout.configuratorLabels||{};
+    const formTitle=document.querySelector('.config .section-title'); if(formTitle&&l.formTitle)formTitle.textContent=l.formTitle;
+    const formSub=document.querySelector('.config .section-sub'); if(formSub&&l.formSubtitle)formSub.textContent=l.formSubtitle;
+    const mediaTitle=document.querySelector('.summary > h2'); if(mediaTitle&&l.mediaTitle)mediaTitle.textContent=l.mediaTitle;
+    const summary=document.querySelector('.pricebox > small'); if(summary&&l.summaryTitle)summary.textContent=l.summaryTitle;
+    const steps=document.querySelectorAll('.steps .step'); const vals=[l.step1,l.step2,l.step3,l.step4,l.step5]; steps.forEach((x,i)=>{if(vals[i])x.textContent=vals[i]});
+  }
+
   function applyFooter(layout){
     document.querySelectorAll("footer").forEach(footer=>{
       footer.querySelectorAll(".footer-brand,[data-footer-brand]").forEach(el=>{
@@ -300,6 +313,7 @@
     applyColors(layout);
     applyHeader(layout);
     applyHome(layout);
+    applyConfiguratorLabels(layout);
     applyFooter(layout);
 
     window.dispatchEvent(
