@@ -1,0 +1,16 @@
+const encoder = new TextEncoder();
+const COOKIE = "__Host-radzhub_admin";
+const SESSION_SECONDS = 8 * 60 * 60;
+export function json(data,status=200,headers={}){return new Response(JSON.stringify(data),{status,headers:{"content-type":"application/json; charset=utf-8","cache-control":"no-store","x-content-type-options":"nosniff",...headers}})}
+function b64u(bytes){return btoa(String.fromCharCode(...bytes)).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/g,"")}
+function fromB64u(value){let s=value.replace(/-/g,"+").replace(/_/g,"/");while(s.length%4)s+="=";return Uint8Array.from(atob(s),c=>c.charCodeAt(0))}
+function cookie(request,name){for(const part of(request.headers.get("cookie")||"").split(";")){const[k,...v]=part.trim().split("=");if(k===name)return decodeURIComponent(v.join("="))}return""}
+async function key(secret){return crypto.subtle.importKey("raw",encoder.encode(secret),{name:"HMAC",hash:"SHA-256"},false,["sign","verify"])}
+async function digest(value){return new Uint8Array(await crypto.subtle.digest("SHA-256",encoder.encode(String(value))))}
+export async function secureEqual(a,b){return crypto.subtle.timingSafeEqual(await digest(a),await digest(b))}
+export async function createSession(secret){const csrf=b64u(crypto.getRandomValues(new Uint8Array(24)));const payload=b64u(encoder.encode(JSON.stringify({iat:Date.now(),exp:Date.now()+SESSION_SECONDS*1000,csrf,role:"platform_owner",nonce:crypto.randomUUID()})));const signature=b64u(new Uint8Array(await crypto.subtle.sign("HMAC",await key(secret),encoder.encode(payload))));return{token:`${payload}.${signature}`,csrf}}
+export function sessionCookie(token){return`${COOKIE}=${encodeURIComponent(token)}; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=${SESSION_SECONDS}`}
+export function clearCookie(){return`${COOKIE}=; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=0`}
+async function read(context){const secret=String(context.env.RADZ_ADMIN_SESSION_SECRET||"").trim(),token=cookie(context.request,COOKIE);if(!secret||!token)return null;const[body,sig]=token.split(".");if(!body||!sig)return null;try{const valid=await crypto.subtle.verify("HMAC",await key(secret),fromB64u(sig),encoder.encode(body));if(!valid)return null;const data=JSON.parse(new TextDecoder().decode(fromB64u(body)));return Number(data.exp)>Date.now()&&data.csrf&&data.role==="platform_owner"?data:null}catch{return null}}
+export async function requireRadzAdmin(context){if(!context.env.RADZ_ADMIN_TOKEN||!context.env.RADZ_ADMIN_SESSION_SECRET)return{ok:false,response:json({ok:false,code:"RADZ_ADMIN_NOT_CONFIGURED",message:"Administração RADZ HUB não configurada."},503)};const session=await read(context);if(!session)return{ok:false,response:json({ok:false,code:"UNAUTHORIZED",message:"Sessão RADZ HUB inválida ou expirada."},401)};const method=context.request.method.toUpperCase();if(!["GET","HEAD","OPTIONS"].includes(method)){const origin=context.request.headers.get("origin");if(origin&&origin!==new URL(context.request.url).origin)return{ok:false,response:json({ok:false,code:"BAD_ORIGIN"},403)};if(!await secureEqual(context.request.headers.get("x-csrf-token")||"",session.csrf))return{ok:false,response:json({ok:false,code:"CSRF"},403)}}if(!context.env.DB)return{ok:false,response:json({ok:false,code:"DB_NOT_CONFIGURED"},503)};return{ok:true,session}}
+

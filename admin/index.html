@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="robots" content="noindex,nofollow">
   <title>Salvatex Admin</title>
-  <link rel="stylesheet" href="../css/admin.css?v=final-20260814-1">
-  <link rel="stylesheet" href="../css/admin-messages.css?v=20260815-7">
+  <link rel="stylesheet" href="../css/admin.css?v=radz-split-20260815-4">
+  <link rel="stylesheet" href="../css/admin-messages.css?v=radz-split-20260815-4">
 </head>
 <body>
 <div id="admin-login" class="admin-login">
@@ -28,9 +28,9 @@
       <button data-view="orders"><span>▣</span>Vendas <b id="nav-order-count" class="nav-badge">0</b></button>
       <button data-view="products"><span>◇</span>Produtos</button>
       <button data-view="categories"><span>□</span>Categorias</button>
-      <div class="admin-nav-group admin-nav-group-customers open">
-        <button type="button" id="customers-nav-toggle" class="admin-nav-parent"><span>♙</span>Clientes <i>⌄</i></button>
-        <div class="admin-nav-children">
+      <div class="admin-nav-group admin-nav-group-customers">
+        <button type="button" id="customers-nav-toggle"><span>♙</span>Clientes <b class="nav-chevron">⌄</b></button>
+        <div class="admin-nav-submenu">
           <button data-view="customers">Lista de clientes</button>
           <button data-view="messages">Mensagens <b id="nav-message-count" class="nav-badge">0</b></button>
         </div>
@@ -58,7 +58,7 @@
 
 <div id="admin-modal" class="modal" hidden><div class="modal-backdrop" data-close-modal></div><div class="modal-card"><button class="modal-close" data-close-modal>×</button><div id="modal-content"></div></div></div>
 <div id="admin-toast" class="admin-toast"></div>
-<script src="../js/admin.js?v=sales-20260815-3"></script>
+<script src="../js/admin.js?v=radz-split-20260815-4"></script>
 </body>
 </html>
 
