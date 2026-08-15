@@ -593,6 +593,12 @@ function atualizarResumoCarrinho(
     );
 
 
+  const subtotalElemento =
+    document.getElementById(
+      "carrinho-subtotal"
+    );
+
+
   const parcelamento =
     document.getElementById(
       "carrinho-parcelamento"
@@ -602,6 +608,17 @@ function atualizarResumoCarrinho(
   if (totalElemento) {
 
     totalElemento.textContent =
+      SalvatexCarrinho
+        .brl(
+          total
+        );
+
+  }
+
+
+  if (subtotalElemento) {
+
+    subtotalElemento.textContent =
       SalvatexCarrinho
         .brl(
           total
@@ -828,3 +845,4 @@ if (botaoFinalizar) {
 // ============================================================
 
 renderizarCarrinho();
+
