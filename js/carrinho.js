@@ -660,6 +660,10 @@ function atualizarResumoCarrinho(
 
 function mostrarCarrinhoVazio() {
 
+  localStorage.removeItem(
+    CHAVE_PEDIDO
+  );
+
   const layout =
     document.getElementById(
       "carrinho-layout"
