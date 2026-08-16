@@ -35,8 +35,8 @@ export async function onRequestGet(context) {
   const db = context.env.DB;
 
   const order = await db
-    .prepare(`SELECT * FROM orders WHERE id=?1 AND store_id='salvatex'`)
-    .bind(id)
+    .prepare(`SELECT * FROM orders WHERE id=?1 AND store_id=?2`)
+    .bind(id,auth.storeId)
     .first();
 
   if (!order) {
@@ -158,8 +158,8 @@ export async function onRequestPatch(context) {
           freight_json=?4,
           payment_json=?5,
           updated_at=?6
-      WHERE id=?7 AND store_id='salvatex'`)
-      .bind(status, stage, internalNotes, JSON.stringify(freight), JSON.stringify(payment), now, id)
+      WHERE id=?7 AND store_id=?8`)
+      .bind(status, stage, internalNotes, JSON.stringify(freight), JSON.stringify(payment), now, id, auth.storeId)
   ];
 
   if (changedStatus) {
@@ -196,7 +196,7 @@ export async function onRequestPatch(context) {
     internalNotesChanged,
     freight,
     payment
-  });
+  }, auth.storeId);
 
   return json({
     ok: true,
