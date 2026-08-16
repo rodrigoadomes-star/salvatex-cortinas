@@ -81,6 +81,7 @@ const PAGE_BOOTSTRAP=`
 </script>`;
 
 class HeadBootstrap{element(element){element.prepend(PAGE_BOOTSTRAP,{html:true})}}
+class ConfiguratorScripts{element(element){element.append('<script src="/js/configurador-media-forro.js?v=20260816-1"></script>',{html:true})}}
 
 export async function onRequest(context){
   const response=await context.next();
@@ -92,12 +93,15 @@ export async function onRequest(context){
   headers.set("permissions-policy","camera=(), microphone=(), geolocation=(), payment=()");
   headers.set("cross-origin-opener-policy","same-origin-allow-popups");
   headers.set("strict-transport-security","max-age=31536000; includeSubDomains");
-  if(new URL(context.request.url).pathname.startsWith("/admin"))headers.set("cache-control","no-store");
+  const url=new URL(context.request.url);
+  if(url.pathname.startsWith("/admin"))headers.set("cache-control","no-store");
   const contentType=headers.get("content-type")||"";
   if(response.status===200&&contentType.includes("text/html")){
     headers.delete("content-length");
     const secured=new Response(response.body,{status:response.status,statusText:response.statusText,headers});
-    return new HTMLRewriter().on("head",new HeadBootstrap()).transform(secured);
+    let rewriter=new HTMLRewriter().on("head",new HeadBootstrap());
+    if(url.pathname==="/configurador"||url.pathname==="/configurador.html")rewriter=rewriter.on("body",new ConfiguratorScripts());
+    return rewriter.transform(secured);
   }
   return new Response(response.body,{status:response.status,statusText:response.statusText,headers});
 }
