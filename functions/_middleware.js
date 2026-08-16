@@ -2,24 +2,18 @@ const CSP=["default-src 'self'","base-uri 'self'","object-src 'none'","frame-anc
 
 const PAGE_BOOTSTRAP=`
 <style id="site-bootstrap-style">
+  @view-transition{navigation:auto}
   html.site-booting{background:#fbfaf8}
   html.site-booting body{visibility:hidden!important}
-  #site-boot-screen{display:none}
-  html.site-booting #site-boot-screen{display:flex!important;visibility:visible!important;position:fixed;inset:0;z-index:2147483647;align-items:center;justify-content:center;background:#fbfaf8;color:#0b2038;font-family:Arial,sans-serif}
-  #site-boot-screen>div{display:flex;flex-direction:column;align-items:center;gap:10px}
-  #site-boot-screen strong{font-family:Georgia,serif;font-size:24px;letter-spacing:.12em;font-weight:600}
-  #site-boot-screen span{width:22px;height:22px;border:2px solid rgba(11,32,56,.14);border-top-color:#0b2038;border-radius:50%;animation:site-spin .6s linear infinite}
-  @keyframes site-spin{to{transform:rotate(360deg)}}
+  ::view-transition-old(root){animation:site-hold-old .65s linear both;z-index:2}
+  ::view-transition-new(root){animation:site-show-new .65s linear both;z-index:1}
+  @keyframes site-hold-old{0%,92%{opacity:1}100%{opacity:0}}
+  @keyframes site-show-new{0%,92%{opacity:0}100%{opacity:1}}
 </style>
 <script id="site-bootstrap-script">
 (function(){
   var root=document.documentElement;
   root.classList.add('site-booting');
-
-  var boot=document.createElement('div');
-  boot.id='site-boot-screen';
-  boot.innerHTML='<div><strong>SALVATEX</strong><span aria-hidden="true"></span></div>';
-  document.documentElement.appendChild(boot);
 
   var originalFetch=window.fetch;
   var pending=0;
@@ -43,9 +37,6 @@ const PAGE_BOOTSTRAP=`
     clearTimeout(readyTimer);
     root.classList.remove('site-booting');
     root.classList.add('site-ready');
-    if(boot)boot.remove();
-    var style=document.getElementById('site-bootstrap-style');
-    if(style)style.remove();
   }
 
   function schedule(){
