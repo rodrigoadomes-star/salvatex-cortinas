@@ -14,14 +14,12 @@ const PAGE_BOOTSTRAP=`
 (function(){
   var root=document.documentElement;
   root.classList.add('site-booting');
-
   var originalFetch=window.fetch;
   var pending=0;
   var domReady=document.readyState!=='loading';
   var readyTimer=0;
   var finished=false;
   var prefetched={};
-
   function tracked(input){
     try{
       var raw=typeof input==='string'?input:(input&&input.url)||'';
@@ -30,7 +28,6 @@ const PAGE_BOOTSTRAP=`
       return url.pathname.indexOf('/api/')===0||url.pathname.indexOf('/admin/api/')===0||url.pathname.indexOf('/platform/api/')===0||url.pathname.indexOf('/radz/api/')===0;
     }catch(_){return false}
   }
-
   function finish(){
     if(finished)return;
     finished=true;
@@ -38,13 +35,11 @@ const PAGE_BOOTSTRAP=`
     root.classList.remove('site-booting');
     root.classList.add('site-ready');
   }
-
   function schedule(){
     if(finished||!domReady||pending>0)return;
     clearTimeout(readyTimer);
     readyTimer=setTimeout(function(){if(domReady&&pending===0)finish()},20);
   }
-
   window.fetch=function(){
     var args=arguments;
     var watch=tracked(args[0]);
@@ -54,7 +49,6 @@ const PAGE_BOOTSTRAP=`
     if(!watch)return result;
     return Promise.resolve(result).finally(function(){pending=Math.max(0,pending-1);schedule()});
   };
-
   function internalLink(anchor){
     if(!anchor||!anchor.href||anchor.target||anchor.hasAttribute('download'))return null;
     try{
@@ -64,17 +58,14 @@ const PAGE_BOOTSTRAP=`
       return url;
     }catch(_){return null}
   }
-
   function prefetch(anchor){
     var url=internalLink(anchor);
     if(!url||prefetched[url.href])return;
     prefetched[url.href]=true;
     originalFetch(url.href,{method:'GET',credentials:'same-origin',cache:'force-cache'}).catch(function(){});
   }
-
   document.addEventListener('pointerover',function(e){var a=e.target&&e.target.closest?e.target.closest('a'):null;prefetch(a)},{passive:true});
   document.addEventListener('touchstart',function(e){var a=e.target&&e.target.closest?e.target.closest('a'):null;prefetch(a)},{passive:true});
-
   if(!domReady){document.addEventListener('DOMContentLoaded',function(){domReady=true;schedule()},{once:true})}else{schedule()}
   setTimeout(finish,1000);
 })();
@@ -83,7 +74,7 @@ const PAGE_BOOTSTRAP=`
 class HeadBootstrap{element(element){element.prepend(PAGE_BOOTSTRAP,{html:true})}}
 class ConfiguratorScripts{
   element(element){
-    element.append('<script src="/js/preview-media-test.js?v=20260816-1"></script><script src="/js/configurador-media-forro.js?v=20260816-2"></script>',{html:true});
+    element.append('<script src="/js/preview-media-test.js?v=20260816-1"></script><script src="/js/preview-media-test-fix.js?v=20260816-1"></script><script src="/js/configurador-media-forro.js?v=20260816-2"></script>',{html:true});
   }
 }
 
