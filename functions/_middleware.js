@@ -2,13 +2,23 @@ const CSP=["default-src 'self'","base-uri 'self'","object-src 'none'","frame-anc
 
 const PAGE_BOOTSTRAP=`
 <style id="site-bootstrap-style">
-  html.site-booting body{visibility:hidden!important}
   html.site-booting{background:#fbfaf8}
+  html.site-booting body{visibility:hidden!important}
+  #site-boot-screen{display:none}
+  html.site-booting #site-boot-screen{display:flex!important;visibility:visible!important;position:fixed;inset:0;z-index:2147483647;align-items:center;justify-content:center;background:#fbfaf8;color:#0b2038;font-family:Arial,sans-serif}
+  #site-boot-screen>div{display:flex;flex-direction:column;align-items:center;gap:14px}
+  #site-boot-screen strong{font-family:Georgia,serif;font-size:28px;letter-spacing:.12em;font-weight:600}
+  #site-boot-screen span{width:28px;height:28px;border:2px solid rgba(11,32,56,.15);border-top-color:#0b2038;border-radius:50%;animation:site-spin .65s linear infinite}
+  @keyframes site-spin{to{transform:rotate(360deg)}}
 </style>
 <script id="site-bootstrap-script">
 (function(){
   var root=document.documentElement;
   root.classList.add('site-booting');
+  var boot=document.createElement('div');
+  boot.id='site-boot-screen';
+  boot.innerHTML='<div><strong>SALVATEX</strong><span aria-hidden="true"></span></div>';
+  document.documentElement.appendChild(boot);
   var originalFetch=window.fetch;
   var pending=0;
   var domReady=document.readyState!=='loading';
@@ -30,6 +40,7 @@ const PAGE_BOOTSTRAP=`
     clearTimeout(readyTimer);
     root.classList.remove('site-booting');
     root.classList.add('site-ready');
+    if(boot)boot.remove();
     var style=document.getElementById('site-bootstrap-style');
     if(style)style.remove();
   }
@@ -37,7 +48,7 @@ const PAGE_BOOTSTRAP=`
   function schedule(){
     if(finished||!domReady||pending>0)return;
     clearTimeout(readyTimer);
-    readyTimer=setTimeout(function(){if(domReady&&pending===0)finish()},60);
+    readyTimer=setTimeout(function(){if(domReady&&pending===0)finish()},40);
   }
 
   window.fetch=function(){
@@ -50,19 +61,12 @@ const PAGE_BOOTSTRAP=`
     return Promise.resolve(result).finally(function(){pending=Math.max(0,pending-1);schedule()});
   };
 
-  if(!domReady){
-    document.addEventListener('DOMContentLoaded',function(){domReady=true;schedule()},{once:true});
-  }else{
-    schedule();
-  }
-
-  setTimeout(finish,2000);
+  if(!domReady){document.addEventListener('DOMContentLoaded',function(){domReady=true;schedule()},{once:true})}else{schedule()}
+  setTimeout(finish,1800);
 })();
 </script>`;
 
-class HeadBootstrap{
-  element(element){element.prepend(PAGE_BOOTSTRAP,{html:true})}
-}
+class HeadBootstrap{element(element){element.prepend(PAGE_BOOTSTRAP,{html:true})}}
 
 export async function onRequest(context){
   const response=await context.next();
@@ -75,13 +79,11 @@ export async function onRequest(context){
   headers.set("cross-origin-opener-policy","same-origin-allow-popups");
   headers.set("strict-transport-security","max-age=31536000; includeSubDomains");
   if(new URL(context.request.url).pathname.startsWith("/admin"))headers.set("cache-control","no-store");
-
   const contentType=headers.get("content-type")||"";
   if(response.status===200&&contentType.includes("text/html")){
     headers.delete("content-length");
     const secured=new Response(response.body,{status:response.status,statusText:response.statusText,headers});
     return new HTMLRewriter().on("head",new HeadBootstrap()).transform(secured);
   }
-
   return new Response(response.body,{status:response.status,statusText:response.statusText,headers});
 }
