@@ -59,7 +59,7 @@ function mergeDeep(target, source){
 }
 
 async function readConfig(db,id){
-  const row=await db.prepare(`SELECT value_json,updated_at FROM store_configs WHERE store_id='salvatex' AND config_key=?1`).bind('configurator_'+id.replaceAll('-','_')).first();
+  const row=await db.prepare(`SELECT value_json,updated_at FROM store_configs WHERE store_id=?1 AND config_key=?2`).bind(a.storeId,'configurator_'+id.replaceAll('-','_')).first();
   if(row?.value_json){
     try{
       const saved=JSON.parse(row.value_json);
@@ -92,7 +92,7 @@ export async function onRequestPut(context){
   if(Number(cfg.medidas?.alturaEntradaMaxima||0)<Number(cfg.medidas?.calculoMaximo||0)) return json({ok:false,message:'A altura máxima permitida não pode ser menor que o limite automático.'},400);
   const now=new Date().toISOString(); const key='configurator_'+id.replaceAll('-','_');
   try{
-    await context.env.DB.prepare(`INSERT INTO store_configs(store_id,config_key,value_json,updated_at) VALUES('salvatex',?1,?2,?3) ON CONFLICT(store_id,config_key) DO UPDATE SET value_json=excluded.value_json,updated_at=excluded.updated_at`).bind(key,JSON.stringify(cfg),now).run();
+    await context.env.DB.prepare(`INSERT INTO store_configs(store_id,config_key,value_json,updated_at) VALUES(?1,?2,?3,?4) ON CONFLICT(store_id,config_key) DO UPDATE SET value_json=excluded.value_json,updated_at=excluded.updated_at`).bind(a.storeId,key,JSON.stringify(cfg),now).run();
     await logAdmin(context.env.DB,'configurator_updated','configurator',id,{nome:cfg.nome,updatedAt:now});
     return json({ok:true,configurator:cfg,wave:id==='wave'?cfg:undefined,updatedAt:now});
   }catch(error){console.error('save configurator',error);return json({ok:false,message:'Erro ao salvar o configurador no D1.'},500)}
