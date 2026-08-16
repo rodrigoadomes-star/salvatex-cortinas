@@ -1,4 +1,5 @@
 import { json } from "../_lib.js";
+import { requireStoreTenant } from "../../_shared/tenant.js";
 
 function parseJSON(value, fallback){
   try { return value ? JSON.parse(value) : fallback; }
@@ -7,6 +8,8 @@ function parseJSON(value, fallback){
 
 export async function onRequestGet(context){
   if(!context.env.DB) return json({ok:false,message:"Banco indisponível"},503);
+  const tenantAuth = await requireStoreTenant(context,{allowPreview:true});
+  if(!tenantAuth.ok) return tenantAuth.response;
   const slug = String(context.params.slug || "").trim();
   if(!slug) return json({ok:false,message:"Produto não informado"},400);
 
@@ -15,9 +18,9 @@ export async function onRequestGet(context){
       SELECT p.*, c.name AS category_name, c.slug AS category_slug
       FROM products p
       LEFT JOIN categories c ON c.id=p.category_id
-      WHERE p.store_id='salvatex' AND p.active=1 AND p.slug=?1
+      WHERE p.store_id=?1 AND p.active=1 AND p.slug=?2
       LIMIT 1
-    `).bind(slug).first();
+    `).bind(tenantAuth.tenant.storeId,slug).first();
 
     if(!p) return json({ok:false,message:"Produto não encontrado"},404);
 
