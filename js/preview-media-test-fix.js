@@ -13,7 +13,7 @@
       const cor='Branco';
       const forro='Forro leve';
       const modelo='Ilhós';
-      const imagem='/imagens/testes/preview-ilhos.jpg?v=20260816-1';
+      const imagem='/imagens/testes/preview-ilhos.jpg?v=20260816-2';
 
       CONFIG.cores=CONFIG.cores||{};
       CONFIG.cores[tecido]=Array.isArray(CONFIG.cores[tecido])?CONFIG.cores[tecido]:[];
@@ -29,15 +29,7 @@
         return !(String(item.modelo||'').trim()===modelo&&String(item.tecido||'').trim()===tecido&&String(item.cor||'').trim()===cor&&String(item.forro||'').trim()===forro);
       });
 
-      CONFIG.mediaConfigurador.push({
-        modelo:modelo,
-        tecido:tecido,
-        cor:cor,
-        forro:forro,
-        capa:imagem,
-        imagens:[imagem]
-      });
-
+      CONFIG.mediaConfigurador.push({modelo,tecido,cor,forro,capa:imagem,imagens:[imagem]});
       window.__SALVATEX_PREVIEW_MEDIA_TEST__={modelo,tecido,cor,forro,valid:true,forced:true};
 
       function aplicar(){
@@ -59,22 +51,13 @@
 
     const lista=Array.isArray(CONFIG.mediaConfigurador)?CONFIG.mediaConfigurador:[];
     const naturalTeste=lista.find(function(item){
-      return String(item.modelo||'').trim()==='Wave'&&
-        String(item.tecido||'').trim()==='Gaze de Linho'&&
-        String(item.cor||'').trim()==='Natural'&&
-        String(item.forro||'').trim()==='Sem forro';
+      return String(item.modelo||'').trim()==='Wave'&&String(item.tecido||'').trim()==='Gaze de Linho'&&String(item.cor||'').trim()==='Natural'&&String(item.forro||'').trim()==='Sem forro';
     });
-
     if(!naturalTeste)return;
-
     const imagem=String(naturalTeste.capa||naturalTeste.imagens?.[0]||'').trim();
     if(!imagem)return;
-
     CONFIG.mediaConfigurador=lista.filter(function(item){return item!==naturalTeste;});
     CONFIG.mediaConfigurador.push({modelo:'Wave',tecido:'Gaze de Linho',cor:'Branco',forro:'Sem forro',capa:imagem,imagens:[imagem]});
-
-    if(Array.isArray(CONFIG.cores?.['Gaze de Linho'])&&!CONFIG.cores['Gaze de Linho'].includes('Branco')){
-      CONFIG.cores['Gaze de Linho'].push('Branco');
-    }
+    if(Array.isArray(CONFIG.cores?.['Gaze de Linho'])&&!CONFIG.cores['Gaze de Linho'].includes('Branco'))CONFIG.cores['Gaze de Linho'].push('Branco');
   }).catch(function(){});
 })();
