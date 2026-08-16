@@ -1,22 +1,22 @@
 (function(){
   if(typeof atualizarCores!=="function"||typeof obterMidiaAdmin!=="function")return;
 
-  function midiaDaSelecao(cor){
-    return obterMidiaAdmin(state.tecido,state.modelo,cor,state.forro);
-  }
-
   function temFoto(midia){
     if(!midia)return false;
     if(String(midia.capa||"").trim())return true;
     return Array.isArray(midia.imagens)&&midia.imagens.some(src=>String(src||"").trim());
   }
 
+  function midiaExata(cor,forro){
+    return obterMidiaAdmin(state.tecido,state.modelo,cor,forro==null?state.forro:forro);
+  }
+
   function temFotoNaSelecao(cor){
-    return temFoto(midiaDaSelecao(cor));
+    return temFoto(midiaExata(cor,state.forro));
   }
 
   function capaDaSelecao(cor){
-    const midia=midiaDaSelecao(cor);
+    const midia=midiaExata(cor,state.forro);
     if(!midia)return "";
     return String(midia.capa||midia.imagens?.find(src=>String(src||"").trim())||"").trim();
   }
@@ -27,24 +27,32 @@
     const modeloBusca=normalizarChaveMidia(state.modelo||"Wave");
     const forroBusca=normalizarForroMidia(forro);
 
-    return lista.some(item=>{
-      return normalizarChaveMidia(item.tecido)===tecidoBusca&&
-        normalizarChaveMidia(item.modelo||"Wave")===modeloBusca&&
-        normalizarForroMidia(item.forro)===forroBusca&&
-        temFoto(item);
-    });
+    return lista.some(item=>
+      normalizarChaveMidia(item.tecido)===tecidoBusca&&
+      normalizarChaveMidia(item.modelo||"Wave")===modeloBusca&&
+      normalizarForroMidia(item.forro)===forroBusca&&
+      temFoto(item)
+    );
+  }
+
+  function forroDoCard(card){
+    const dataset=String(card?.dataset?.value||card?.dataset?.forro||"").trim();
+    if(dataset)return dataset;
+    const strong=String(card?.querySelector("strong")?.textContent||"").trim();
+    if(strong)return strong;
+    return String(card?.textContent||"").trim().split("\n")[0].trim();
   }
 
   function atualizarForrosDisponiveis(){
     const container=document.getElementById("forros");
-    if(!container)return;
+    if(!container)return false;
 
-    const cards=[...container.querySelectorAll(".card[data-value]")];
+    const cards=[...container.querySelectorAll(".card")];
     let primeiroDisponivel=null;
 
     cards.forEach(card=>{
-      const forro=String(card.dataset.value||"").trim();
-      const disponivel=temFotoParaForro(forro);
+      const forro=forroDoCard(card);
+      const disponivel=!!forro&&temFotoParaForro(forro);
       card.hidden=!disponivel;
       card.style.display=disponivel?"":"none";
       if(disponivel&&!primeiroDisponivel)primeiroDisponivel=card;
@@ -65,13 +73,14 @@
 
     if(aviso)aviso.remove();
 
-    const selecionado=cards.find(card=>!card.hidden&&String(card.dataset.value||"").trim()===state.forro);
+    const selecionado=cards.find(card=>!card.hidden&&normalizarForroMidia(forroDoCard(card))===normalizarForroMidia(state.forro));
     if(!selecionado){
       cards.forEach(card=>card.classList.remove("selected"));
       primeiroDisponivel.classList.add("selected");
-      state.forro=String(primeiroDisponivel.dataset.value||"").trim();
+      state.forro=forroDoCard(primeiroDisponivel);
     }else{
       cards.forEach(card=>card.classList.toggle("selected",card===selecionado));
+      state.forro=forroDoCard(selecionado);
     }
 
     return true;
@@ -84,7 +93,6 @@
     const todasCores=CONFIG.cores?.[state.tecido]||[];
     const tecidoConfig=CONFIG.configuradorTecidos?.[state.tecido]||{};
     const coresAtivas=tecidoConfig.coresAtivas&&typeof tecidoConfig.coresAtivas==="object"?tecidoConfig.coresAtivas:{};
-
     const cores=todasCores.filter(cor=>coresAtivas[cor]!==false&&temFotoNaSelecao(cor));
 
     if(!cores.includes(state.cor))state.cor=cores[0]||"";
@@ -147,8 +155,10 @@
   const forros=document.getElementById("forros");
   if(forros){
     forros.addEventListener("click",e=>{
-      const card=e.target.closest(".card[data-value]");
+      const card=e.target.closest(".card");
       if(!card||card.hidden)return;
+      const valor=forroDoCard(card);
+      if(valor)state.forro=valor;
       setTimeout(sincronizarTudo,0);
     });
   }
