@@ -81,7 +81,11 @@ const PAGE_BOOTSTRAP=`
 </script>`;
 
 class HeadBootstrap{element(element){element.prepend(PAGE_BOOTSTRAP,{html:true})}}
-class ConfiguratorScripts{element(element){element.append('<script src="/js/configurador-media-forro.js?v=20260816-1"></script>',{html:true})}}
+class ConfiguratorScripts{
+  element(element){
+    element.append('<script src="/js/preview-media-test.js?v=20260816-1"></script><script src="/js/configurador-media-forro.js?v=20260816-2"></script>',{html:true});
+  }
+}
 
 export async function onRequest(context){
   const response=await context.next();
