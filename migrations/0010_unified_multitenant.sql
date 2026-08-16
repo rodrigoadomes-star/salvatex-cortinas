@@ -73,3 +73,21 @@ CREATE TABLE IF NOT EXISTS platform_domain_events (
 
 CREATE INDEX IF NOT EXISTS idx_domain_events_domain
 ON platform_domain_events(domain_id, created_at DESC);
+
+
+CREATE TABLE IF NOT EXISTS customer_store_memberships (
+  store_id TEXT NOT NULL,
+  account_id TEXT NOT NULL,
+  created_at TEXT NOT NULL,
+  PRIMARY KEY(store_id, account_id),
+  FOREIGN KEY(store_id) REFERENCES stores(id) ON DELETE CASCADE,
+  FOREIGN KEY(account_id) REFERENCES customer_accounts(id) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_customer_memberships_account
+ON customer_store_memberships(account_id, store_id);
+
+-- Compatibilidade: associa as contas existentes à loja Salvatex.
+INSERT OR IGNORE INTO customer_store_memberships(store_id, account_id, created_at)
+SELECT 'salvatex', id, COALESCE(created_at, CURRENT_TIMESTAMP)
+FROM customer_accounts;
