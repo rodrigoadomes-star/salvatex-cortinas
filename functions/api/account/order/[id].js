@@ -1,5 +1,6 @@
 import { json } from "../../_lib.js";
 import { requireCustomer } from "../../_customer-auth.js";
+import { requireStoreTenant } from "../../../_shared/tenant.js";
 
 function parseObject(value) {
   try {
@@ -26,8 +27,10 @@ function publicPayment(value) {
 export async function onRequestGet(context) {
   const auth = await requireCustomer(context);
   if (!auth.ok) return auth.response;
+  const tenantAuth = await requireStoreTenant(context,{allowPreview:true});
+  if (!tenantAuth.ok) return tenantAuth.response;
   const id = context.params.id;
-  const order = await context.env.DB.prepare(`SELECT id,order_number,status,stage,currency,customer_account_id,customer_email,delivery_json,freight_json,payment_json,subtotal_cents,freight_cents,discount_cents,total_cents,created_at,updated_at FROM orders WHERE id=?1 AND store_id='salvatex' AND (customer_account_id=?2 OR (?3=1 AND lower(customer_email)=lower(?4)))`).bind(id,auth.user.userId,auth.user.emailVerified?1:0,auth.user.email).first();
+  const order = await context.env.DB.prepare(`SELECT id,order_number,status,stage,currency,customer_account_id,customer_email,delivery_json,freight_json,payment_json,subtotal_cents,freight_cents,discount_cents,total_cents,created_at,updated_at FROM orders WHERE id=?1 AND store_id=?2 AND (customer_account_id=?3 OR (?4=1 AND lower(customer_email)=lower(?5)))`).bind(id,tenantAuth.tenant.storeId,auth.user.userId,auth.user.emailVerified?1:0,auth.user.email).first();
   if (!order) return json({ok:false,message:"Pedido não encontrado."},404);
 
   const [itemsResult,eventsResult] = await Promise.all([
