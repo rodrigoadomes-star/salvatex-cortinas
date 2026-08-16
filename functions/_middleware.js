@@ -1,4 +1,6 @@
-const CSP=["default-src 'self'","base-uri 'self'","object-src 'none'","frame-ancestors 'none'","form-action 'self' https://accounts.google.com","script-src 'self' 'unsafe-inline' https://accounts.google.com https://challenges.cloudflare.com https://www.googletagmanager.com https://www.google-analytics.com https://connect.facebook.net","style-src 'self' 'unsafe-inline' https://accounts.google.com","img-src 'self' data: blob: https://*.googleusercontent.com https://www.facebook.com https://www.google-analytics.com https://www.googletagmanager.com","font-src 'self' data:","connect-src 'self' https://accounts.google.com https://challenges.cloudflare.com https://oauth2.googleapis.com https://openidconnect.googleapis.com https://www.googleapis.com https://www.google-analytics.com https://region1.google-analytics.com https://www.facebook.com https://graph.facebook.com","frame-src https://accounts.google.com https://challenges.cloudflare.com https://www.googletagmanager.com","media-src 'self' blob:","worker-src 'self' blob:","upgrade-insecure-requests"].join("; ");
+const PRODUCTION_ORIGIN="https://salvatex-cortinas.pages.dev";
+
+const CSP=["default-src 'self'","base-uri 'self'","object-src 'none'","frame-ancestors 'none'","form-action 'self' https://accounts.google.com","script-src 'self' 'unsafe-inline' https://accounts.google.com https://challenges.cloudflare.com https://www.googletagmanager.com https://www.google-analytics.com https://connect.facebook.net","style-src 'self' 'unsafe-inline' https://accounts.google.com","img-src 'self' data: blob: https://salvatex-cortinas.pages.dev https://*.googleusercontent.com https://www.facebook.com https://www.google-analytics.com https://www.googletagmanager.com","font-src 'self' data:","connect-src 'self' https://accounts.google.com https://challenges.cloudflare.com https://oauth2.googleapis.com https://openidconnect.googleapis.com https://www.googleapis.com https://www.google-analytics.com https://region1.google-analytics.com https://www.facebook.com https://graph.facebook.com","frame-src https://accounts.google.com https://challenges.cloudflare.com https://www.googletagmanager.com","media-src 'self' blob: https://salvatex-cortinas.pages.dev","worker-src 'self' blob:","upgrade-insecure-requests"].join("; ");
 
 const PAGE_BOOTSTRAP=`
 <style id="site-bootstrap-style">
@@ -74,11 +76,74 @@ const PAGE_BOOTSTRAP=`
 class HeadBootstrap{element(element){element.prepend(PAGE_BOOTSTRAP,{html:true})}}
 class ConfiguratorScripts{
   element(element){
-    element.append('<script src="/js/configurador-media-forro.js?v=20260816-5"></script>',{html:true});
+    element.append('<script src="/js/configurador-media-forro.js?v=20260816-6"></script>',{html:true});
+  }
+}
+
+function isPreviewHost(hostname){
+  const host=String(hostname||"").toLowerCase();
+  return host.endsWith(".salvatex-cortinas.pages.dev")&&host!=="salvatex-cortinas.pages.dev";
+}
+
+function productionMediaUrl(value){
+  const src=String(value||"").trim();
+  if(!src)return src;
+  if(src.startsWith("/media/"))return PRODUCTION_ORIGIN+src;
+  if(src.startsWith("media/"))return PRODUCTION_ORIGIN+"/"+src;
+  return src;
+}
+
+function normalizePreviewMedia(configurator){
+  const cfg=JSON.parse(JSON.stringify(configurator||{}));
+  cfg.midia=Array.isArray(cfg.midia)?cfg.midia.map(item=>{
+    const media={...item};
+    if(media.capa)media.capa=productionMediaUrl(media.capa);
+    if(media.video)media.video=productionMediaUrl(media.video);
+    if(Array.isArray(media.imagens))media.imagens=media.imagens.map(productionMediaUrl);
+    return media;
+  }):[];
+  return cfg;
+}
+
+async function syncPreviewConfiguratorData(context,url){
+  if(!isPreviewHost(url.hostname)||!context.env.DB)return;
+  if(url.pathname!=="/configurador"&&url.pathname!=="/configurador.html")return;
+
+  const markerKey="preview_configurators_synced_from_production_v2";
+  const now=Date.now();
+
+  try{
+    const marker=await context.env.DB.prepare(`SELECT value_json FROM store_configs WHERE store_id='salvatex' AND config_key=?1`).bind(markerKey).first();
+    if(marker?.value_json){
+      try{
+        const saved=JSON.parse(marker.value_json);
+        if(now-Number(saved?.syncedAt||0)<300000)return;
+      }catch{}
+    }
+
+    const ids=["wave","prega-macho","cortina-varao"];
+    const responses=await Promise.all(ids.map(id=>fetch(PRODUCTION_ORIGIN+"/api/configurators/"+encodeURIComponent(id),{headers:{accept:"application/json"},cf:{cacheTtl:0,cacheEverything:false}})));
+    const payloads=await Promise.all(responses.map(async(response,index)=>{
+      if(!response.ok)throw new Error("Produção retornou HTTP "+response.status+" para "+ids[index]);
+      const data=await response.json();
+      const cfg=data?.configurator||data?.wave;
+      if(!data?.ok||!cfg)throw new Error("Configuração inválida em produção para "+ids[index]);
+      return normalizePreviewMedia(cfg);
+    }));
+
+    const syncedAt=new Date().toISOString();
+    const statements=ids.map((id,index)=>context.env.DB.prepare(`INSERT INTO store_configs(store_id,config_key,value_json,updated_at) VALUES('salvatex',?1,?2,?3) ON CONFLICT(store_id,config_key) DO UPDATE SET value_json=excluded.value_json,updated_at=excluded.updated_at`).bind("configurator_"+id.replaceAll("-","_"),JSON.stringify(payloads[index]),syncedAt));
+    statements.push(context.env.DB.prepare(`INSERT INTO store_configs(store_id,config_key,value_json,updated_at) VALUES('salvatex',?1,?2,?3) ON CONFLICT(store_id,config_key) DO UPDATE SET value_json=excluded.value_json,updated_at=excluded.updated_at`).bind(markerKey,JSON.stringify({syncedAt:now,source:PRODUCTION_ORIGIN}),syncedAt));
+    await context.env.DB.batch(statements);
+  }catch(error){
+    console.error("preview configurator sync",error);
   }
 }
 
 export async function onRequest(context){
+  const url=new URL(context.request.url);
+  await syncPreviewConfiguratorData(context,url);
+
   const response=await context.next();
   const headers=new Headers(response.headers);
   headers.set("content-security-policy",CSP);
@@ -88,7 +153,6 @@ export async function onRequest(context){
   headers.set("permissions-policy","camera=(), microphone=(), geolocation=(), payment=()");
   headers.set("cross-origin-opener-policy","same-origin-allow-popups");
   headers.set("strict-transport-security","max-age=31536000; includeSubDomains");
-  const url=new URL(context.request.url);
   if(url.pathname.startsWith("/admin"))headers.set("cache-control","no-store");
   const contentType=headers.get("content-type")||"";
   if(response.status===200&&contentType.includes("text/html")){
