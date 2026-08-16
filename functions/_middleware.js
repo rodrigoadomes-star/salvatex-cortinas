@@ -72,9 +72,17 @@ const PAGE_BOOTSTRAP=`
 </script>`;
 
 class HeadBootstrap{element(element){element.prepend(PAGE_BOOTSTRAP,{html:true})}}
+class PreviewAfterConfig{
+  element(element){
+    const src=String(element.getAttribute('src')||'');
+    if(src.includes('js/config.js')){
+      element.after('<script src="/js/preview-media-test.js?v=20260816-3"></script><script src="/js/preview-media-test-fix.js?v=20260816-2"></script>',{html:true});
+    }
+  }
+}
 class ConfiguratorScripts{
   element(element){
-    element.append('<script src="/js/preview-media-test.js?v=20260816-1"></script><script src="/js/preview-media-test-fix.js?v=20260816-1"></script><script src="/js/configurador-media-forro.js?v=20260816-2"></script>',{html:true});
+    element.append('<script src="/js/configurador-media-forro.js?v=20260816-3"></script>',{html:true});
   }
 }
 
@@ -95,7 +103,9 @@ export async function onRequest(context){
     headers.delete("content-length");
     const secured=new Response(response.body,{status:response.status,statusText:response.statusText,headers});
     let rewriter=new HTMLRewriter().on("head",new HeadBootstrap());
-    if(url.pathname==="/configurador"||url.pathname==="/configurador.html")rewriter=rewriter.on("body",new ConfiguratorScripts());
+    if(url.pathname==="/configurador"||url.pathname==="/configurador.html"){
+      rewriter=rewriter.on('script[src]',new PreviewAfterConfig()).on("body",new ConfiguratorScripts());
+    }
     return rewriter.transform(secured);
   }
   return new Response(response.body,{status:response.status,statusText:response.statusText,headers});
