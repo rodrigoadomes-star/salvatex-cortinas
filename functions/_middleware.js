@@ -11,7 +11,7 @@ const PAGE_BOOTSTRAP=`
   root.classList.add('site-booting');
   var originalFetch=window.fetch;
   var pending=0;
-  var loaded=false;
+  var domReady=document.readyState!=='loading';
   var readyTimer=0;
   var finished=false;
 
@@ -35,9 +35,9 @@ const PAGE_BOOTSTRAP=`
   }
 
   function schedule(){
-    if(finished||!loaded||pending>0)return;
+    if(finished||!domReady||pending>0)return;
     clearTimeout(readyTimer);
-    readyTimer=setTimeout(function(){if(loaded&&pending===0)finish()},120);
+    readyTimer=setTimeout(function(){if(domReady&&pending===0)finish()},60);
   }
 
   window.fetch=function(){
@@ -50,8 +50,13 @@ const PAGE_BOOTSTRAP=`
     return Promise.resolve(result).finally(function(){pending=Math.max(0,pending-1);schedule()});
   };
 
-  window.addEventListener('load',function(){loaded=true;schedule()},{once:true});
-  setTimeout(finish,5000);
+  if(!domReady){
+    document.addEventListener('DOMContentLoaded',function(){domReady=true;schedule()},{once:true});
+  }else{
+    schedule();
+  }
+
+  setTimeout(finish,2000);
 })();
 </script>`;
 
