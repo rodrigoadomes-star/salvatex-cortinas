@@ -58,8 +58,8 @@ function mergeDeep(target, source){
   return target;
 }
 
-async function readConfig(db,id){
-  const row=await db.prepare(`SELECT value_json,updated_at FROM store_configs WHERE store_id=?1 AND config_key=?2`).bind(a.storeId,'configurator_'+id.replaceAll('-','_')).first();
+async function readConfig(db,id,storeId){
+  const row=await db.prepare(`SELECT value_json,updated_at FROM store_configs WHERE store_id=?1 AND config_key=?2`).bind(storeId,'configurator_'+id.replaceAll('-','_')).first();
   if(row?.value_json){
     try{
       const saved=JSON.parse(row.value_json);
@@ -77,7 +77,7 @@ export async function onRequestGet(context){
   const auth=await requireAdmin(context); if(!auth.ok)return auth.response;
   const id=String(context.params.id||'').toLowerCase();
   if(!IDS.has(id)) return json({ok:false,message:'Configurador não suportado.'},404);
-  try{return json({ok:true,...await readConfig(context.env.DB,id)});}catch(error){console.error(error);return json({ok:false,message:'Não foi possível carregar o configurador.'},500)}
+  try{return json({ok:true,...await readConfig(context.env.DB,id,auth.storeId)});}catch(error){console.error(error);return json({ok:false,message:'Não foi possível carregar o configurador.'},500)}
 }
 
 export async function onRequestPut(context){
@@ -92,8 +92,8 @@ export async function onRequestPut(context){
   if(Number(cfg.medidas?.alturaEntradaMaxima||0)<Number(cfg.medidas?.calculoMaximo||0)) return json({ok:false,message:'A altura máxima permitida não pode ser menor que o limite automático.'},400);
   const now=new Date().toISOString(); const key='configurator_'+id.replaceAll('-','_');
   try{
-    await context.env.DB.prepare(`INSERT INTO store_configs(store_id,config_key,value_json,updated_at) VALUES(?1,?2,?3,?4) ON CONFLICT(store_id,config_key) DO UPDATE SET value_json=excluded.value_json,updated_at=excluded.updated_at`).bind(a.storeId,key,JSON.stringify(cfg),now).run();
-    await logAdmin(context.env.DB,'configurator_updated','configurator',id,{nome:cfg.nome,updatedAt:now});
+    await context.env.DB.prepare(`INSERT INTO store_configs(store_id,config_key,value_json,updated_at) VALUES(?1,?2,?3,?4) ON CONFLICT(store_id,config_key) DO UPDATE SET value_json=excluded.value_json,updated_at=excluded.updated_at`).bind(auth.storeId,key,JSON.stringify(cfg),now).run();
+    await logAdmin(context.env.DB,'configurator_updated','configurator',id,{nome:cfg.nome,updatedAt:now},auth.storeId);
     return json({ok:true,configurator:cfg,wave:id==='wave'?cfg:undefined,updatedAt:now});
   }catch(error){console.error('save configurator',error);return json({ok:false,message:'Erro ao salvar o configurador no D1.'},500)}
 }
