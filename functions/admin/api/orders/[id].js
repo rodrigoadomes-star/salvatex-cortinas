@@ -93,8 +93,8 @@ export async function onRequestPatch(context) {
   }
 
   const current = await db
-    .prepare(`SELECT status, stage, internal_notes, freight_json, payment_json FROM orders WHERE id=?1 AND store_id='salvatex'`)
-    .bind(id)
+    .prepare(`SELECT status, stage, internal_notes, freight_json, payment_json FROM orders WHERE id=?1 AND store_id=?2`)
+    .bind(id,auth.storeId)
     .first();
 
   if (!current) {
