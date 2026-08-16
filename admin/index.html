@@ -5,18 +5,19 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="robots" content="noindex,nofollow">
   <title>Salvatex Admin</title>
-  <link rel="stylesheet" href="../css/admin.css?v=radz-split-20260815-4">
-  <link rel="stylesheet" href="../css/admin-messages.css?v=radz-split-20260815-4">
+  <link rel="stylesheet" href="../css/admin.css?v=radz-split-20260816-1">
+  <link rel="stylesheet" href="../css/admin-messages.css?v=radz-split-20260816-1">
 </head>
 <body>
 <div id="admin-login" class="admin-login">
   <form id="login-form" class="login-card">
-    <div class="login-brand">SALVATEX<small>CORTINAS</small></div>
+    <div class="login-brand">RADZ HUB<small>PAINEL DA LOJA</small></div>
     <h1>Painel administrativo</h1>
-    <p>Informe a chave administrativa configurada no Cloudflare.</p>
-    <label>Chave de acesso<input id="admin-token-input" type="password" autocomplete="current-password" required></label>
+    <p>Entre com a conta administrativa vinculada a esta empresa.</p>
+    <label>E-mail<input id="admin-email-input" type="email" autocomplete="username" maxlength="320" required></label>
+    <label>Senha<input id="admin-password-input" type="password" autocomplete="current-password" required></label>
     <button type="submit">Entrar no painel</button>
-    <div id="login-error" class="login-error"></div>
+    <div id="login-error" class="login-error" aria-live="polite"></div>
   </form>
 </div>
 
@@ -47,7 +48,7 @@
       <button data-view="logs"><span>☷</span>Logs do Sistema</button>
     </nav>
     <a class="view-store" href="../index.html" target="_blank">Ver loja ↗</a>
-    <div class="sidebar-user"><div class="avatar">A</div><div><strong>Administrador</strong><small>Salvatex Cortinas</small></div><button id="logout" title="Sair">↪</button></div>
+    <div class="sidebar-user"><div class="avatar" id="admin-user-avatar">A</div><div><strong id="admin-user-name">Administrador</strong><small id="admin-store-name">Loja</small></div><button id="logout" title="Sair">↪</button></div>
   </aside>
 
   <main class="main">
@@ -58,7 +59,7 @@
 
 <div id="admin-modal" class="modal" hidden><div class="modal-backdrop" data-close-modal></div><div class="modal-card"><button class="modal-close" data-close-modal>×</button><div id="modal-content"></div></div></div>
 <div id="admin-toast" class="admin-toast"></div>
-<script src="../js/admin.js?v=radz-split-20260815-4"></script>
+<script src="../js/admin.js?v=radz-split-20260816-1"></script>
+<script src="../js/admin-auth.js?v=radz-split-20260816-1"></script>
 </body>
 </html>
-
