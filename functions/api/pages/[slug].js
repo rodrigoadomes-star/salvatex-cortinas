@@ -1,4 +1,5 @@
 import { json } from "../_lib.js";
+import { requireStoreTenant } from "../../_shared/tenant.js";
 
 function parseJSON(value,fallback){try{return value?JSON.parse(value):fallback}catch{return fallback}}
 function productPublic(row){return {
@@ -12,10 +13,13 @@ function productPublic(row){return {
 
 export async function onRequestGet(context){
   if(!context.env.DB)return json({ok:false,message:"Banco indisponível"},503);
+  const tenantAuth=await requireStoreTenant(context,{allowPreview:true});
+  if(!tenantAuth.ok)return tenantAuth.response;
+  const storeId=tenantAuth.tenant.storeId;
   const slug=String(context.params.slug||"").trim();
   if(!slug)return json({ok:false,message:"Página não informada"},400);
   try{
-    const page=await context.env.DB.prepare(`SELECT * FROM pages WHERE store_id='salvatex' AND slug=?1 AND active=1 LIMIT 1`).bind(slug).first();
+    const page=await context.env.DB.prepare(`SELECT * FROM pages WHERE store_id=?1 AND slug=?2 AND active=1 LIMIT 1`).bind(storeId,slug).first();
     if(!page)return json({ok:false,message:"Página não encontrada"},404);
     const measuresRaw=parseJSON(page.measures_json,[]);
     const pageIds=parseJSON(page.product_ids_json,[]).filter(Boolean);
@@ -25,12 +29,12 @@ export async function onRequestGet(context){
     const ids=[...new Set([...pageIds,...measureIds].map(String))].slice(0,100);
     let products=[];
     if(page.page_type==='produtos' && ids.length){
-      const placeholders=ids.map((_,i)=>`?${i+1}`).join(',');
+      const placeholders=ids.map((_,i)=>`?${i+2}`).join(',');
       const result=await context.env.DB.prepare(`
         SELECT p.*, c.name category_name, c.slug category_slug
         FROM products p LEFT JOIN categories c ON c.id=p.category_id
-        WHERE p.store_id='salvatex' AND p.active=1 AND p.id IN (${placeholders})
-      `).bind(...ids).all();
+        WHERE p.store_id=?1 AND p.active=1 AND p.id IN (${placeholders})
+      `).bind(storeId,...ids).all();
       const byId=new Map((result.results||[]).map(x=>[x.id,x]));
       products=ids.map(id=>byId.get(id)).filter(Boolean).map(productPublic);
     }
