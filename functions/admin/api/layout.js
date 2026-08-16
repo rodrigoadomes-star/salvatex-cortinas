@@ -262,7 +262,8 @@ export async function onRequestPut(context){
     */
     const saved=
       await readLayout(
-        context.env.DB
+        context.env.DB,
+        auth.storeId
       );
 
     const savedJson=
@@ -289,7 +290,8 @@ export async function onRequestPut(context){
       {
         source:"layout_editor",
         confirmed:true
-      }
+      },
+      auth.storeId
     );
 
     return json({
