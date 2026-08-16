@@ -13,7 +13,6 @@
       const cor='Branco';
       const forro='Forro leve';
       const modelo='Ilhós';
-      const imagem='/imagens/testes/preview-ilhos.jpg?v=20260816-2';
 
       CONFIG.cores=CONFIG.cores||{};
       CONFIG.cores[tecido]=Array.isArray(CONFIG.cores[tecido])?CONFIG.cores[tecido]:[];
@@ -25,6 +24,25 @@
       CONFIG.configuradorTecidos[tecido].coresAtivas[cor]=true;
 
       const lista=Array.isArray(CONFIG.mediaConfigurador)?CONFIG.mediaConfigurador:[];
+      const existente=lista.find(function(item){
+        return String(item.modelo||'').trim()===modelo&&
+          String(item.tecido||'').trim()===tecido&&
+          String(item.cor||'').trim()===cor&&
+          String(item.forro||'').trim()===forro&&
+          (String(item.capa||'').trim()||Array.isArray(item.imagens)&&item.imagens.some(src=>String(src||'').trim()));
+      });
+
+      const imagem=String(
+        existente?.capa ||
+        existente?.imagens?.find(src=>String(src||'').trim()) ||
+        ''
+      ).trim();
+
+      if(!imagem){
+        console.warn('Mídia temporária do Ilhós não foi encontrada no Preview.');
+        return;
+      }
+
       CONFIG.mediaConfigurador=lista.filter(function(item){
         return !(String(item.modelo||'').trim()===modelo&&String(item.tecido||'').trim()===tecido&&String(item.cor||'').trim()===cor&&String(item.forro||'').trim()===forro);
       });
