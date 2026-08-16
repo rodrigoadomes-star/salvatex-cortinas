@@ -8,8 +8,8 @@ export async function onRequestGet(context){
    FROM stores s
    LEFT JOIN platform_company_stores pcs ON pcs.store_id=s.id
    LEFT JOIN platform_companies pc ON pc.id=pcs.company_id
-   WHERE s.id='salvatex'`).first();
- const row=await db.prepare(`SELECT COALESCE(SUM(total_cents),0) gross FROM orders WHERE store_id='salvatex' AND substr(created_at,1,7)=?1 AND status NOT IN ('cancelado','reembolsado')`).bind(month).first();
+   WHERE s.id=?1`).bind(auth.storeId).first();
+ const row=await db.prepare(`SELECT COALESCE(SUM(total_cents),0) gross FROM orders WHERE store_id=?1 AND substr(created_at,1,7)=?2 AND status NOT IN ('cancelado','reembolsado')`).bind(auth.storeId,month).first();
  const gross=Number(row?.gross||0),basisPoints=Number(billing?.fee_basis_points??100),percent=basisPoints/10000,minimum=Number(billing?.platform_fee_minimum_cents||15000),calculated=Math.round(gross*percent),due=Math.max(minimum,calculated);
  return json({ok:true,referenceMonth:month,planCode:String(billing?.plan_code||"free"),feeBasisPoints:basisPoints,grossSalesCents:gross,feePercent:percent,minimumFeeCents:minimum,calculatedFeeCents:calculated,amountDueCents:due});
 }
