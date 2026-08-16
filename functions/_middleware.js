@@ -76,7 +76,12 @@ const PAGE_BOOTSTRAP=`
 class HeadBootstrap{element(element){element.prepend(PAGE_BOOTSTRAP,{html:true})}}
 class ConfiguratorScripts{
   element(element){
-    element.append('<script src="/js/configurador-media-forro.js?v=20260816-6"></script>',{html:true});
+    element.append('<script src="/js/configurador-media-forro.js?v=20260816-7"></script><script src="/js/configurador-media-strict.js?v=20260816-1"></script>',{html:true});
+  }
+}
+class AdminScripts{
+  element(element){
+    element.append('<script src="/js/admin-configurator-media-controls.js?v=20260816-1"></script>',{html:true});
   }
 }
 
@@ -161,6 +166,9 @@ export async function onRequest(context){
     let rewriter=new HTMLRewriter().on("head",new HeadBootstrap());
     if(url.pathname==="/configurador"||url.pathname==="/configurador.html"){
       rewriter=rewriter.on("body",new ConfiguratorScripts());
+    }
+    if(url.pathname==="/admin"||url.pathname==="/admin/"||url.pathname==="/admin/index.html"){
+      rewriter=rewriter.on("body",new AdminScripts());
     }
     return rewriter.transform(secured);
   }
