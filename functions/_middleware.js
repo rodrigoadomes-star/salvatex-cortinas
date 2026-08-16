@@ -2,6 +2,9 @@ const CSP=["default-src 'self'","base-uri 'self'","object-src 'none'","frame-anc
 
 const PAGE_BOOTSTRAP=`
 <style id="site-bootstrap-style">
+  @view-transition{navigation:auto}
+  ::view-transition-old(root){animation:none}
+  ::view-transition-new(root){animation:none}
   html.site-booting{background:#fbfaf8}
   html.site-booting body{visibility:hidden!important}
   #site-boot-screen{display:none}
@@ -14,16 +17,24 @@ const PAGE_BOOTSTRAP=`
 <script id="site-bootstrap-script">
 (function(){
   var root=document.documentElement;
-  root.classList.add('site-booting');
-  var boot=document.createElement('div');
-  boot.id='site-boot-screen';
-  boot.innerHTML='<div><strong>SALVATEX</strong><span aria-hidden="true"></span></div>';
-  document.documentElement.appendChild(boot);
+  var sameOriginReferrer=false;
+  try{sameOriginReferrer=!!document.referrer&&new URL(document.referrer).origin===location.origin}catch(_){sameOriginReferrer=false}
+
+  var boot=null;
+  if(!sameOriginReferrer){
+    root.classList.add('site-booting');
+    boot=document.createElement('div');
+    boot.id='site-boot-screen';
+    boot.innerHTML='<div><strong>SALVATEX</strong><span aria-hidden="true"></span></div>';
+    document.documentElement.appendChild(boot);
+  }
+
   var originalFetch=window.fetch;
   var pending=0;
   var domReady=document.readyState!=='loading';
   var readyTimer=0;
   var finished=false;
+  var prefetched={};
 
   function tracked(input){
     try{
@@ -42,13 +53,13 @@ const PAGE_BOOTSTRAP=`
     root.classList.add('site-ready');
     if(boot)boot.remove();
     var style=document.getElementById('site-bootstrap-style');
-    if(style)style.remove();
+    if(style&&!sameOriginReferrer)style.remove();
   }
 
   function schedule(){
     if(finished||!domReady||pending>0)return;
     clearTimeout(readyTimer);
-    readyTimer=setTimeout(function(){if(domReady&&pending===0)finish()},40);
+    readyTimer=setTimeout(function(){if(domReady&&pending===0)finish()},30);
   }
 
   window.fetch=function(){
@@ -61,8 +72,28 @@ const PAGE_BOOTSTRAP=`
     return Promise.resolve(result).finally(function(){pending=Math.max(0,pending-1);schedule()});
   };
 
+  function internalLink(anchor){
+    if(!anchor||!anchor.href||anchor.target||anchor.hasAttribute('download'))return null;
+    try{
+      var url=new URL(anchor.href,location.href);
+      if(url.origin!==location.origin)return null;
+      if(url.pathname===location.pathname&&url.search===location.search)return null;
+      return url;
+    }catch(_){return null}
+  }
+
+  function prefetch(anchor){
+    var url=internalLink(anchor);
+    if(!url||prefetched[url.href])return;
+    prefetched[url.href]=true;
+    originalFetch(url.href,{method:'GET',credentials:'same-origin',cache:'force-cache'}).catch(function(){});
+  }
+
+  document.addEventListener('pointerover',function(e){var a=e.target&&e.target.closest?e.target.closest('a'):null;prefetch(a)},{passive:true});
+  document.addEventListener('touchstart',function(e){var a=e.target&&e.target.closest?e.target.closest('a'):null;prefetch(a)},{passive:true});
+
   if(!domReady){document.addEventListener('DOMContentLoaded',function(){domReady=true;schedule()},{once:true})}else{schedule()}
-  setTimeout(finish,1800);
+  setTimeout(finish,1200);
 })();
 </script>`;
 
