@@ -1,4 +1,5 @@
 import { json } from "../_lib.js";
+import { requireStoreTenant } from "../../_shared/tenant.js";
 
 function parseJSON(value, fallback) {
   try {
@@ -20,6 +21,9 @@ export async function onRequestGet(context) {
     );
   }
 
+  const tenantAuth = await requireStoreTenant(context,{allowPreview:true});
+  if(!tenantAuth.ok) return tenantAuth.response;
+
   try {
 
     const result =
@@ -38,10 +42,10 @@ export async function onRequestGet(context) {
           updated_at
         FROM pages
         WHERE
-          store_id = 'salvatex'
+          store_id = ?1
           AND active = 1
         ORDER BY nav_order ASC, title ASC
-      `).all();
+      `).bind(tenantAuth.tenant.storeId).all();
 
 
     const pages =
