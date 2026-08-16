@@ -2,32 +2,24 @@ const CSP=["default-src 'self'","base-uri 'self'","object-src 'none'","frame-anc
 
 const PAGE_BOOTSTRAP=`
 <style id="site-bootstrap-style">
-  @view-transition{navigation:auto}
-  ::view-transition-old(root){animation:none}
-  ::view-transition-new(root){animation:none}
   html.site-booting{background:#fbfaf8}
   html.site-booting body{visibility:hidden!important}
   #site-boot-screen{display:none}
   html.site-booting #site-boot-screen{display:flex!important;visibility:visible!important;position:fixed;inset:0;z-index:2147483647;align-items:center;justify-content:center;background:#fbfaf8;color:#0b2038;font-family:Arial,sans-serif}
-  #site-boot-screen>div{display:flex;flex-direction:column;align-items:center;gap:14px}
-  #site-boot-screen strong{font-family:Georgia,serif;font-size:28px;letter-spacing:.12em;font-weight:600}
-  #site-boot-screen span{width:28px;height:28px;border:2px solid rgba(11,32,56,.15);border-top-color:#0b2038;border-radius:50%;animation:site-spin .65s linear infinite}
+  #site-boot-screen>div{display:flex;flex-direction:column;align-items:center;gap:10px}
+  #site-boot-screen strong{font-family:Georgia,serif;font-size:24px;letter-spacing:.12em;font-weight:600}
+  #site-boot-screen span{width:22px;height:22px;border:2px solid rgba(11,32,56,.14);border-top-color:#0b2038;border-radius:50%;animation:site-spin .6s linear infinite}
   @keyframes site-spin{to{transform:rotate(360deg)}}
 </style>
 <script id="site-bootstrap-script">
 (function(){
   var root=document.documentElement;
-  var sameOriginReferrer=false;
-  try{sameOriginReferrer=!!document.referrer&&new URL(document.referrer).origin===location.origin}catch(_){sameOriginReferrer=false}
+  root.classList.add('site-booting');
 
-  var boot=null;
-  if(!sameOriginReferrer){
-    root.classList.add('site-booting');
-    boot=document.createElement('div');
-    boot.id='site-boot-screen';
-    boot.innerHTML='<div><strong>SALVATEX</strong><span aria-hidden="true"></span></div>';
-    document.documentElement.appendChild(boot);
-  }
+  var boot=document.createElement('div');
+  boot.id='site-boot-screen';
+  boot.innerHTML='<div><strong>SALVATEX</strong><span aria-hidden="true"></span></div>';
+  document.documentElement.appendChild(boot);
 
   var originalFetch=window.fetch;
   var pending=0;
@@ -53,13 +45,13 @@ const PAGE_BOOTSTRAP=`
     root.classList.add('site-ready');
     if(boot)boot.remove();
     var style=document.getElementById('site-bootstrap-style');
-    if(style&&!sameOriginReferrer)style.remove();
+    if(style)style.remove();
   }
 
   function schedule(){
     if(finished||!domReady||pending>0)return;
     clearTimeout(readyTimer);
-    readyTimer=setTimeout(function(){if(domReady&&pending===0)finish()},30);
+    readyTimer=setTimeout(function(){if(domReady&&pending===0)finish()},20);
   }
 
   window.fetch=function(){
@@ -93,7 +85,7 @@ const PAGE_BOOTSTRAP=`
   document.addEventListener('touchstart',function(e){var a=e.target&&e.target.closest?e.target.closest('a'):null;prefetch(a)},{passive:true});
 
   if(!domReady){document.addEventListener('DOMContentLoaded',function(){domReady=true;schedule()},{once:true})}else{schedule()}
-  setTimeout(finish,1200);
+  setTimeout(finish,1000);
 })();
 </script>`;
 
