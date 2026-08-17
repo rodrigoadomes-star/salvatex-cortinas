@@ -1,6 +1,8 @@
-import { json, requireAdmin } from "./_auth.js";
+import { json } from "./_auth.js";
+import { requireAdminPermission } from "./_permissions.js";
+
 export async function onRequestGet(context){
- const auth=await requireAdmin(context);if(!auth.ok)return auth.response;
+ const auth=await requireAdminPermission(context,"company.finance.read");if(!auth.ok)return auth.response;
  const db=context.env.DB,month=new Date().toISOString().slice(0,7);
  const billing=await db.prepare(`SELECT s.platform_fee_minimum_cents,
    COALESCE(pc.platform_fee_basis_points,CAST(ROUND(s.platform_fee_percent*10000) AS INTEGER),100) fee_basis_points,
