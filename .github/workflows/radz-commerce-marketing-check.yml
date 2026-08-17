@@ -18,6 +18,7 @@ jobs:
           node --check functions/admin/api/catalog/products/_media.js
           node --check functions/admin/api/catalog/products/index.js
           node --check functions/admin/api/catalog/products/[id].js
+          node --check functions/admin/api/marketing.js
           node --check functions/admin/api/oauth/_oauth.js
           node --check functions/admin/api/oauth/meta/start.js
           node --check functions/admin/api/oauth/meta/callback.js
@@ -25,6 +26,7 @@ jobs:
           node --check functions/admin/api/oauth/google/callback.js
           node --check functions/api/marketing.js
           node --check functions/api/track.js
+          node --check functions/api/merchant-feed.xml.js
           node --check js/marketing.js
           node --check js/produto.js
           node --check js/admin-product-enhancements.js
@@ -37,6 +39,7 @@ jobs:
           sig=Path('functions/admin/api/media/_file-validation.js').read_text()
           create=Path('functions/admin/api/catalog/products/index.js').read_text()
           update=Path('functions/admin/api/catalog/products/[id].js').read_text()
+          admin_marketing=Path('functions/admin/api/marketing.js').read_text()
           oauth=Path('functions/admin/api/oauth/_oauth.js').read_text()
           meta_start=Path('functions/admin/api/oauth/meta/start.js').read_text()
           meta_cb=Path('functions/admin/api/oauth/meta/callback.js').read_text()
@@ -44,22 +47,27 @@ jobs:
           google_cb=Path('functions/admin/api/oauth/google/callback.js').read_text()
           public_marketing=Path('functions/api/marketing.js').read_text()
           track=Path('functions/api/track.js').read_text()
+          feed=Path('functions/api/merchant-feed.xml.js').read_text()
           storefront=Path('js/marketing.js').read_text()
           product=Path('js/produto.js').read_text()
           admin=Path('js/admin-product-enhancements.js').read_text()
           ads=Path('js/admin-ads.js').read_text()
+          perm=Path('database/migrations/20260817_radz_marketing_permissions.sql').read_text()
           assert 'validateMediaSignature(buffer,type)' in upload
           assert 'signature_mismatch' in sig
           assert 'image/avif' in upload
           assert 'normalizeProductImages' in create and 'normalizeProductImages' in update
           assert 'images_json' in create and 'images_json' in update
+          assert "company.integrations.read" in admin_marketing and "company.integrations.write" in admin_marketing
           assert "VALUES('salvatex'" not in oauth and "store_id='salvatex'" not in oauth
           assert "saveState(context.env.DB,'meta',state,a.storeId)" in meta_start
           assert "consumeState(context.env.DB,'meta',state)" in meta_cb
           assert "saveState(context.env.DB,'google',state,a.storeId)" in google_start
           assert "consumeState(context.env.DB,'google',state)" in google_cb
+          assert 'company.integrations.write' in meta_start and 'company.integrations.write' in google_start
           assert 'requireStoreTenant' in public_marketing and "store_id='salvatex'" not in public_marketing
           assert 'requireStoreTenant' in track and "store_id='salvatex'" not in track
+          assert 'requireStoreTenant' in feed and "store_id='salvatex'" not in feed
           assert 'event_disabled' in track
           assert "enabled('pageView')" in storefront
           assert "trackProduto('view_item'" in product
@@ -67,5 +75,6 @@ jobs:
           assert 'Gerador de anúncios' in admin
           assert 'sem chamada de IA' in admin
           assert '0 uso de IA' in ads and 'Exportar CSV' in ads and 'max="50"' in ads
-          print('Commerce upload, product gallery, tenant OAuth/tracking and ad generator invariants validated')
+          assert 'company.integrations.read' in perm and 'company.integrations.write' in perm
+          print('Commerce upload, product gallery, marketing RBAC, tenant OAuth/tracking/feed and ad generator invariants validated')
           PY
