@@ -30,6 +30,7 @@ jobs:
           node --check functions/platform/api/_auth.js
           node --check functions/platform/api/_entitlements.js
           node --check functions/platform/api/company.js
+          node --check functions/admin/api/catalog/products/index.js
 
       - name: Validate additive D1 migration in SQLite
         run: |
@@ -72,6 +73,15 @@ jobs:
           assert db.execute("SELECT COUNT(*) FROM platform_plans WHERE code='founder'").fetchone()[0] == 1
           assert db.execute("SELECT COUNT(*) FROM platform_company_profile WHERE company_id='company-salvatex'").fetchone()[0] == 1
           assert db.execute("SELECT COUNT(*) FROM platform_feature_catalog WHERE feature_key='catalog'").fetchone()[0] == 1
+
+          # O estado antigo por empresa precisa continuar legível enquanto o plano
+          # não possuir regra explícita para o recurso.
+          assert db.execute("SELECT enabled FROM platform_features WHERE company_id='company-salvatex' AND feature_key='catalog'").fetchone()[0] == 1
+
+          # Depois que o plano recebe regra explícita, enabled=0 precisa ser respeitado.
+          db.execute("INSERT INTO platform_plan_features(plan_code,feature_key,enabled,settings_json,updated_at) VALUES('founder','catalog',0,'{}',datetime('now'))")
+          row = db.execute("SELECT pf.feature_key,pf.enabled,legacy.enabled FROM platform_companies c LEFT JOIN platform_plan_features pf ON pf.plan_code=c.plan_code AND pf.feature_key='catalog' LEFT JOIN platform_features legacy ON legacy.company_id=c.id AND legacy.feature_key='catalog' WHERE c.id='company-salvatex'").fetchone()
+          assert row == ('catalog', 0, 1), row
 
           # Idempotência do arquivo aditivo: CREATE/INSERT OR IGNORE não deve duplicar dados.
           db.executescript(migration)
