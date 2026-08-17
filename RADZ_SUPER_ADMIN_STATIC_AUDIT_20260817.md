@@ -22,6 +22,9 @@
 - permissões no backend para produtos, categorias, pedidos, mídia e financeiro da empresa;
 - papéis RADZ Super Admin, Suporte e Financeiro com papéis efetivos resolvidos na sessão;
 - endpoint seguro `/radz/api/readiness` para diagnosticar migrations/bindings sem expor secrets;
+- cobrança da plataforma separada por empresa, preservando a tabela financeira legada por loja;
+- cálculo de cobrança por faturamento real da loja vinculada, taxa da empresa e mínimo configurado;
+- histórico de eventos de cobrança e auditoria das alterações financeiras;
 - estruturas de IA, layouts, pagamentos, fretes e suporte/impersonação;
 - migrations verificadas como aditivas pelos workflows.
 
@@ -59,9 +62,27 @@
    - Financeiro deve ser explicitamente autorizado por rota/permissão;
    - login e sessão retornam os papéis efetivos, não apenas o papel legado usado para compatibilidade.
 
+7. **Compatibilidade financeira descoberta pelo CI**
+   - o schema antigo já possuía `platform_billing`, vinculada a `store_id`;
+   - a primeira versão da nova migration tentou reutilizar esse nome e o CI detectou incompatibilidade de colunas antes de qualquer aplicação no Cloudflare;
+   - a solução foi manter `platform_billing` intacta e criar `platform_company_billing` + `platform_company_billing_events`;
+   - a migration faz backfill aditivo das cobranças antigas através de `platform_company_stores`, usando `INSERT OR IGNORE`;
+   - a origem importada fica marcada como `legacy` em `metadata_json`.
+
+8. **Financeiro da plataforma**
+   - GET exige `platform.billing.read` e POST exige `platform.billing.write`;
+   - cobranças usam chave única `(company_id, reference_month)` para evitar duplicidade por competência;
+   - alterações gravam evento financeiro e `platform_audit_logs`;
+   - valores manuais inválidos/negativos são rejeitados;
+   - metadados históricos malformados não derrubam mais a leitura da central;
+   - o painel permite cálculo pelo faturamento real da empresa ou lançamento manual;
+   - o cálculo usa pedidos da `store_id` vinculada, exclui cancelados/reembolsados, aplica `platform_fee_basis_points` e respeita `platform_fee_minimum_cents`.
+
 ## CI
 
-Os workflows da branch validam sintaxe JavaScript, migrations aditivas, ausência de `DROP` destrutivo, compatibilidade com dados existentes, isolamento entre empresas, idempotência por `operation_id`, proteção de `object_key` R2, configuração global única de IA, batch idempotente de produto, soft delete de catálogo e invariantes de RBAC. As últimas execuções após as alterações estruturais estão verdes.
+Os workflows da branch validam sintaxe JavaScript, migrations aditivas, ausência de `DROP` destrutivo, compatibilidade com dados existentes, isolamento entre empresas, idempotência por `operation_id`, proteção de `object_key` R2, configuração global única de IA, batch idempotente de produto, soft delete de catálogo e invariantes de RBAC.
+
+O workflow financeiro adicional valida também preservação da tabela legada `platform_billing`, backfill idempotente para `platform_company_billing`, unicidade por empresa/competência, permissões do papel Financeiro, eventos/auditoria e presença do cálculo por faturamento real. A colisão de schema encontrada durante o desenvolvimento foi bloqueada pelo próprio CI e corrigida sem tocar produção.
 
 ## Pontos que NÃO podem ser aprovados apenas por análise estática
 
@@ -70,19 +91,22 @@ Estes itens permanecem bloqueados até acesso operacional ao Cloudflare Preview:
 1. aplicar `20260817_radz_super_admin_phase1.sql` no D1 Preview;
 2. aplicar `20260817_radz_super_admin_phase2_5.sql` no D1 Preview;
 3. aplicar `20260817_radz_rbac_assignments.sql` no D1 Preview;
-4. consultar `/radz/api/readiness` no runtime Preview;
-5. criar Super Admin individual no D1 Preview;
-6. validar login real por e-mail/senha, Financeiro, Suporte e revogação de sessão;
-7. criar duas empresas fictícias e executar matriz autenticada A ↔ B;
-8. validar upload real no R2 Preview;
-9. validar limite de armazenamento real;
-10. testar R2 salva / D1 falha e D1 disponível / R2 falha;
-11. validar lixeira e referências reais;
-12. validar objetos antigos sem metadados e estratégia de backfill;
-13. habilitar e testar impersonação apenas após auditoria real das ações;
-14. validar o Preview do configurador contra a referência de mídia do commit `7dda575`;
-15. validar o domínio de produção separado do Preview;
-16. somente depois considerar merge/publicação.
+4. aplicar `20260817_radz_finance.sql` no D1 Preview e confirmar o backfill real da cobrança legada;
+5. consultar `/radz/api/readiness` no runtime Preview;
+6. criar Super Admin individual no D1 Preview;
+7. validar login real por e-mail/senha, Financeiro, Suporte e revogação de sessão;
+8. criar duas empresas fictícias e executar matriz autenticada A ↔ B;
+9. validar cobrança calculada de duas empresas com lojas e faturamentos diferentes;
+10. validar que usuário Financeiro não acessa áreas não financeiras via API, além da ocultação de UI;
+11. validar upload real no R2 Preview;
+12. validar limite de armazenamento real;
+13. testar R2 salva / D1 falha e D1 disponível / R2 falha;
+14. validar lixeira e referências reais;
+15. validar objetos antigos sem metadados e estratégia de backfill;
+16. habilitar e testar impersonação apenas após auditoria real das ações;
+17. validar o Preview do configurador contra a referência de mídia do commit `7dda575`;
+18. validar o domínio de produção separado do Preview;
+19. somente depois considerar merge/publicação.
 
 ## Regra de publicação
 
