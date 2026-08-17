@@ -8,6 +8,15 @@ class InternalAnchorHandler {
   }
 }
 
+class CleanPublicLinkHandler {
+  element(element) {
+    const href = element.getAttribute('href') || '';
+    if (href === '/platform/login.html') element.setAttribute('href', '/login');
+    if (href === '/platform/cadastro.html') element.setAttribute('href', '/cadastro');
+    if (href === '/platform/' || href === '/platform') element.setAttribute('href', '/');
+  }
+}
+
 class HeadHandler {
   element(element) {
     element.append('<link rel="canonical" href="https://radzhub.com.br/">', { html: true });
@@ -67,6 +76,7 @@ export async function onRequest(context) {
 
   return new HTMLRewriter()
     .on('head', new HeadHandler())
+    .on('a[href]', new CleanPublicLinkHandler())
     .on('a[href^="#"]', new InternalAnchorHandler())
     .on('body', new BodyHandler())
     .transform(htmlResponse);
