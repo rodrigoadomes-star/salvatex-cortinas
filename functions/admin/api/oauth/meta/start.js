@@ -1,7 +1,8 @@
-import { json, requireAdmin } from "../../_auth.js";
+import { json } from "../../_auth.js";
+import { requireAdminPermission } from "../../_permissions.js";
 import {baseUrl,saveState} from "../_oauth.js";
 export async function onRequestGet(context){
-  const a=await requireAdmin(context);if(!a.ok)return a.response;
+  const a=await requireAdminPermission(context,'company.integrations.write');if(!a.ok)return a.response;
   if(!context.env.META_APP_ID||!context.env.META_APP_SECRET)return json({ok:false,message:'Configure META_APP_ID e META_APP_SECRET no Cloudflare.'},503);
   const state=crypto.randomUUID();
   await saveState(context.env.DB,'meta',state,a.storeId);
