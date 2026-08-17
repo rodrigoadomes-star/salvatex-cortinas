@@ -35,13 +35,17 @@ async function countOtherOwners(db, id) {
   return Number(row?.total || 0);
 }
 
-async function roleAssignmentStatement(db, id, role, active, actorId, now) {
-  return db.prepare(`INSERT INTO platform_user_roles
-    (id,user_id,company_id,role_code,active,assigned_by_user_id,expires_at,created_at,updated_at)
-    VALUES(?1,?2,NULL,?3,?4,?5,NULL,?6,?6)
-    ON CONFLICT(user_id,COALESCE(company_id,''),role_code) DO UPDATE SET
-      active=excluded.active,assigned_by_user_id=excluded.assigned_by_user_id,expires_at=NULL,updated_at=excluded.updated_at`)
-    .bind(`role-${id}-${role}`, id, role, active, actorId || null, now);
+function roleAssignmentStatements(db, id, role, active, actorId, now) {
+  return [
+    db.prepare(`INSERT OR IGNORE INTO platform_user_roles
+      (id,user_id,company_id,role_code,active,assigned_by_user_id,expires_at,created_at,updated_at)
+      VALUES(?1,?2,NULL,?3,?4,?5,NULL,?6,?6)`)
+      .bind(`role-${id}-${role}`, id, role, active, actorId || null, now),
+    db.prepare(`UPDATE platform_user_roles
+      SET active=?1,assigned_by_user_id=?2,expires_at=NULL,updated_at=?3
+      WHERE user_id=?4 AND company_id IS NULL AND role_code=?5`)
+      .bind(active, actorId || null, now, id, role),
+  ];
 }
 
 export async function onRequestGet(context) {
@@ -84,7 +88,7 @@ export async function onRequestPost(context) {
     (id,company_id,name,email,password_hash,password_salt,password_iterations,role,email_verified_at,active,created_at,updated_at)
     VALUES (?1,NULL,?2,?3,?4,?5,?6,?7,?8,1,?8,?8)`)
     .bind(id, name, email, passwordData.hash, passwordData.salt, passwordData.iterations, baseRole, now)];
-  if (rolesReady) statements.push(await roleAssignmentStatement(context.env.DB, id, role, 1, auth.session.user_id, now));
+  if (rolesReady) statements.push(...roleAssignmentStatements(context.env.DB, id, role, 1, auth.session.user_id, now));
   await context.env.DB.batch(statements);
   await auditRadz(context, auth, "platform.user.created", "platform_user", id, { name, email, role });
   return json({ ok: true, id, role }, 201);
@@ -125,7 +129,7 @@ export async function onRequestPatch(context) {
   if (rolesReady) {
     statements.push(context.env.DB.prepare(`UPDATE platform_user_roles SET active=0,updated_at=?1
       WHERE user_id=?2 AND company_id IS NULL AND role_code IN ('platform_owner','platform_support','platform_finance')`).bind(now, id));
-    statements.push(await roleAssignmentStatement(context.env.DB, id, role, active, auth.session.user_id, now));
+    statements.push(...roleAssignmentStatements(context.env.DB, id, role, active, auth.session.user_id, now));
   }
 
   if (body.password) {
