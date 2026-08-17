@@ -5,6 +5,7 @@ const PAGE_BOOTSTRAP=`
   @view-transition{navigation:auto}
   html.site-booting{background:#fbfaf8}
   html.site-booting body{visibility:hidden!important}
+  html.configurator-booting body{visibility:hidden!important}
   ::view-transition-old(root){animation:site-hold-old .65s linear both;z-index:2}
   ::view-transition-new(root){animation:site-show-new .65s linear both;z-index:1}
   @keyframes site-hold-old{0%,92%{opacity:1}100%{opacity:0}}
@@ -34,7 +35,8 @@ const PAGE_BOOTSTRAP=`
 </script>`;
 
 class HeadBootstrap{element(element){element.prepend(PAGE_BOOTSTRAP,{html:true});}}
-class ProductionConfiguratorScripts{element(element){element.append('<script src="/js/configurador-media-strict.js?v=20260816-prod-final-4"></script><script src="/js/configurador-media-forro.js?v=20260816-prod-final-4"></script>',{html:true});}}
+class ConfiguratorHtml{element(element){element.setAttribute('class',((element.getAttribute('class')||'')+' configurator-booting').trim());}}
+class ProductionConfiguratorScripts{element(element){element.append('<script src="/js/configurador-media-strict.js?v=20260816-prod-final-5"></script><script src="/js/configurador-media-forro.js?v=20260816-prod-final-5"></script><script>(function(){var root=document.documentElement;function reveal(){setTimeout(function(){requestAnimationFrame(function(){requestAnimationFrame(function(){root.classList.remove(\"configurator-booting\");});});},0);}Promise.resolve(window.CONFIG_READY).then(reveal).catch(reveal);setTimeout(reveal,1800);})();</script>',{html:true});}}
 
 export async function onRequest(context){
   const url=new URL(context.request.url);
@@ -53,7 +55,9 @@ export async function onRequest(context){
     headers.delete("content-length");
     const secured=new Response(response.body,{status:response.status,statusText:response.statusText,headers});
     let rewriter=new HTMLRewriter().on("head",new HeadBootstrap());
-    if(url.pathname==="/configurador"||url.pathname==="/configurador.html")rewriter=rewriter.on("body",new ProductionConfiguratorScripts());
+    if(url.pathname==="/configurador"||url.pathname==="/configurador.html"){
+      rewriter=rewriter.on("html",new ConfiguratorHtml()).on("body",new ProductionConfiguratorScripts());
+    }
     return rewriter.transform(secured);
   }
   return new Response(response.body,{status:response.status,statusText:response.statusText,headers});
