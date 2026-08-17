@@ -1,0 +1,73 @@
+name: RADZ finance checks
+
+on:
+  push:
+    branches: [radz-super-admin-phase1]
+  pull_request:
+    branches: [radz-hub-arquitetura-unificada]
+
+jobs:
+  finance:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check finance JavaScript syntax
+        run: |
+          node --check functions/radz/api/finance.js
+          node --check functions/radz/api/readiness.js
+          node --check radz-admin/radz-admin-finance.js
+      - name: Validate finance migration and RBAC invariants
+        run: |
+          python3 - <<'PY'
+          import sqlite3
+          from pathlib import Path
+
+          base = Path('database/schema.sql').read_text()
+          saas = Path('database/radzhub_saas_v1.sql').read_text()
+          p1 = Path('database/migrations/20260817_radz_super_admin_phase1.sql').read_text()
+          advanced = Path('database/migrations/20260817_radz_super_admin_phase2_5.sql').read_text()
+          rbac = Path('database/migrations/20260817_radz_rbac_assignments.sql').read_text()
+          finance = Path('database/migrations/20260817_radz_finance.sql').read_text()
+
+          upper = finance.upper()
+          for forbidden in ['DROP TABLE','DROP COLUMN','DELETE FROM PLATFORM_COMPANIES','DELETE FROM ORDERS']:
+              assert forbidden not in upper
+
+          db = sqlite3.connect(':memory:')
+          db.executescript(base)
+          db.executescript(saas)
+          db.executescript(p1)
+          db.executescript(advanced)
+          db.executescript(rbac)
+          db.executescript(finance)
+          db.executescript(finance)
+
+          tables={r[0] for r in db.execute("SELECT name FROM sqlite_master WHERE type='table'")}
+          assert {'platform_billing','platform_billing_events'} <= tables
+          assert db.execute("SELECT COUNT(*) FROM platform_role_permissions WHERE role_code='platform_finance' AND permission_code='platform.billing.read'").fetchone()[0] == 1
+          assert db.execute("SELECT COUNT(*) FROM platform_role_permissions WHERE role_code='platform_finance' AND permission_code='platform.billing.write'").fetchone()[0] == 1
+
+          now='2026-08-17T10:00:00Z'
+          db.execute("INSERT INTO platform_companies(id,slug,trade_name,legal_name,document_type,document_number,email,phone,status,plan_code,created_at,updated_at) VALUES('fin-a','fin-a','Finance A','Finance A','cnpj','10000000000100','a@fin.local','', 'active','free',?,?)",(now,now))
+          db.execute("INSERT INTO platform_companies(id,slug,trade_name,legal_name,document_type,document_number,email,phone,status,plan_code,created_at,updated_at) VALUES('fin-b','fin-b','Finance B','Finance B','cnpj','10000000000200','b@fin.local','', 'active','free',?,?)",(now,now))
+          db.execute("INSERT INTO platform_billing(id,company_id,reference_month,amount_cents,payment_status,created_at,updated_at) VALUES('bill-a','fin-a','2026-08',9900,'pending',?,?)",(now,now))
+          db.execute("INSERT INTO platform_billing(id,company_id,reference_month,amount_cents,payment_status,created_at,updated_at) VALUES('bill-b','fin-b','2026-08',19900,'paid',?,?)",(now,now))
+          try:
+              db.execute("INSERT INTO platform_billing(id,company_id,reference_month,amount_cents,payment_status,created_at,updated_at) VALUES('bill-a2','fin-a','2026-08',1,'pending',?,?)",(now,now))
+              raise AssertionError('duplicate company/month billing accepted')
+          except sqlite3.IntegrityError:
+              pass
+
+          api = Path('functions/radz/api/finance.js').read_text()
+          readiness = Path('functions/radz/api/readiness.js').read_text()
+          ui = Path('radz-admin/radz-admin-finance.js').read_text()
+          assert "requireRadzPermission(context,'platform.billing.read')" in api
+          assert "requireRadzPermission(context,'platform.billing.write')" in api
+          assert 'ON CONFLICT(company_id,reference_month)' in api
+          assert 'platform_billing_events' in api
+          assert 'DB.batch([upsert,event])' in api
+          assert "finance:['platform_billing','platform_billing_events']" in readiness
+          assert '/radz/api/finance' in ui
+          assert 'platform_finance' in ui
+          print('RADZ finance schema, permissions, idempotent billing and UI invariants validated')
+          PY
