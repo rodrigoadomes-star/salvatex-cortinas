@@ -1,4 +1,5 @@
-import { json, requireAdmin, clean, slugify, cents, logAdmin } from "../../_auth.js";
+import { json, clean, slugify, cents, logAdmin } from "../../_auth.js";
+import { requireAdminPermission } from "../../_permissions.js";
 import { assertFeature, getEffectiveLimits } from "../../../../platform/api/_entitlements.js";
 
 async function allowedCatalog(context,a){
@@ -15,14 +16,14 @@ async function usageLedgerReady(db){
 }
 
 export async function onRequestGet(context){
-  const a=await requireAdmin(context);if(!a.ok)return a.response;
+  const a=await requireAdminPermission(context,"company.products.write");if(!a.ok)return a.response;
   const entitlement=await allowedCatalog(context,a);if(!entitlement.ok)return entitlement.response;
   const rows=await context.env.DB.prepare(`SELECT p.*, c.name category_name FROM products p LEFT JOIN categories c ON c.id=p.category_id WHERE p.store_id=?1 ORDER BY p.updated_at DESC`).bind(a.storeId).all();
   return json({ok:true,products:rows.results||[]});
 }
 
 export async function onRequestPost(context){
-  const a=await requireAdmin(context);if(!a.ok)return a.response;
+  const a=await requireAdminPermission(context,"company.products.write");if(!a.ok)return a.response;
   const entitlement=await allowedCatalog(context,a);if(!entitlement.ok)return entitlement.response;
 
   const limits=await getEffectiveLimits(context.env.DB,a.companyId);
