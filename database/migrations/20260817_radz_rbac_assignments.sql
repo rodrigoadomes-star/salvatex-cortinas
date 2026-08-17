@@ -25,7 +25,6 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_platform_user_roles_unique
 CREATE INDEX IF NOT EXISTS idx_platform_user_roles_lookup
   ON platform_user_roles(user_id, company_id, active, expires_at);
 
--- Papéis com permissões mínimas seguras.
 INSERT OR IGNORE INTO platform_role_permissions(role_code,permission_code,updated_at)
 SELECT 'platform_support',code,datetime('now') FROM platform_permissions
 WHERE code IN ('platform.support.impersonate');
@@ -50,7 +49,7 @@ INSERT OR IGNORE INTO platform_role_permissions(role_code,permission_code,update
 SELECT 'company_support',code,datetime('now') FROM platform_permissions
 WHERE code IN ('company.orders.read');
 
--- Backfill dos usuários existentes. Os papéis antigos continuam intactos.
+-- Backfill apenas de usuários ainda sem atribuição RBAC explícita.
 INSERT OR IGNORE INTO platform_user_roles(
   id,user_id,company_id,role_code,active,created_at,updated_at
 )
@@ -76,4 +75,9 @@ SELECT
   datetime('now'),
   datetime('now')
 FROM platform_users u
-WHERE u.role IN ('platform_owner','platform_support','owner','manager','staff');
+WHERE u.role IN ('platform_owner','platform_support','owner','manager','staff')
+  AND NOT EXISTS (
+    SELECT 1 FROM platform_user_roles ur
+    WHERE ur.user_id=u.id
+      AND COALESCE(ur.company_id,'')=COALESCE(u.company_id,'')
+  );
