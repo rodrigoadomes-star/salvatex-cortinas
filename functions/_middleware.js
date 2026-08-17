@@ -2,13 +2,13 @@ const CSP=["default-src 'self'","base-uri 'self'","object-src 'none'","frame-anc
 
 class ProductionConfiguratorScripts{
   element(element){
-    element.append('<script src="/js/configurador-media-forro.js?v=20260816-prod-stock-1"></script>',{html:true});
+    element.append('<script src="/js/configurador-media-forro.js?v=20260816-prod-stock-2"></script>',{html:true});
   }
 }
 
 class ProductionAdminScripts{
   element(element){
-    element.append('<script src="/js/admin-configurator-combination-stock.js?v=20260816-prod-stock-1"></script>',{html:true});
+    element.append('<script src="/js/admin-configurator-combination-stock.js?v=20260816-prod-stock-2"></script>',{html:true});
   }
 }
 
