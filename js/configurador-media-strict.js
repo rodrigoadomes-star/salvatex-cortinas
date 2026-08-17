@@ -1,14 +1,6 @@
 (function(){
   if(typeof normalizarChaveMidia!=="function")return;
 
-  function canonModelo(valor){
-    const n=normalizarChaveMidia(valor||"");
-    if(n.includes("prega macho"))return "prega macho";
-    if(n.includes("ilhos")||n.includes("varao"))return "ilhos";
-    if(n.includes("wave"))return "wave";
-    return n.replace(/\bcortina\b/g,"").replace(/\b(de|do|da)\b/g,"").replace(/\s+/g," ").trim();
-  }
-
   function canonForro(valor){
     const n=normalizarChaveMidia(valor||"");
     if(!n||n.includes("sem forro"))return "sem forro";
@@ -37,23 +29,18 @@
   obterMidiaAdmin=function(tecido,modelo,cor,forro){
     const lista=Array.isArray(CONFIG?.mediaConfigurador)?CONFIG.mediaConfigurador:[];
     const t=normalizarChaveMidia(tecido);
-    const m=canonModelo(modelo||CONFIG?.configurador?.modelo||"");
     const c=normalizarChaveMidia(cor);
     const f=canonForro(forro);
 
-    // Cada endpoint de configurador devolve somente a sua configuração.
-    // O último registro da combinação é a fonte de verdade. Isso impede que
-    // fotos antigas voltem depois de uma exclusão quando existem duplicatas
-    // legadas no JSON salvo no D1.
-    const base=lista.filter(item=>
+    // O endpoint /api/configurators/:id já isola Wave, Prega Macho e Ilhós.
+    // Se houver duplicatas históricas da mesma combinação, o último registro
+    // é sempre autoritativo. Nunca reutilizamos mídia de um registro mais antigo,
+    // pois isso fazia uma foto excluída voltar a aparecer no site.
+    const fonte=[...lista].reverse().find(item=>
       normalizarChaveMidia(item?.tecido)===t&&
       normalizarChaveMidia(item?.cor)===c&&
       canonForro(item?.forro)===f
     );
-    if(!base.length)return null;
-
-    const exatos=base.filter(item=>canonModelo(item?.modelo||"")===m);
-    const fonte=(exatos.length?exatos:base).at(-1);
     if(!fonte)return null;
 
     return {
