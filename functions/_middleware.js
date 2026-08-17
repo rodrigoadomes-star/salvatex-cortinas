@@ -20,80 +20,21 @@ const PAGE_BOOTSTRAP=`
   var readyTimer=0;
   var finished=false;
   var prefetched={};
-
-  function tracked(input){
-    try{
-      var raw=typeof input==='string'?input:(input&&input.url)||'';
-      var url=new URL(raw,location.href);
-      if(url.origin!==location.origin)return false;
-      return url.pathname.indexOf('/api/')===0||url.pathname.indexOf('/admin/api/')===0||url.pathname.indexOf('/platform/api/')===0||url.pathname.indexOf('/radz/api/')===0;
-    }catch(_){return false;}
-  }
-
-  function finish(){
-    if(finished)return;
-    finished=true;
-    clearTimeout(readyTimer);
-    root.classList.remove('site-booting');
-    root.classList.add('site-ready');
-  }
-
-  function schedule(){
-    if(finished||!domReady||pending>0)return;
-    clearTimeout(readyTimer);
-    readyTimer=setTimeout(function(){if(domReady&&pending===0)finish();},20);
-  }
-
-  window.fetch=function(){
-    var args=arguments;
-    var watch=tracked(args[0]);
-    if(watch){pending++;clearTimeout(readyTimer);}
-    var result;
-    try{result=originalFetch.apply(this,args);}
-    catch(error){if(watch){pending=Math.max(0,pending-1);schedule();}throw error;}
-    if(!watch)return result;
-    return Promise.resolve(result).finally(function(){pending=Math.max(0,pending-1);schedule();});
-  };
-
-  function internalLink(anchor){
-    if(!anchor||!anchor.href||anchor.target||anchor.hasAttribute('download'))return null;
-    try{
-      var url=new URL(anchor.href,location.href);
-      if(url.origin!==location.origin)return null;
-      if(url.pathname===location.pathname&&url.search===location.search)return null;
-      return url;
-    }catch(_){return null;}
-  }
-
-  function prefetch(anchor){
-    var url=internalLink(anchor);
-    if(!url||prefetched[url.href])return;
-    prefetched[url.href]=true;
-    originalFetch(url.href,{method:'GET',credentials:'same-origin',cache:'force-cache'}).catch(function(){});
-  }
-
+  function tracked(input){try{var raw=typeof input==='string'?input:(input&&input.url)||'';var url=new URL(raw,location.href);if(url.origin!==location.origin)return false;return url.pathname.indexOf('/api/')===0||url.pathname.indexOf('/admin/api/')===0||url.pathname.indexOf('/platform/api/')===0||url.pathname.indexOf('/radz/api/')===0;}catch(_){return false;}}
+  function finish(){if(finished)return;finished=true;clearTimeout(readyTimer);root.classList.remove('site-booting');root.classList.add('site-ready');}
+  function schedule(){if(finished||!domReady||pending>0)return;clearTimeout(readyTimer);readyTimer=setTimeout(function(){if(domReady&&pending===0)finish();},20);}
+  window.fetch=function(){var args=arguments;var watch=tracked(args[0]);if(watch){pending++;clearTimeout(readyTimer);}var result;try{result=originalFetch.apply(this,args);}catch(error){if(watch){pending=Math.max(0,pending-1);schedule();}throw error;}if(!watch)return result;return Promise.resolve(result).finally(function(){pending=Math.max(0,pending-1);schedule();});};
+  function internalLink(anchor){if(!anchor||!anchor.href||anchor.target||anchor.hasAttribute('download'))return null;try{var url=new URL(anchor.href,location.href);if(url.origin!==location.origin)return null;if(url.pathname===location.pathname&&url.search===location.search)return null;return url;}catch(_){return null;}}
+  function prefetch(anchor){var url=internalLink(anchor);if(!url||prefetched[url.href])return;prefetched[url.href]=true;originalFetch(url.href,{method:'GET',credentials:'same-origin',cache:'force-cache'}).catch(function(){});}
   document.addEventListener('pointerover',function(e){var a=e.target&&e.target.closest?e.target.closest('a'):null;prefetch(a);},{passive:true});
   document.addEventListener('touchstart',function(e){var a=e.target&&e.target.closest?e.target.closest('a'):null;prefetch(a);},{passive:true});
-
-  if(!domReady){
-    document.addEventListener('DOMContentLoaded',function(){domReady=true;schedule();},{once:true});
-  }else{
-    schedule();
-  }
-
+  if(!domReady){document.addEventListener('DOMContentLoaded',function(){domReady=true;schedule();},{once:true});}else{schedule();}
   setTimeout(finish,1000);
 })();
 </script>`;
 
-class HeadBootstrap{
-  element(element){element.prepend(PAGE_BOOTSTRAP,{html:true});}
-}
-
-class ProductionConfiguratorScripts{
-  element(element){
-    element.append('<script src="/js/configurador-media-forro.js?v=20260816-prod-final-2"></script><script src="/js/configurador-media-strict.js?v=20260816-prod-final-2"></script>',{html:true});
-  }
-}
+class HeadBootstrap{element(element){element.prepend(PAGE_BOOTSTRAP,{html:true});}}
+class ProductionConfiguratorScripts{element(element){element.append('<script src="/js/configurador-media-forro.js?v=20260816-prod-final-3"></script><script src="/js/configurador-media-strict.js?v=20260816-prod-final-3"></script>',{html:true});}}
 
 export async function onRequest(context){
   const url=new URL(context.request.url);
@@ -107,19 +48,13 @@ export async function onRequest(context){
   headers.set("cross-origin-opener-policy","same-origin-allow-popups");
   headers.set("strict-transport-security","max-age=31536000; includeSubDomains");
   if(url.pathname.startsWith("/admin"))headers.set("cache-control","no-store");
-
   const contentType=headers.get("content-type")||"";
   if(response.status===200&&contentType.includes("text/html")){
     headers.delete("content-length");
     const secured=new Response(response.body,{status:response.status,statusText:response.statusText,headers});
     let rewriter=new HTMLRewriter().on("head",new HeadBootstrap());
-
-    if(url.pathname==="/configurador"||url.pathname==="/configurador.html"){
-      rewriter=rewriter.on("body",new ProductionConfiguratorScripts());
-    }
-
+    if(url.pathname==="/configurador"||url.pathname==="/configurador.html")rewriter=rewriter.on("body",new ProductionConfiguratorScripts());
     return rewriter.transform(secured);
   }
-
   return new Response(response.body,{status:response.status,statusText:response.statusText,headers});
 }
