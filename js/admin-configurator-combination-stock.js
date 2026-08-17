@@ -15,38 +15,49 @@
     estoqueCombinacoes[key(tecido,cor,forro)]=Boolean(value);
   }
 
+  function applyLabel(stock,current){
+    const label=stock.closest('.cfg-option-stock');
+    label?.classList.toggle('is-out',!current);
+    const span=label?.querySelector('span');
+    if(span)span.textContent=current?'Com estoque':'Sem estoque';
+  }
+
   function bindCardStock(form,card){
-    const stock=card.querySelector('.cfg-tab-stock');
+    let stock=card.querySelector('.cfg-tab-stock');
     if(!stock)return;
 
     const tecido=card.dataset.tecido||'';
     const cor=card.dataset.cor||'';
     const forro=card.dataset.forro||'';
     const current=readStock(tecido,cor,forro,stock.checked);
+
+    // Remove de vez qualquer listener legado já ligado ao checkbox.
+    // O código antigo sincronizava esta opção com o estoque global da cor.
+    const clean=stock.cloneNode(true);
+    stock.replaceWith(clean);
+    stock=clean;
     stock.checked=current;
+    applyLabel(stock,current);
 
-    const label=stock.closest('.cfg-option-stock');
-    label?.classList.toggle('is-out',!current);
-    const span=label?.querySelector('span');
-    if(span)span.textContent=current?'Com estoque':'Sem estoque';
+    stock.addEventListener('change',async e=>{
+      e.preventDefault();
+      e.stopPropagation();
+      e.stopImmediatePropagation();
 
-    // Sobrescreve o comportamento antigo que copiava o estoque desta
-    // combinação para o checkbox global da cor na página Geral.
-    stock.onchange=async()=>{
       writeStock(tecido,cor,forro,stock.checked);
-      label?.classList.toggle('is-out',!stock.checked);
-      if(span)span.textContent=stock.checked?'Com estoque':'Sem estoque';
+      applyLabel(stock,stock.checked);
+
       const status=card.querySelector('.upload-status');
       try{
         if(status)status.textContent='Salvando disponibilidade...';
         const cfg=(typeof CONFIG_CURRENT_DATA!=='undefined'&&CONFIG_CURRENT_DATA)||{};
         await cfgSaveCurrent(form,cfg,ACTIVE_CONFIGURATOR_ID,false);
         if(status)status.textContent='Disponibilidade salva.';
-      }catch(e){
-        if(status)status.textContent=e.message;
-        alert(e.message);
+      }catch(err){
+        if(status)status.textContent=err.message;
+        alert(err.message);
       }
-    };
+    },true);
   }
 
   function bindExistingCards(){
@@ -95,9 +106,6 @@
     };
   }
 
-  // O helper é injetado depois do admin.js. Se o editor já foi renderizado,
-  // os handlers antigos já existem; por isso rebindamos os cards atuais e
-  // também qualquer página de forro criada depois.
   bindExistingCards();
   setTimeout(bindExistingCards,150);
   setTimeout(bindExistingCards,600);
