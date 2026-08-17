@@ -105,7 +105,8 @@ jobs:
           assert "existing.company_id!==companyId" in usage
           assert "allowedPrefix" in delete and "auth.companyId" in delete and "auth.storeId" in delete
           assert 'storage_bytes' in upload
-          assert 'product_created' in products
+          assert "context.env.DB.batch([usageInsert,productInsert])" in products
+          assert "duplicate:true" in products and "operationId" in products
           assert "UPDATE platform_ai_settings" in ai
-          print('RADZ advanced schema, tenant isolation and integration invariants validated')
+          print('RADZ advanced schema, tenant isolation, atomic idempotency and integration invariants validated')
           PY
