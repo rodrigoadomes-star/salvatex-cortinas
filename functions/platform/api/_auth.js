@@ -7,13 +7,18 @@ export async function requirePlatformSession(context, roles = []) {
   const tokenHash = await sha256(raw);
   const row = await context.env.DB.prepare(`SELECT s.id session_id, s.company_id, s.expires_at,
       u.id user_id, u.name, u.email, u.role, u.active,
-      c.trade_name, c.slug, c.status company_status, c.plan_code
+      c.trade_name, c.slug, c.status company_status, c.plan_code,
+      COALESCE(cp.access_blocked,0) company_access_blocked, cp.deleted_at company_deleted_at
     FROM platform_sessions s
     JOIN platform_users u ON u.id = s.user_id
     LEFT JOIN platform_companies c ON c.id = s.company_id
+    LEFT JOIN platform_company_profile cp ON cp.company_id = c.id
     WHERE s.token_hash = ?1 LIMIT 1`).bind(tokenHash).first();
   if (!row || !row.active || Date.parse(row.expires_at) <= Date.now()) {
     return { ok: false, response: json({ ok: false, code: "SESSION_EXPIRED" }, 401) };
+  }
+  if (row.company_id && (row.company_access_blocked || row.company_deleted_at || ["suspended","cancelled"].includes(row.company_status))) {
+    return { ok: false, response: json({ ok: false, code: "COMPANY_BLOCKED", message: "A empresa está indisponível no momento." }, 403) };
   }
   if (roles.length && !roles.includes(row.role)) {
     return { ok: false, response: json({ ok: false, code: "FORBIDDEN" }, 403) };
@@ -22,5 +27,3 @@ export async function requirePlatformSession(context, roles = []) {
     .bind(new Date().toISOString(), row.session_id).run();
   return { ok: true, session: row };
 }
-
-

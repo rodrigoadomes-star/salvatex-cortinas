@@ -13,12 +13,10 @@ function publicDelivery(value) {
   const d = parseObject(value);
   return { endereco:d.endereco||d.rua||"", numero:d.numero||"", complemento:d.complemento||"", bairro:d.bairro||"", cidade:d.cidade||"", estado:d.estado||"", cep:d.cep||"" };
 }
-
 function publicFreight(value) {
   const f = parseObject(value);
   return { gratis:Boolean(f.gratis), texto:f.texto||"", status:f.status||"", carrier:f.carrier||"", trackingCode:f.trackingCode||"", trackingUrl:f.trackingUrl||"" };
 }
-
 function publicPayment(value) {
   const p = parseObject(value);
   return { forma:p.forma||p.method||"", status:p.status||"" };
@@ -30,12 +28,13 @@ export async function onRequestGet(context) {
   const tenantAuth = await requireStoreTenant(context,{allowPreview:true});
   if (!tenantAuth.ok) return tenantAuth.response;
   const id = context.params.id;
-  const order = await context.env.DB.prepare(`SELECT id,order_number,status,stage,currency,customer_account_id,customer_email,delivery_json,freight_json,payment_json,subtotal_cents,freight_cents,discount_cents,total_cents,created_at,updated_at FROM orders WHERE id=?1 AND store_id=?2 AND (customer_account_id=?3 OR (?4=1 AND lower(customer_email)=lower(?5)))`).bind(id,tenantAuth.tenant.storeId,auth.user.userId,auth.user.emailVerified?1:0,auth.user.email).first();
+  const storeId = tenantAuth.tenant.storeId;
+  const order = await context.env.DB.prepare(`SELECT id,order_number,status,stage,currency,customer_account_id,customer_email,delivery_json,freight_json,payment_json,subtotal_cents,freight_cents,discount_cents,total_cents,created_at,updated_at FROM orders WHERE id=?1 AND store_id=?2 AND (customer_account_id=?3 OR (?4=1 AND lower(customer_email)=lower(?5)))`).bind(id,storeId,auth.user.userId,auth.user.emailVerified?1:0,auth.user.email).first();
   if (!order) return json({ok:false,message:"Pedido não encontrado."},404);
 
   const [itemsResult,eventsResult] = await Promise.all([
-    context.env.DB.prepare(`SELECT id,product_id,category,category_name,sale_type,configurator,sku,name,image,quantity,unit_price_cents,total_cents,details_json,data_json,snapshot_json FROM order_items WHERE order_id=?1 ORDER BY created_at,id`).bind(id).all(),
-    context.env.DB.prepare(`SELECT event_type,from_status,to_status,payload_json,created_at FROM order_events WHERE order_id=?1 ORDER BY created_at,id`).bind(id).all(),
+    context.env.DB.prepare(`SELECT oi.id,oi.product_id,oi.category,oi.category_name,oi.sale_type,oi.configurator,oi.sku,oi.name,oi.image,oi.quantity,oi.unit_price_cents,oi.total_cents,oi.details_json,oi.data_json,oi.snapshot_json FROM order_items oi JOIN orders o ON o.id=oi.order_id WHERE oi.order_id=?1 AND o.store_id=?2 ORDER BY oi.created_at,oi.id`).bind(id,storeId).all(),
+    context.env.DB.prepare(`SELECT oe.event_type,oe.from_status,oe.to_status,oe.payload_json,oe.created_at FROM order_events oe JOIN orders o ON o.id=oe.order_id WHERE oe.order_id=?1 AND o.store_id=?2 ORDER BY oe.created_at,oe.id`).bind(id,storeId).all(),
   ]);
   const items = (itemsResult.results||[]).map(item=>({
     id:item.id, product_id:item.product_id, category:item.category, category_name:item.category_name,
@@ -62,4 +61,3 @@ export async function onRequestGet(context) {
     delivery:publicDelivery(order.delivery_json), freight:publicFreight(order.freight_json), payment:publicPayment(order.payment_json),
   },items,invoices,timeline});
 }
-

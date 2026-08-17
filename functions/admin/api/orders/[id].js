@@ -1,4 +1,5 @@
-import { json, requireAdmin, clean, parseJson, logAdmin } from "../_auth.js";
+import { json, clean, parseJson, logAdmin } from "../_auth.js";
+import { requireAdminPermission } from "../_permissions.js";
 
 const ALLOWED = [
   "aguardando_pagamento",
@@ -28,7 +29,7 @@ function safeObject(value, fallback = {}) {
 }
 
 export async function onRequestGet(context) {
-  const auth = await requireAdmin(context);
+  const auth = await requireAdminPermission(context,"company.orders.read");
   if (!auth.ok) return auth.response;
 
   const id = context.params.id;
@@ -44,13 +45,13 @@ export async function onRequestGet(context) {
   }
 
   const items = await db
-    .prepare(`SELECT * FROM order_items WHERE order_id=?1 ORDER BY created_at, id`)
-    .bind(id)
+    .prepare(`SELECT oi.* FROM order_items oi JOIN orders o ON o.id=oi.order_id WHERE oi.order_id=?1 AND o.store_id=?2 ORDER BY oi.created_at, oi.id`)
+    .bind(id,auth.storeId)
     .all();
 
   const events = await db
-    .prepare(`SELECT * FROM order_events WHERE order_id=?1 ORDER BY created_at DESC, id DESC LIMIT 150`)
-    .bind(id)
+    .prepare(`SELECT oe.* FROM order_events oe JOIN orders o ON o.id=oe.order_id WHERE oe.order_id=?1 AND o.store_id=?2 ORDER BY oe.created_at DESC, oe.id DESC LIMIT 150`)
+    .bind(id,auth.storeId)
     .all();
 
   return json({
@@ -79,7 +80,7 @@ export async function onRequestGet(context) {
 }
 
 export async function onRequestPatch(context) {
-  const auth = await requireAdmin(context);
+  const auth = await requireAdminPermission(context,"company.orders.write");
   if (!auth.ok) return auth.response;
 
   const id = context.params.id;
@@ -165,20 +166,23 @@ export async function onRequestPatch(context) {
   if (changedStatus) {
     statements.push(
       db.prepare(`INSERT INTO order_events(order_id,event_type,from_status,to_status,payload_json,created_at)
-        VALUES(?1,'admin_status_changed',?2,?3,?4,?5)`)
-        .bind(id, current.status, status, JSON.stringify(payload), now)
+        SELECT ?1,'admin_status_changed',?2,?3,?4,?5
+        WHERE EXISTS(SELECT 1 FROM orders WHERE id=?1 AND store_id=?6)`)
+        .bind(id, current.status, status, JSON.stringify(payload), now, auth.storeId)
     );
   } else if (internalNotesChanged) {
     statements.push(
       db.prepare(`INSERT INTO order_events(order_id,event_type,from_status,to_status,payload_json,created_at)
-        VALUES(?1,'admin_internal_note_updated',?2,?3,?4,?5)`)
-        .bind(id, current.status, status, JSON.stringify(payload), now)
+        SELECT ?1,'admin_internal_note_updated',?2,?3,?4,?5
+        WHERE EXISTS(SELECT 1 FROM orders WHERE id=?1 AND store_id=?6)`)
+        .bind(id, current.status, status, JSON.stringify(payload), now, auth.storeId)
     );
   } else {
     statements.push(
       db.prepare(`INSERT INTO order_events(order_id,event_type,from_status,to_status,payload_json,created_at)
-        VALUES(?1,'admin_order_updated',?2,?3,?4,?5)`)
-        .bind(id, current.status, status, JSON.stringify(payload), now)
+        SELECT ?1,'admin_order_updated',?2,?3,?4,?5
+        WHERE EXISTS(SELECT 1 FROM orders WHERE id=?1 AND store_id=?6)`)
+        .bind(id, current.status, status, JSON.stringify(payload), now, auth.storeId)
     );
   }
 

@@ -1,4 +1,5 @@
-import { json, requireAdmin, logAdmin } from "../_auth.js";
+import { json, logAdmin } from "../_auth.js";
+import { requireAdminPermission } from "../_permissions.js";
 
 const IDS = new Set(["wave","prega-macho","cortina-varao","persiana"]);
 
@@ -11,44 +12,16 @@ function defaultConfigurator(id) {
     tipo: id === "persiana" ? "persiana" : "cortina",
     descricao: "",
     modoCalculo: id === "persiana" ? "area" : "metro_tecido",
-    medidas: {
-      larguraMinima: 0.5,
-      larguraMaxima: id === "persiana" ? 5 : 12,
-      alturaMinima: 0.5,
-      alturaEntradaMaxima: id === "persiana" ? 4 : 5,
-      calculoMaximo: id === "persiana" ? 3.5 : 3.2,
-      inicioAcrescimo: id === "persiana" ? 999 : 2.8,
-      acrescimoPercentual: id === "persiana" ? 0 : 25,
-      acimaMaximo: {
-        modo: "consulta",
-        texto: id === "persiana" ? "Medida fora do limite automático. Solicite orçamento personalizado." : "Alturas acima de 3,20 m precisam de orçamento personalizado.",
-        textoBotao: "Solicitar orçamento",
-        permitirCarrinho: false
-      }
-    },
+    medidas: { larguraMinima:0.5, larguraMaxima:id==="persiana"?5:12, alturaMinima:0.5, alturaEntradaMaxima:id==="persiana"?4:5, calculoMaximo:id==="persiana"?3.5:3.2, inicioAcrescimo:id==="persiana"?999:2.8, acrescimoPercentual:id==="persiana"?0:25, acimaMaximo:{ modo:"consulta", texto:id==="persiana"?"Medida fora do limite automático. Solicite orçamento personalizado.":"Alturas acima de 3,20 m precisam de orçamento personalizado.", textoBotao:"Solicitar orçamento", permitirCarrinho:false } },
     barra: { faixas: [], acimaInicio: 20 },
-    franzimentos: id === "persiana" ? [] : [
-      { valor: 2, rotulo: "2x — Menos Volumosa" },
-      { valor: 2.5, rotulo: "2,5x — Bem Franzido" },
-      { valor: 3, rotulo: "3x — Mais Volumosa" }
-    ],
-    tecidos: {},
-    trilhos: {},
-    persiana: {
-      areaMinima: 0.6,
-      acionamentos: [
-        { nome: "Manual", adicional: 0, descricao: "Acionamento manual por corrente." },
-        { nome: "Motorizada", adicional: 0, descricao: "Motorização configurável no orçamento." }
-      ],
-      ladosComando: ["Direito", "Esquerdo"],
-      voltagens: ["110V", "220V", "Bivolt"]
-    },
+    franzimentos: id === "persiana" ? [] : [ { valor:2,rotulo:"2x — Menos Volumosa" }, { valor:2.5,rotulo:"2,5x — Bem Franzido" }, { valor:3,rotulo:"3x — Mais Volumosa" } ],
+    tecidos: {}, trilhos: {},
+    persiana: { areaMinima:0.6, acionamentos:[{nome:"Manual",adicional:0,descricao:"Acionamento manual por corrente."},{nome:"Motorizada",adicional:0,descricao:"Motorização configurável no orçamento."}], ladosComando:["Direito","Esquerdo"], voltagens:["110V","220V","Bivolt"] },
     midia: []
   };
   return base;
 }
 
-function clone(v){return JSON.parse(JSON.stringify(v));}
 function mergeDeep(target, source){
   if(!source || typeof source!=="object" || Array.isArray(source)) return target;
   for(const [k,v] of Object.entries(source)){
@@ -74,14 +47,14 @@ async function readConfig(db,id,storeId){
 }
 
 export async function onRequestGet(context){
-  const auth=await requireAdmin(context); if(!auth.ok)return auth.response;
+  const auth=await requireAdminPermission(context,"company.products.write"); if(!auth.ok)return auth.response;
   const id=String(context.params.id||'').toLowerCase();
   if(!IDS.has(id)) return json({ok:false,message:'Configurador não suportado.'},404);
   try{return json({ok:true,...await readConfig(context.env.DB,id,auth.storeId)});}catch(error){console.error(error);return json({ok:false,message:'Não foi possível carregar o configurador.'},500)}
 }
 
 export async function onRequestPut(context){
-  const auth=await requireAdmin(context); if(!auth.ok)return auth.response;
+  const auth=await requireAdminPermission(context,"company.products.write"); if(!auth.ok)return auth.response;
   const id=String(context.params.id||'').toLowerCase();
   if(!IDS.has(id)) return json({ok:false,message:'Configurador não suportado.'},404);
   let body={}; try{body=await context.request.json()}catch{return json({ok:false,message:'JSON inválido.'},400)}

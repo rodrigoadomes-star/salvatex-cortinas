@@ -1,4 +1,65 @@
-<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>Administração — RADZ HUB</title><link rel="stylesheet" href="/radz-admin/radz-admin.css?v=nav-20260815-1"></head><body>
-<div id="login" class="login"><form id="login-form" action="/radz/api/login-form" method="post"><div class="brand">RADZ<small>HUB</small></div><h1>Administração da plataforma</h1><p>Área exclusiva do proprietário da RADZ HUB.</p><label>Chave de acesso<span class="token-wrap"><input id="token" name="token" type="password" autocomplete="new-password" autocapitalize="none" spellcheck="false" required><button id="toggle-token" type="button" aria-label="Mostrar senha">Mostrar</button></span></label><button id="radz-login-button" type="submit">Entrar</button><span id="error" role="alert" aria-live="assertive"></span><button id="clear-token" type="button" class="link-button">Limpar chave salva</button><small class="version">Acesso seguro RADZ HUB · versão 6</small></form></div>
-<div id="app" class="shell" hidden><aside><div class="brand">RADZ<small>HUB</small></div><nav id="radz-nav"><button class="active" data-section="companies">Empresas</button><button data-section="plans">Planos e taxas</button><button data-section="layouts">Layouts</button><button data-section="features">Recursos</button><button data-section="payments">Pagamentos</button><button data-section="shipping">Fretes</button><button data-section="domains">Domínios</button><button data-section="audit">Auditoria</button></nav><button id="logout">Sair</button></aside><main><header><div><small>ADMINISTRAÇÃO DA PLATAFORMA</small><h1 id="section-title">Empresas</h1></div><button id="refresh">Atualizar</button></header><section id="section-content"><div id="metrics" class="metrics"></div><div class="table-wrap"><table><thead><tr><th>Empresa</th><th>CNPJ</th><th>Plano</th><th>Taxa</th><th>Situação</th><th>Domínios</th><th>Usuários</th></tr></thead><tbody id="companies"></tbody></table></div></section></main></div>
-<script src="/radz-admin/radz-admin.js?v=nav-20260815-1"></script></body></html>
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <title>Super Admin — RADZ HUB</title>
+  <link rel="stylesheet" href="/radz-admin/radz-admin.css?v=super-admin-phase1-2">
+</head>
+<body>
+<div id="login" class="login">
+  <form id="login-form" autocomplete="on">
+    <div class="brand">RADZ<small>HUB</small></div>
+    <h1>Super Admin</h1>
+    <p>Administração central da plataforma multiempresa.</p>
+    <div id="individual-login">
+      <label>E-mail<input id="email" name="email" type="email" autocomplete="username" required></label>
+      <label>Senha<input id="password" name="password" type="password" autocomplete="current-password" required></label>
+    </div>
+    <div id="legacy-login" hidden>
+      <label>Chave mestra temporária<input id="token" name="token" type="password" autocomplete="off" autocapitalize="none" spellcheck="false"></label>
+      <small class="warning">Fallback temporário. Migre para usuário individual assim que o primeiro Super Admin estiver provisionado.</small>
+    </div>
+    <button id="radz-login-button" type="submit">Entrar</button>
+    <span id="error" role="alert" aria-live="assertive"></span>
+    <button id="toggle-login-mode" type="button" class="link-button">Usar chave mestra temporária</button>
+    <small class="version">RADZ HUB · Super Admin em evolução segura</small>
+  </form>
+</div>
+
+<div id="app" class="shell" hidden>
+  <aside>
+    <div class="brand">RADZ<small>HUB</small></div>
+    <div id="actor" class="actor"></div>
+    <nav id="radz-nav">
+      <button class="active" data-section="dashboard">Dashboard</button>
+      <button data-section="companies">Empresas</button>
+      <button data-section="plans">Planos</button>
+      <button data-section="limits">Limites</button>
+      <button data-section="features">Recursos</button>
+      <button data-section="users">Usuários RADZ</button>
+      <button data-section="layouts">Layouts</button>
+      <button data-section="payments">Pagamentos</button>
+      <button data-section="shipping">Fretes</button>
+      <button data-section="domains">Domínios</button>
+      <button data-section="settings">Configurações</button>
+      <button data-section="audit">Auditoria</button>
+    </nav>
+    <button id="logout">Sair</button>
+  </aside>
+  <main>
+    <header>
+      <div><small>ADMINISTRAÇÃO DA PLATAFORMA</small><h1 id="section-title">Dashboard</h1></div>
+      <button id="refresh">Atualizar</button>
+    </header>
+    <section id="section-content"><div class="config-card">Carregando…</div></section>
+  </main>
+</div>
+<script src="/radz-admin/radz-admin.js?v=super-admin-phase1-2"></script>
+<script src="/radz-admin/radz-admin-advanced.js?v=super-admin-advanced-20260817-1"></script>
+<script src="/radz-admin/radz-admin-ai-settings-fix.js?v=super-admin-advanced-20260817-2"></script>
+<script src="/radz-admin/radz-admin-finance.js?v=radz-finance-20260817-3"></script>
+<script src="/radz-admin/radz-admin-role-fix.js?v=radz-role-fix-20260817-1"></script>
+</body>
+</html>

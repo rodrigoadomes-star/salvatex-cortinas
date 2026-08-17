@@ -1,6 +1,8 @@
-import { json, requireAdmin, clean } from "../_auth.js";
+import { json, clean } from "../_auth.js";
+import { requireAdminPermission } from "../_permissions.js";
+
 export async function onRequestGet(context) {
-  const auth=await requireAdmin(context); if(!auth.ok) return auth.response;
+  const auth=await requireAdminPermission(context,"company.orders.read"); if(!auth.ok) return auth.response;
   const url=new URL(context.request.url); const q=clean(url.searchParams.get("q"),120); const status=clean(url.searchParams.get("status"),80); const limit=Math.min(100,Math.max(1,Number(url.searchParams.get("limit")||50)));
   let sql=`SELECT o.id, o.order_number, o.customer_name, o.customer_email, o.customer_phone, o.status, o.stage, o.subtotal_cents, o.freight_cents, o.discount_cents, o.total_cents, o.internal_notes, o.created_at, o.updated_at, (SELECT COUNT(*) FROM orders seq WHERE seq.store_id=o.store_id AND (seq.created_at<o.created_at OR (seq.created_at=o.created_at AND seq.id<=o.id))) AS sale_number, (SELECT COALESCE(SUM(oi.quantity),0) FROM order_items oi WHERE oi.order_id=o.id) AS item_count FROM orders o WHERE o.store_id=?1`;
   const binds=[auth.storeId];

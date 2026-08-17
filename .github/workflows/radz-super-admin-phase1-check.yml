@@ -1,0 +1,97 @@
+name: RADZ Super Admin Phase 1 checks
+
+on:
+  push:
+    branches: [radz-super-admin-phase1]
+  pull_request:
+    branches: [radz-hub-arquitetura-unificada]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check JavaScript syntax
+        run: |
+          node --check radz-admin/radz-admin.js
+          node --check functions/radz/api/_auth.js
+          node --check functions/radz/api/_policy.js
+          node --check functions/radz/api/login.js
+          node --check functions/radz/api/logout.js
+          node --check functions/radz/api/session.js
+          node --check functions/radz/api/dashboard.js
+          node --check functions/radz/api/companies.js
+          node --check functions/radz/api/plans.js
+          node --check functions/radz/api/limits.js
+          node --check functions/radz/api/features.js
+          node --check functions/radz/api/users.js
+          node --check functions/radz/api/settings.js
+          node --check functions/platform/api/_auth.js
+          node --check functions/platform/api/_entitlements.js
+          node --check functions/platform/api/company.js
+          node --check functions/admin/api/catalog/products/index.js
+          node --check functions/admin/api/catalog/products/[id].js
+          node --check functions/admin/api/catalog/categories/[id].js
+
+      - name: Validate additive D1 migration in SQLite
+        run: |
+          python3 - <<'PY'
+          import sqlite3
+          from pathlib import Path
+
+          base = Path('database/schema.sql').read_text()
+          saas = Path('database/radzhub_saas_v1.sql').read_text()
+          migration = Path('database/migrations/20260817_radz_super_admin_phase1.sql').read_text()
+
+          upper = migration.upper()
+          forbidden = ['DROP TABLE', 'DROP COLUMN', 'DELETE FROM PLATFORM_COMPANIES', 'DELETE FROM PRODUCTS', 'DELETE FROM ORDERS']
+          found = [x for x in forbidden if x in upper]
+          assert not found, f'Destructive statements found: {found}'
+
+          db = sqlite3.connect(':memory:')
+          db.executescript(base)
+          db.executescript(saas)
+          before = db.execute("SELECT COUNT(*) FROM platform_companies").fetchone()[0]
+          db.executescript(migration)
+          after = db.execute("SELECT COUNT(*) FROM platform_companies").fetchone()[0]
+          assert before == after, (before, after)
+
+          required = {
+              'platform_company_profile',
+              'platform_plans',
+              'platform_plan_limits',
+              'platform_feature_catalog',
+              'platform_plan_features',
+              'platform_company_limit_overrides',
+              'platform_company_feature_overrides',
+              'platform_settings',
+              'platform_auth_attempts',
+          }
+          tables = {r[0] for r in db.execute("SELECT name FROM sqlite_master WHERE type='table'")}
+          missing = required - tables
+          assert not missing, f'Missing tables: {missing}'
+
+          assert db.execute("SELECT COUNT(*) FROM platform_plans WHERE code='founder'").fetchone()[0] == 1
+          assert db.execute("SELECT COUNT(*) FROM platform_company_profile WHERE company_id='company-salvatex'").fetchone()[0] == 1
+          assert db.execute("SELECT COUNT(*) FROM platform_feature_catalog WHERE feature_key='catalog'").fetchone()[0] == 1
+
+          assert db.execute("SELECT enabled FROM platform_features WHERE company_id='company-salvatex' AND feature_key='catalog'").fetchone()[0] == 1
+
+          db.execute("INSERT INTO platform_plan_features(plan_code,feature_key,enabled,settings_json,updated_at) VALUES('founder','catalog',0,'{}',datetime('now'))")
+          row = db.execute("SELECT pf.feature_key,pf.enabled,legacy.enabled FROM platform_companies c LEFT JOIN platform_plan_features pf ON pf.plan_code=c.plan_code AND pf.feature_key='catalog' LEFT JOIN platform_features legacy ON legacy.company_id=c.id AND legacy.feature_key='catalog' WHERE c.id='company-salvatex'").fetchone()
+          assert row == ('catalog', 0, 1), row
+
+          db.executescript(migration)
+          assert db.execute("SELECT COUNT(*) FROM platform_plans WHERE code='founder'").fetchone()[0] == 1
+          assert db.execute("SELECT COUNT(*) FROM platform_company_profile WHERE company_id='company-salvatex'").fetchone()[0] == 1
+
+          product_route = Path('functions/admin/api/catalog/products/[id].js').read_text().upper()
+          category_route = Path('functions/admin/api/catalog/categories/[id].js').read_text().upper()
+          assert 'DELETE FROM PRODUCTS' not in product_route
+          assert 'DELETE FROM CATEGORIES' not in category_route
+          assert 'UPDATE PRODUCTS SET ACTIVE=0' in product_route
+          assert 'UPDATE CATEGORIES SET ACTIVE=0' in category_route
+
+          print('D1 phase 1 migration and catalog soft delete validated successfully')
+          PY

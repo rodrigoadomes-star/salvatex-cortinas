@@ -1,0 +1,61 @@
+name: RADZ tenant security checks
+
+on:
+  push:
+    branches: [radz-super-admin-phase1]
+  pull_request:
+    branches: [radz-hub-arquitetura-unificada]
+
+jobs:
+  tenant-isolation:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check critical route syntax
+        run: |
+          node --check functions/media/[[path]].js
+          node --check functions/api/account/order/[id].js
+          node --check functions/api/account/orders.js
+          node --check functions/api/configurators/[id].js
+          node --check functions/admin/api/configurators/[id].js
+          node --check functions/admin/api/configurators/wave.js
+          node --check functions/admin/api/orders/index.js
+          node --check functions/admin/api/orders/[id].js
+          node --check functions/admin/api/catalog/products/index.js
+          node --check functions/admin/api/catalog/products/[id].js
+          node --check functions/admin/api/media/upload.js
+          node --check functions/admin/api/media/delete.js
+      - name: Verify tenant invariants
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          media = Path('functions/media/[[path]].js').read_text()
+          customer_order = Path('functions/api/account/order/[id].js').read_text()
+          public_configurator = Path('functions/api/configurators/[id].js').read_text()
+          configurator = Path('functions/admin/api/configurators/[id].js').read_text()
+          wave = Path('functions/admin/api/configurators/wave.js').read_text()
+          admin_order = Path('functions/admin/api/orders/[id].js').read_text()
+          upload = Path('functions/admin/api/media/upload.js').read_text()
+          delete = Path('functions/admin/api/media/delete.js').read_text()
+
+          assert 'requireStoreTenant' in media
+          assert 'tenantAuth.tenant.companyId !== companyId' in media
+          assert 'tenantAuth.tenant.storeId !== storeId' in media
+          assert 'key.startsWith("private/")' in media
+          assert 'JOIN orders o ON o.id=oi.order_id' in customer_order
+          assert 'JOIN orders o ON o.id=oe.order_id' in customer_order
+          assert 'o.store_id=?2' in customer_order
+          assert 'requireStoreTenant' in public_configurator
+          assert 'tenantAuth.tenant.storeId' in public_configurator
+          assert "store_id='salvatex'" not in public_configurator
+          assert 'auth.storeId' in configurator and 'company.products.write' in configurator
+          assert "store_id='salvatex'" not in wave
+          assert "VALUES ('salvatex'" not in wave
+          assert 'auth.storeId' in wave and 'company.products.write' in wave
+          assert 'WHERE id=?1 AND store_id=?2' in admin_order
+          assert 'company.orders.read' in admin_order and 'company.orders.write' in admin_order
+          assert 'companies",auth.companyId,"stores",auth.storeId' in upload
+          assert 'allowedPrefix' in delete and 'auth.companyId' in delete and 'auth.storeId' in delete
+          print('Critical tenant isolation invariants validated')
+          PY
