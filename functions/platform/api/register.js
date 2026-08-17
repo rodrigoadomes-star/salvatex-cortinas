@@ -1,11 +1,17 @@
 import { audit, clean, digits, hashPassword, json, normalizeEmail, randomToken, sessionCookie, sha256, slugify, validCnpj, validEmail, verifyTurnstile } from "./_lib.js";
 
+const TERMS_VERSION = "2026-08-16-v1";
+const PRIVACY_VERSION = "2026-08-16-v1";
+
 export async function onRequestPost(context) {
   if (!context.env.DB) return json({ ok: false, code: "DB_NOT_CONFIGURED" }, 503);
   let body;
   try { body = await context.request.json(); } catch { return json({ ok: false, message: "Dados inválidos." }, 400); }
   if (!await verifyTurnstile(context.env, context.request, body.turnstileToken)) {
     return json({ ok: false, message: "Confirme que você não é um robô." }, 400);
+  }
+  if (!(body.terms === true || body.terms === "on" || body.terms === "true")) {
+    return json({ ok: false, message: "Para criar a conta, leia e aceite os Termos de Uso e a Política de Privacidade." }, 422);
   }
   const name = clean(body.name, 160);
   const email = normalizeEmail(body.email);
@@ -29,11 +35,27 @@ export async function onRequestPost(context) {
       UNION SELECT id FROM platform_users WHERE email=?3 LIMIT 1`).bind(cnpj, slug, email).first();
   if (exists) return json({ ok: false, message: "CNPJ, e-mail ou endereço já cadastrado." }, 409);
 
+  // Garante compatibilidade mesmo antes da migração manual do D1 ser executada.
+  await context.env.DB.prepare(`CREATE TABLE IF NOT EXISTS platform_legal_acceptances (
+    id TEXT PRIMARY KEY,
+    company_id TEXT NOT NULL,
+    user_id TEXT NOT NULL,
+    terms_version TEXT NOT NULL,
+    privacy_version TEXT NOT NULL,
+    accepted_at TEXT NOT NULL,
+    ip_hash TEXT,
+    user_agent TEXT,
+    source TEXT NOT NULL DEFAULT 'signup',
+    FOREIGN KEY (company_id) REFERENCES platform_companies(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES platform_users(id) ON DELETE CASCADE
+  )`).run();
+
   const companyId = `company-${crypto.randomUUID()}`;
   const userId = `user-${crypto.randomUUID()}`;
   const storeId = `store-${crypto.randomUUID()}`;
   const domainId = `domain-${crypto.randomUUID()}`;
   const sessionId = `session-${crypto.randomUUID()}`;
+  const acceptanceId = `accept-${crypto.randomUUID()}`;
   const now = new Date().toISOString();
   const expires = new Date(Date.now() + 8 * 60 * 60 * 1000).toISOString();
   const passwordData = await hashPassword(password);
@@ -41,6 +63,9 @@ export async function onRequestPost(context) {
   const tokenHash = await sha256(sessionToken);
   const hostname = `${slug}.radzhub.com.br`;
   const status = String(context.env.PLATFORM_EMAIL_ENFORCE || "false").toLowerCase() === "true" ? "pending_email" : "trial";
+  const rawIp = context.request.headers.get("CF-Connecting-IP") || "";
+  const ipHash = rawIp ? await sha256(rawIp) : null;
+  const userAgent = clean(context.request.headers.get("User-Agent") || "", 300) || null;
 
   const statements = [
     context.env.DB.prepare(`INSERT INTO platform_companies
@@ -63,17 +88,19 @@ export async function onRequestPost(context) {
       VALUES (?1,'site_config',?2,?3)`).bind(storeId, JSON.stringify({ storeName: tradeName, theme: "starter", configured: false }), now),
     context.env.DB.prepare(`INSERT INTO platform_sessions
       (id,user_id,company_id,token_hash,expires_at,created_at,last_seen_at)
-      VALUES (?1,?2,?3,?4,?5,?6,?6)`).bind(sessionId, userId, companyId, tokenHash, expires, now)
+      VALUES (?1,?2,?3,?4,?5,?6,?6)`).bind(sessionId, userId, companyId, tokenHash, expires, now),
+    context.env.DB.prepare(`INSERT INTO platform_legal_acceptances
+      (id,company_id,user_id,terms_version,privacy_version,accepted_at,ip_hash,user_agent,source)
+      VALUES (?1,?2,?3,?4,?5,?6,?7,?8,'signup')`)
+      .bind(acceptanceId, companyId, userId, TERMS_VERSION, PRIVACY_VERSION, now, ipHash, userAgent)
   ];
   for (const feature of ["catalog","orders","customers","site_builder","platform_subdomain"]) {
     statements.push(context.env.DB.prepare(`INSERT INTO platform_features
       (company_id,feature_key,enabled,settings_json,updated_at) VALUES (?1,?2,1,'{}',?3)`).bind(companyId, feature, now));
   }
   await context.env.DB.batch(statements);
-  await audit(context.env, context.request, "company.registered", companyId, userId, { plan: "free" });
+  await audit(context.env, context.request, "company.registered", companyId, userId, { plan: "free", termsVersion: TERMS_VERSION, privacyVersion: PRIVACY_VERSION });
   return json({ ok: true, company: { id: companyId, name: tradeName, slug, hostname, status }, redirect: "/platform-admin/" }, 201, {
     "set-cookie": sessionCookie(sessionToken)
   });
 }
-
-
