@@ -37,6 +37,7 @@
   function statusLabel(s){return ({pending:'Pendente',paid:'Pago',overdue:'Vencido',cancelled:'Cancelado',refunded:'Reembolsado',waived:'Isento',unknown:'Sem cobrança'})[s]||s;}
   function statusClass(s){return s==='paid'?'active':s==='overdue'?'cancelled':s==='pending'?'trial':'disabled';}
   function metric(label,value,foot=''){return `<article><small>${esc(label)}</small><strong>${esc(value)}</strong>${foot?`<span>${esc(foot)}</span>`:''}</article>`;}
+  function billingSource(row){return row?.metadata?.source==='calculated'?'Calculada':row?.metadata?.source==='legacy'?'Legada':'Manual';}
 
   function ensureNav(){
     const nav=$('#radz-nav');
@@ -81,16 +82,16 @@
       const rows=d.billing||[];
       const formHtml=canWrite()?`
         <form id="radz-billing-form" class="config-card top-gap">
-          <div class="section-head"><div><h2>Lançar / atualizar cobrança</h2><p>Uma cobrança por empresa e competência.</p></div></div>
+          <div class="section-head"><div><h2>Lançar / atualizar cobrança</h2><p>Você pode calcular automaticamente pelo faturamento real ou informar um valor manual.</p></div></div>
           <div class="form-grid">
             <label>Empresa<select name="companyId" required><option value="">Selecione…</option>${rows.map(x=>`<option value="${esc(x.companyId)}">${esc(x.companyName)}</option>`).join('')}</select></label>
             <label>Competência<input name="referenceMonth" type="month" required></label>
-            <label>Valor (centavos)<input name="amountCents" type="number" min="0" required></label>
+            <label>Valor manual (centavos)<input name="amountCents" type="number" min="0" value="0"></label>
             <label>Status<select name="paymentStatus"><option value="pending">Pendente</option><option value="paid">Pago</option><option value="overdue">Vencido</option><option value="waived">Isento</option><option value="cancelled">Cancelado</option><option value="refunded">Reembolsado</option></select></label>
             <label>Vencimento<input name="dueAt" type="date"></label>
             <label>Observação<input name="notes" maxlength="1000"></label>
           </div>
-          <button type="submit">Salvar cobrança</button>
+          <div class="toolbar"><button type="button" id="radz-billing-calculate">Calcular pelo faturamento</button><button type="submit">Salvar valor manual</button></div>
           <p class="form-result"></p>
         </form>`:'';
 
@@ -100,9 +101,10 @@
         <td>${esc(x.referenceMonth||'—')}</td>
         <td>${x.billingId?money(x.amountCents):'—'}</td>
         <td><span class="status ${statusClass(x.paymentStatus)}">${esc(statusLabel(x.paymentStatus))}</span></td>
+        <td>${esc(x.billingId?billingSource(x):'—')}</td>
         <td>${esc(date(x.dueAt||x.billingDueAt))}</td>
         <td>${esc(x.updatedAt?new Date(x.updatedAt).toLocaleString('pt-BR'):'—')}</td>
-      </tr>`).join('')||'<tr><td colspan="7">Nenhuma empresa.</td></tr>';
+      </tr>`).join('')||'<tr><td colspan="8">Nenhuma empresa.</td></tr>';
 
       content.innerHTML=`
         <div class="metrics metrics-wide">
@@ -113,7 +115,7 @@
         </div>
         ${formHtml}
         <div class="table-wrap top-gap"><table>
-          <thead><tr><th>Empresa</th><th>Plano</th><th>Competência</th><th>Valor</th><th>Status</th><th>Vencimento</th><th>Atualizado</th></tr></thead>
+          <thead><tr><th>Empresa</th><th>Plano</th><th>Competência</th><th>Valor</th><th>Status</th><th>Origem</th><th>Vencimento</th><th>Atualizado</th></tr></thead>
           <tbody>${tableRows}</tbody>
         </table></div>`;
       bindFinance();
@@ -123,26 +125,43 @@
     }
   }
 
+  function formPayload(form){
+    const fd=new FormData(form);
+    return {
+      companyId:fd.get('companyId'),
+      referenceMonth:fd.get('referenceMonth'),
+      amountCents:Number(fd.get('amountCents')||0),
+      paymentStatus:fd.get('paymentStatus'),
+      dueAt:fd.get('dueAt')||null,
+      notes:fd.get('notes')||''
+    };
+  }
+
   function bindFinance(){
     const form=$('#radz-billing-form');
     if(!form)return;
+    const out=$('.form-result',form);
     form.onsubmit=async e=>{
       e.preventDefault();
-      const fd=new FormData(form);
-      const out=$('.form-result',form);
       out.textContent='Salvando…';
       try{
-        await financeApi({method:'POST',body:JSON.stringify({
-          companyId:fd.get('companyId'),
-          referenceMonth:fd.get('referenceMonth'),
-          amountCents:Number(fd.get('amountCents')||0),
-          paymentStatus:fd.get('paymentStatus'),
-          dueAt:fd.get('dueAt')||null,
-          notes:fd.get('notes')||''
-        })});
+        await financeApi({method:'POST',body:JSON.stringify(formPayload(form))});
         out.textContent='Cobrança salva.';
         setTimeout(openFinance,250);
       }catch(x){out.textContent=x.message;}
+    };
+    const calc=$('#radz-billing-calculate');
+    if(calc)calc.onclick=async()=>{
+      const payload=formPayload(form);
+      if(!payload.companyId||!payload.referenceMonth){out.textContent='Selecione a empresa e a competência.';return;}
+      out.textContent='Calculando pelo faturamento real…';
+      calc.disabled=true;
+      try{
+        const result=await financeApi({method:'POST',body:JSON.stringify({action:'calculate',companyId:payload.companyId,referenceMonth:payload.referenceMonth})});
+        out.textContent=`Calculado: ${money(result.amountCents||0)}. Atualizando…`;
+        setTimeout(openFinance,450);
+      }catch(x){out.textContent=x.message;}
+      finally{calc.disabled=false;}
     };
   }
 
