@@ -31,12 +31,18 @@
     const t=normalizarChaveMidia(tecido);
     const c=normalizarChaveMidia(cor);
     const f=canonForro(forro);
+
+    // O endpoint /api/configurators/:id já isola Wave, Prega Macho e Ilhós.
+    // Se houver duplicatas históricas da mesma combinação, o último registro
+    // é sempre autoritativo. Nunca reutilizamos mídia de um registro mais antigo,
+    // pois isso fazia uma foto excluída voltar a aparecer no site.
     const fonte=[...lista].reverse().find(item=>
       normalizarChaveMidia(item?.tecido)===t&&
       normalizarChaveMidia(item?.cor)===c&&
       canonForro(item?.forro)===f
     );
     if(!fonte)return null;
+
     return {
       ...fonte,
       tecido:fonte?.tecido||tecido,
