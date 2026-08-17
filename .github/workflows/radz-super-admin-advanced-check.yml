@@ -81,8 +81,6 @@ jobs:
           except sqlite3.IntegrityError:
             pass
 
-          # A configuração global de IA deve ter no máximo uma linha. O endpoint
-          # usa UPDATE + INSERT condicional porque company_id global é NULL.
           db.execute("INSERT INTO platform_ai_settings(scope,company_id,enabled,prompt,instructions,forbidden_words_json,fallback_json,settings_json,updated_at) VALUES('global',NULL,0,'','','[]','{}','{}',?)",(now,))
           try:
             db.execute("INSERT INTO platform_ai_settings(scope,company_id,enabled,prompt,instructions,forbidden_words_json,fallback_json,settings_json,updated_at) VALUES('global',NULL,1,'','','[]','{}','{}',?)",(now,))
@@ -93,9 +91,21 @@ jobs:
 
           db.executescript(adv)
           assert db.execute("SELECT COUNT(*) FROM platform_categories WHERE company_id IN ('test-a','test-b')").fetchone()[0] == 2
-          assert 'metadata.reason===\'write_failed\'' in Path('functions/admin/api/media/upload.js').read_text()
-          assert 'storage_bytes' in Path('functions/admin/api/media/upload.js').read_text()
-          assert 'product_created' in Path('functions/admin/api/catalog/products/index.js').read_text()
-          assert "UPDATE platform_ai_settings" in Path('functions/radz/api/ai-settings.js').read_text()
-          print('RADZ advanced schema and integration invariants validated')
+
+          upload = Path('functions/admin/api/media/upload.js').read_text()
+          usage = Path('functions/admin/api/_platform-usage.js').read_text()
+          delete = Path('functions/admin/api/media/delete.js').read_text()
+          products = Path('functions/admin/api/catalog/products/index.js').read_text()
+          ai = Path('functions/radz/api/ai-settings.js').read_text()
+
+          assert "metadata.reason!=='migration_pending'" in upload
+          assert "MEDIA_METADATA_FAILED" in upload
+          assert "tenant_prefix_mismatch" in usage
+          assert "cross_tenant_object_key" in usage
+          assert "existing.company_id!==companyId" in usage
+          assert "allowedPrefix" in delete and "auth.companyId" in delete and "auth.storeId" in delete
+          assert 'storage_bytes' in upload
+          assert 'product_created' in products
+          assert "UPDATE platform_ai_settings" in ai
+          print('RADZ advanced schema, tenant isolation and integration invariants validated')
           PY
