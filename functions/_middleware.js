@@ -25,8 +25,8 @@ const PAGE_BOOTSTRAP=`
 })();
 </script>`;
 class HeadBootstrap{element(element){element.prepend(PAGE_BOOTSTRAP,{html:true})}}
-class ConfiguratorScripts{element(element){element.append('<script src="/js/configurador-media-forro.js?v=20260816-12"></script><script src="/js/configurador-media-strict.js?v=20260816-2"></script>',{html:true});}}
-class AdminScripts{element(element){element.append('<script src="/js/admin-configurator-combination-stock.js?v=20260816-2"></script><script src="/js/admin-configurator-media-controls.js?v=20260816-1"></script>',{html:true});}}
+class ConfiguratorScripts{element(element){element.append('<script src="/js/configurador-media-forro.js?v=20260816-13"></script><script src="/js/configurador-media-strict.js?v=20260816-2"></script>',{html:true});}}
+class AdminScripts{element(element){element.append('<script src="/js/admin-configurator-combination-stock.js?v=20260816-3"></script><script src="/js/admin-configurator-media-controls.js?v=20260816-1"></script>',{html:true});}}
 function isPreviewHost(hostname){const host=String(hostname||"").toLowerCase();return host.endsWith(".salvatex-cortinas.pages.dev")&&host!=="salvatex-cortinas.pages.dev";}
 function productionMediaUrl(value){const src=String(value||"").trim();if(!src)return src;if(src.startsWith("/media/"))return PRODUCTION_ORIGIN+src;if(src.startsWith("media/"))return PRODUCTION_ORIGIN+"/"+src;return src;}
 function normalizePreviewMedia(configurator){const cfg=JSON.parse(JSON.stringify(configurator||{}));cfg.midia=Array.isArray(cfg.midia)?cfg.midia.map(item=>{const media={...item};if(media.capa)media.capa=productionMediaUrl(media.capa);if(media.video)media.video=productionMediaUrl(media.video);if(Array.isArray(media.imagens))media.imagens=media.imagens.map(productionMediaUrl);return media;}):[];return cfg;}
