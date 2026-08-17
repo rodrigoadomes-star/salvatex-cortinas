@@ -3,7 +3,7 @@ import { randomToken, sha256 } from "../../platform/api/_lib.js";
 const encoder = new TextEncoder();
 const COOKIE = "__Host-radzhub_admin";
 const SESSION_SECONDS = 8 * 60 * 60;
-const SUPER_ROLES = new Set(["platform_owner", "platform_support"]);
+const SUPER_ROLES = new Set(["platform_owner", "platform_support", "platform_finance"]);
 
 export function json(data, status = 200, headers = {}) {
   return new Response(JSON.stringify(data), {
@@ -58,6 +58,38 @@ export async function secureEqual(a, b) {
   return crypto.subtle.timingSafeEqual(await digest(a), await digest(b));
 }
 
+async function tableExists(db,name){
+  try{
+    const row=await db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name=?1 LIMIT 1").bind(name).first();
+    return Boolean(row);
+  }catch{return false}
+}
+
+export async function resolvePlatformRoles(db,userId,baseRole=null){
+  const fallback=SUPER_ROLES.has(baseRole)?[baseRole]:[];
+  if(!db||!userId||!await tableExists(db,"platform_user_roles"))return fallback;
+  try{
+    const rows=await db.prepare(`SELECT ur.role_code
+      FROM platform_user_roles ur
+      JOIN platform_roles r ON r.code=ur.role_code AND r.scope='platform' AND r.active=1
+      WHERE ur.user_id=?1
+        AND ur.company_id IS NULL
+        AND ur.active=1
+        AND (ur.expires_at IS NULL OR ur.expires_at>datetime('now'))
+      ORDER BY CASE ur.role_code WHEN 'platform_owner' THEN 0 WHEN 'platform_support' THEN 1 WHEN 'platform_finance' THEN 2 ELSE 9 END`)
+      .bind(userId).all();
+    const roles=(rows.results||[]).map(x=>x.role_code).filter(x=>SUPER_ROLES.has(x));
+    return roles.length?roles:fallback;
+  }catch{return fallback}
+}
+
+function primaryRole(roles,baseRole=null){
+  for(const role of ["platform_owner","platform_support","platform_finance"]){
+    if(roles.includes(role))return role;
+  }
+  return baseRole;
+}
+
 // Compatibilidade temporária com a chave mestra antiga.
 export async function createSession(secret) {
   const csrf = b64u(crypto.getRandomValues(new Uint8Array(24)));
@@ -68,6 +100,7 @@ export async function createSession(secret) {
         exp: Date.now() + SESSION_SECONDS * 1000,
         csrf,
         role: "platform_owner",
+        roles: ["platform_owner"],
         legacy: true,
         nonce: crypto.randomUUID(),
       })
@@ -110,6 +143,7 @@ async function readLegacy(context, token) {
     if (Number(data.exp) <= Date.now() || !data.csrf || data.role !== "platform_owner") return null;
     return {
       ...data,
+      roles: ["platform_owner"],
       user_id: null,
       name: "Administrador RADZ HUB (chave mestra)",
       email: null,
@@ -143,7 +177,7 @@ async function readStored(context, token) {
   const tokenHash = await sha256(token);
   const row = await context.env.DB.prepare(`SELECT
       s.id session_id,s.user_id,s.expires_at,s.last_seen_at,
-      u.name,u.email,u.role,u.active
+      u.name,u.email,u.role base_role,u.active
     FROM platform_sessions s
     JOIN platform_users u ON u.id=s.user_id
     WHERE s.token_hash=?1 AND s.company_id IS NULL
@@ -151,7 +185,8 @@ async function readStored(context, token) {
     .bind(tokenHash)
     .first();
 
-  if (!row || !row.active || !SUPER_ROLES.has(row.role) || Date.parse(row.expires_at) <= Date.now()) {
+  const roles=row ? await resolvePlatformRoles(context.env.DB,row.user_id,row.base_role) : [];
+  if (!row || !row.active || !roles.length || Date.parse(row.expires_at) <= Date.now()) {
     if (row?.session_id) {
       await context.env.DB.prepare("DELETE FROM platform_sessions WHERE id=?1")
         .bind(row.session_id)
@@ -167,6 +202,8 @@ async function readStored(context, token) {
 
   return {
     ...row,
+    role: primaryRole(roles,row.base_role),
+    roles,
     csrf: await sha256(`radz-csrf:${token}`),
     legacy: false,
   };
@@ -204,7 +241,7 @@ export async function auditRadz(context, auth, action, targetType = null, target
     .run();
 }
 
-export async function requireRadzAdmin(context, roles = ["platform_owner", "platform_support"]) {
+export async function requireRadzAdmin(context, roles = ["platform_owner", "platform_support", "platform_finance"]) {
   if (!context.env.DB) {
     return { ok: false, response: json({ ok: false, code: "DB_NOT_CONFIGURED" }, 503) };
   }
@@ -220,7 +257,8 @@ export async function requireRadzAdmin(context, roles = ["platform_owner", "plat
     };
   }
 
-  if (!roles.includes(session.role)) {
+  const sessionRoles=Array.isArray(session.roles)?session.roles:[session.role];
+  if (!sessionRoles.some(role=>roles.includes(role))) {
     return {
       ok: false,
       response: json({ ok: false, code: "FORBIDDEN", message: "Permissão insuficiente." }, 403),
@@ -239,4 +277,47 @@ export async function requireRadzAdmin(context, roles = ["platform_owner", "plat
   }
 
   return { ok: true, session };
+}
+
+export async function hasRadzPermission(context,auth,permission){
+  if(!permission)return true;
+  if(auth?.session?.legacy&&auth?.session?.role==="platform_owner")return true;
+  const userId=auth?.session?.user_id;
+  if(!userId)return false;
+
+  if(await tableExists(context.env.DB,"platform_user_roles")){
+    try{
+      const row=await context.env.DB.prepare(`SELECT 1 allowed
+        FROM platform_user_roles ur
+        JOIN platform_roles r ON r.code=ur.role_code AND r.scope='platform' AND r.active=1
+        JOIN platform_role_permissions rp ON rp.role_code=ur.role_code
+        WHERE ur.user_id=?1
+          AND ur.company_id IS NULL
+          AND ur.active=1
+          AND (ur.expires_at IS NULL OR ur.expires_at>datetime('now'))
+          AND rp.permission_code=?2
+        LIMIT 1`).bind(userId,permission).first();
+      if(row?.allowed)return true;
+    }catch{}
+  }
+
+  const roles=Array.isArray(auth?.session?.roles)?auth.session.roles:[auth?.session?.role].filter(Boolean);
+  if(roles.includes("platform_owner"))return true;
+  for(const role of roles){
+    try{
+      const row=await context.env.DB.prepare(`SELECT 1 allowed FROM platform_role_permissions
+        WHERE role_code=?1 AND permission_code=?2 LIMIT 1`).bind(role,permission).first();
+      if(row?.allowed)return true;
+    }catch{}
+  }
+  return false;
+}
+
+export async function requireRadzPermission(context,permission){
+  const auth=await requireRadzAdmin(context);
+  if(!auth.ok)return auth;
+  if(!await hasRadzPermission(context,auth,permission)){
+    return {ok:false,response:json({ok:false,code:"FORBIDDEN",message:"Seu perfil não possui permissão para esta ação."},403)};
+  }
+  return auth;
 }
