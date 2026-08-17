@@ -36,7 +36,7 @@ const PAGE_BOOTSTRAP=`
 
 class HeadBootstrap{element(element){element.prepend(PAGE_BOOTSTRAP,{html:true});}}
 class ConfiguratorHtml{element(element){element.setAttribute('class',((element.getAttribute('class')||'')+' configurator-booting').trim());}}
-class ProductionConfiguratorScripts{element(element){element.append('<script src="/js/configurador-media-strict.js?v=20260816-prod-final-5"></script><script src="/js/configurador-media-forro.js?v=20260816-prod-final-5"></script><script>(function(){var root=document.documentElement;function reveal(){setTimeout(function(){requestAnimationFrame(function(){requestAnimationFrame(function(){root.classList.remove(\"configurator-booting\");});});},0);}Promise.resolve(window.CONFIG_READY).then(reveal).catch(reveal);setTimeout(reveal,1800);})();</script>',{html:true});}}
+class ProductionConfiguratorScripts{element(element){element.append('<script src="/js/configurador-media-strict.js?v=media-stable-20260817-1"></script><script src="/js/configurador-media-forro.js?v=media-stable-20260817-1"></script><script>(function(){var root=document.documentElement;function reveal(){setTimeout(function(){requestAnimationFrame(function(){requestAnimationFrame(function(){root.classList.remove(\"configurator-booting\");});});},0);}Promise.resolve(window.CONFIG_READY).then(reveal).catch(reveal);setTimeout(reveal,1800);})();</script>',{html:true});}}
 
 export async function onRequest(context){
   const url=new URL(context.request.url);
