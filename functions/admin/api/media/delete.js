@@ -34,7 +34,9 @@ export async function onRequestDelete(context) {
       ""
     ).trim();
 
-  if (!key || key.startsWith("private/") || !key.startsWith("configuradores/")) {
+  const allowedPrefix = `companies/${auth.companyId}/stores/${auth.storeId}/public/configuradores/`;
+
+  if (!key || !key.startsWith(allowedPrefix)) {
     return json(
       {
         ok: false,
@@ -54,7 +56,8 @@ export async function onRequestDelete(context) {
     "media_deleted",
     "media",
     key,
-    {}
+    {},
+    auth.storeId
   );
 
   return json({

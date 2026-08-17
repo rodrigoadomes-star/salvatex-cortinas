@@ -39,14 +39,14 @@ function parseJson(value,fallback={}){
   }
 }
 
-async function readLayout(db){
+async function readLayout(db,storeId){
   const dedicated=
     await db.prepare(`
       SELECT value_json,updated_at
       FROM store_configs
-      WHERE store_id='salvatex'
+      WHERE store_id=?1
         AND config_key='layout_config'
-    `).first();
+    `).bind(storeId).first();
 
   const dedicatedLayout=
     parseJson(
@@ -62,9 +62,9 @@ async function readLayout(db){
     await db.prepare(`
       SELECT value_json,updated_at
       FROM store_configs
-      WHERE store_id='salvatex'
+      WHERE store_id=?1
         AND config_key='site_config'
-    `).first();
+    `).bind(storeId).first();
 
   const siteConfig=
     parseJson(
@@ -116,7 +116,8 @@ export async function onRequestGet(context){
   try{
     const data=
       await readLayout(
-        context.env.DB
+        context.env.DB,
+        auth.storeId
       );
 
     return json({
@@ -193,10 +194,10 @@ export async function onRequestPut(context){
         updated_at
       )
       VALUES(
-        'salvatex',
-        'layout_config',
         ?1,
-        ?2
+        'layout_config',
+        ?2,
+        ?3
       )
       ON CONFLICT(store_id,config_key)
       DO UPDATE SET
@@ -204,6 +205,7 @@ export async function onRequestPut(context){
         updated_at=excluded.updated_at
     `)
       .bind(
+        auth.storeId,
         JSON.stringify(layout),
         now
       )
@@ -217,9 +219,9 @@ export async function onRequestPut(context){
       await context.env.DB.prepare(`
         SELECT value_json
         FROM store_configs
-        WHERE store_id='salvatex'
+        WHERE store_id=?1
           AND config_key='site_config'
-      `).first();
+      `).bind(auth.storeId).first();
 
     const siteConfig=
       parseJson(
@@ -238,10 +240,10 @@ export async function onRequestPut(context){
         updated_at
       )
       VALUES(
-        'salvatex',
-        'site_config',
         ?1,
-        ?2
+        'site_config',
+        ?2,
+        ?3
       )
       ON CONFLICT(store_id,config_key)
       DO UPDATE SET
@@ -249,6 +251,7 @@ export async function onRequestPut(context){
         updated_at=excluded.updated_at
     `)
       .bind(
+        auth.storeId,
         JSON.stringify(siteConfig),
         now
       )
@@ -259,7 +262,8 @@ export async function onRequestPut(context){
     */
     const saved=
       await readLayout(
-        context.env.DB
+        context.env.DB,
+        auth.storeId
       );
 
     const savedJson=
@@ -286,7 +290,8 @@ export async function onRequestPut(context){
       {
         source:"layout_editor",
         confirmed:true
-      }
+      },
+      auth.storeId
     );
 
     return json({

@@ -1,4 +1,5 @@
 import { json } from "../_lib.js";
+import { requireStoreTenant } from "../../_shared/tenant.js";
 
 function parseJSON(value, fallback){
   try { return value ? JSON.parse(value) : fallback; }
@@ -33,6 +34,10 @@ function productPublic(row){
 export async function onRequestGet(context){
   if(!context.env.DB) return json({ok:false,message:"Banco indisponível"},503);
 
+  const tenantAuth = await requireStoreTenant(context,{allowPreview:true});
+  if(!tenantAuth.ok) return tenantAuth.response;
+  const storeId = tenantAuth.tenant.storeId;
+
   const url = new URL(context.request.url);
   const category = String(url.searchParams.get("categoria") || "").trim();
   const featured = url.searchParams.get("destaques") === "1";
@@ -46,21 +51,21 @@ export async function onRequestGet(context){
         ON p.category_id = c.id
        AND p.store_id = c.store_id
        AND p.active = 1
-      WHERE c.store_id='salvatex' AND c.active=1
+      WHERE c.store_id=?1 AND c.active=1
       GROUP BY c.id
       ORDER BY c.sort_order ASC, c.name ASC
-    `).all();
+    `).bind(storeId).all();
 
     let sql = `
       SELECT p.*, c.name AS category_name, c.slug AS category_slug
       FROM products p
       LEFT JOIN categories c ON c.id=p.category_id
-      WHERE p.store_id='salvatex' AND p.active=1
+      WHERE p.store_id=?1 AND p.active=1
     `;
-    const binds = [];
+    const binds = [storeId];
 
     if(category){
-      sql += ` AND c.slug=?1`;
+      sql += ` AND c.slug=?2`;
       binds.push(category);
     }
     if(featured){
@@ -69,7 +74,7 @@ export async function onRequestGet(context){
     sql += ` ORDER BY p.featured DESC, p.updated_at DESC, p.name ASC`;
 
     const stmt = context.env.DB.prepare(sql);
-    const productsResult = binds.length ? await stmt.bind(...binds).all() : await stmt.all();
+    const productsResult = await stmt.bind(...binds).all();
 
     return json({
       ok:true,

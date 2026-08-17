@@ -1,5 +1,5 @@
 import {json,requireAdmin,clean,logAdmin} from '../_auth.js';
-export async function onRequestPatch(context){const a=await requireAdmin(context);if(!a.ok)return a.response;let body={};try{body=await context.request.json()}catch{return json({ok:false,message:'JSON inválido.'},400)}const status=clean(body.status,20);if(!['read','responded'].includes(status))return json({ok:false,message:'Status inválido.'},400);const id=String(context.params.id||''),now=new Date().toISOString();const result=await context.env.DB.prepare(`UPDATE contact_messages SET status=?1,updated_at=?2,responded_at=CASE WHEN ?1='responded' THEN ?2 ELSE responded_at END WHERE id=?3 AND store_id='salvatex'`).bind(status,now,id).run();if(!result.meta?.changes)return json({ok:false,message:'Mensagem não encontrada.'},404);await logAdmin(context.env.DB,'contact_message_'+status,'contact_message',id);return json({ok:true})}
+export async function onRequestPatch(context){const a=await requireAdmin(context);if(!a.ok)return a.response;let body={};try{body=await context.request.json()}catch{return json({ok:false,message:'JSON inválido.'},400)}const status=clean(body.status,20);if(!['read','responded'].includes(status))return json({ok:false,message:'Status inválido.'},400);const id=String(context.params.id||''),now=new Date().toISOString();const result=await context.env.DB.prepare(`UPDATE contact_messages SET status=?1,updated_at=?2,responded_at=CASE WHEN ?1='responded' THEN ?2 ELSE responded_at END WHERE id=?3 AND store_id=?4`).bind(status,now,id,a.storeId).run();if(!result.meta?.changes)return json({ok:false,message:'Mensagem não encontrada.'},404);await logAdmin(context.env.DB,'contact_message_'+status,'contact_message',id,null,a.storeId);return json({ok:true})}
 
 
 
@@ -8,9 +8,9 @@ export async function onRequestDelete(context){
   if(!a.ok)return a.response;
   const id=String(context.params.id||'');
   const result=await context.env.DB.prepare(
-    `DELETE FROM contact_messages WHERE id=?1 AND store_id='salvatex'`
-  ).bind(id).run();
+    `DELETE FROM contact_messages WHERE id=?1 AND store_id=?2`
+  ).bind(id,a.storeId).run();
   if(!result.meta?.changes)return json({ok:false,message:'Mensagem não encontrada.'},404);
-  await logAdmin(context.env.DB,'contact_message_deleted','contact_message',id);
+  await logAdmin(context.env.DB,'contact_message_deleted','contact_message',id,null,a.storeId);
   return json({ok:true});
 }

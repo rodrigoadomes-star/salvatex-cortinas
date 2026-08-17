@@ -198,6 +198,11 @@ export async function onRequestPost(context) {
     do caminho público. O R2 recebe um UUID único.
   */
   const key = [
+    "companies",
+    auth.companyId,
+    "stores",
+    auth.storeId,
+    "public",
     "configuradores",
     configurator,
     tecido,
@@ -249,7 +254,8 @@ export async function onRequestPost(context) {
       tecido,
       cor,
       forro
-    }
+    },
+    auth.storeId
   );
 
   return json({

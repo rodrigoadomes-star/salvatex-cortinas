@@ -31,7 +31,7 @@ function normalizeMeasures(value){
 
 export async function onRequestGet(context){
   const a=await requireAdmin(context); if(!a.ok)return a.response;
-  const rows=await context.env.DB.prepare(`SELECT * FROM pages WHERE store_id='salvatex' ORDER BY updated_at DESC`).all();
+  const rows=await context.env.DB.prepare(`SELECT * FROM pages WHERE store_id=?1 ORDER BY updated_at DESC`).bind(a.storeId).all();
   return json({ok:true,pages:rows.results||[]});
 }
 
@@ -48,15 +48,15 @@ export async function onRequestPost(context){
       id,store_id,title,slug,content_html,seo_title,seo_description,active,
       page_type,product_ids_json,hero_image_url,measures_json,custom_measure_url,
       nav_group,nav_order,created_at,updated_at
-    ) VALUES(?1,'salvatex',?2,?3,?4,?5,?6,?7,?8,?9,?10,?11,?12,?13,?14,?15,?15)
+    ) VALUES(?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11,?12,?13,?14,?15,?16,?16)
   `).bind(
-    id,title,slugify(b.slug||title),sanitizeHtml(b.contentHtml),clean(b.seoTitle,240),
+    id,a.storeId,title,slugify(b.slug||title),sanitizeHtml(b.contentHtml),clean(b.seoTitle,240),
     clean(b.seoDescription,500),b.active===false?0:1,pageType,JSON.stringify(productIds),
     clean(b.heroImageUrl,1000)||null,JSON.stringify(measures),clean(b.customMeasureUrl,1000)||null,
     ['cortinas_sob_medida','persianas_sob_medida','pronta_entrega','oculto'].includes(b.navGroup)?b.navGroup:'oculto',
     Number.isFinite(Number(b.navOrder))?Math.round(Number(b.navOrder)):100,
     now
   ).run();
-  await logAdmin(context.env.DB,"page_created","page",id,{title,pageType,productCount:productIds.length,measureCount:measures.length});
+  await logAdmin(context.env.DB,"page_created","page",id,{title,pageType,productCount:productIds.length,measureCount:measures.length},a.storeId);
   return json({ok:true,id},201);
 }
