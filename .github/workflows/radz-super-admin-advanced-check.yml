@@ -1,0 +1,84 @@
+name: RADZ Super Admin advanced checks
+
+on:
+  push:
+    branches: [radz-super-admin-phase1]
+  pull_request:
+    branches: [radz-hub-arquitetura-unificada]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check advanced JavaScript syntax
+        run: |
+          node --check functions/radz/api/advanced.js
+          node --check radz-admin/radz-admin-advanced.js
+      - name: Validate additive migrations and multiempresa invariants
+        run: |
+          python3 - <<'PY'
+          import sqlite3
+          from pathlib import Path
+
+          base = Path('database/schema.sql').read_text()
+          saas = Path('database/radzhub_saas_v1.sql').read_text()
+          p1 = Path('database/migrations/20260817_radz_super_admin_phase1.sql').read_text()
+          adv = Path('database/migrations/20260817_radz_super_admin_phase2_5.sql').read_text()
+          upper = adv.upper()
+          forbidden = ['DROP TABLE','DROP COLUMN','DELETE FROM PLATFORM_COMPANIES','DELETE FROM PRODUCTS','DELETE FROM ORDERS']
+          assert not [x for x in forbidden if x in upper]
+
+          db = sqlite3.connect(':memory:')
+          db.executescript(base)
+          db.executescript(saas)
+          before = db.execute('SELECT COUNT(*) FROM platform_companies').fetchone()[0]
+          db.executescript(p1)
+          db.executescript(adv)
+          after = db.execute('SELECT COUNT(*) FROM platform_companies').fetchone()[0]
+          assert before == after
+
+          required = {
+            'platform_categories','platform_attributes','platform_attribute_values','platform_category_attributes',
+            'platform_ai_settings','platform_usage_events','platform_generation_jobs','platform_layout_templates',
+            'platform_payment_providers','platform_company_payment_providers','platform_shipping_methods',
+            'platform_company_shipping_methods','platform_roles','platform_permissions','platform_role_permissions',
+            'platform_support_sessions','platform_media_objects','platform_media_references','platform_integrity_incidents'
+          }
+          tables={r[0] for r in db.execute("SELECT name FROM sqlite_master WHERE type='table'")}
+          assert not (required-tables), required-tables
+
+          # duas empresas podem usar o mesmo slug/código sem colisão; dentro da mesma empresa não.
+          now='2026-08-17T03:00:00Z'
+          db.execute("INSERT OR IGNORE INTO platform_companies(id,trade_name,legal_name,document_type,document_number,email,phone,status,plan_code,created_at,updated_at) VALUES('test-a','Teste A','Teste A','CNPJ','00000000000100','a@test.local','', 'trial','free',?,?)",(now,now))
+          db.execute("INSERT OR IGNORE INTO platform_companies(id,trade_name,legal_name,document_type,document_number,email,phone,status,plan_code,created_at,updated_at) VALUES('test-b','Teste B','Teste B','CNPJ','00000000000200','b@test.local','', 'trial','free',?,?)",(now,now))
+          db.execute("INSERT INTO platform_categories(id,company_id,name,slug,created_at,updated_at) VALUES('ca','test-a','Cortinas','cortinas',?,?)",(now,now))
+          db.execute("INSERT INTO platform_categories(id,company_id,name,slug,created_at,updated_at) VALUES('cb','test-b','Cortinas','cortinas',?,?)",(now,now))
+          try:
+            db.execute("INSERT INTO platform_categories(id,company_id,name,slug,created_at,updated_at) VALUES('ca2','test-a','Outra','cortinas',?,?)",(now,now))
+            raise AssertionError('duplicate company slug accepted')
+          except sqlite3.IntegrityError:
+            pass
+
+          # operation_id é idempotente por empresa+tipo, mas pode existir em outra empresa.
+          db.execute("INSERT INTO platform_usage_events(id,company_id,usage_type,quantity,operation_id,created_at) VALUES('u1','test-a','ai_text_generation',1,'op-1',?)",(now,))
+          try:
+            db.execute("INSERT INTO platform_usage_events(id,company_id,usage_type,quantity,operation_id,created_at) VALUES('u2','test-a','ai_text_generation',1,'op-1',?)",(now,))
+            raise AssertionError('duplicate operation accepted')
+          except sqlite3.IntegrityError:
+            pass
+          db.execute("INSERT INTO platform_usage_events(id,company_id,usage_type,quantity,operation_id,created_at) VALUES('u3','test-b','ai_text_generation',1,'op-1',?)",(now,))
+
+          # objeto R2 é globalmente único e sempre tem company_id.
+          db.execute("INSERT INTO platform_media_objects(id,company_id,object_key,size_bytes,created_at,updated_at) VALUES('m1','test-a','companies/test-a/a.webp',10,?,?)",(now,now))
+          try:
+            db.execute("INSERT INTO platform_media_objects(id,company_id,object_key,size_bytes,created_at,updated_at) VALUES('m2','test-b','companies/test-a/a.webp',10,?,?)",(now,now))
+            raise AssertionError('duplicate object key accepted')
+          except sqlite3.IntegrityError:
+            pass
+
+          # migration deve poder ser executada novamente sem destruir dados.
+          db.executescript(adv)
+          assert db.execute("SELECT COUNT(*) FROM platform_categories WHERE company_id IN ('test-a','test-b')").fetchone()[0] == 2
+          print('RADZ advanced schema validated')
+          PY
