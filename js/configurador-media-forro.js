@@ -18,13 +18,7 @@
   }
 
   function emEstoque(tecido,cor,forro,midia){
-    // Compatibilidade com o painel principal atual: se a cor estiver
-    // desativada globalmente no tecido, ela nunca aparece na loja.
     if(!corGlobalAtiva(tecido,cor))return false;
-
-    // No Preview novo, a disponibilidade pode ser controlada por combinação
-    // exata de tecido + cor + forro. Essa regra tem prioridade sobre o campo
-    // legado salvo junto da mídia.
     const mapa=CONFIG.estoqueCombinacoes&&typeof CONFIG.estoqueCombinacoes==='object'?CONFIG.estoqueCombinacoes:{};
     const k=stockKey(tecido,cor,forro);
     if(Object.prototype.hasOwnProperty.call(mapa,k))return mapa[k]!==false;
@@ -70,6 +64,15 @@
     return String(card?.textContent||"").trim().split("\n")[0].trim();
   }
 
+  function limparPreviewSemDisponibilidade(){
+    state.cor="";
+    previewIndex=0;
+    fotosCarrosselAtuais=[];
+    try{if(typeof pararVideoAtual==='function')pararVideoAtual();}catch(_){}
+    atualizarPreview();
+    atualizarOrcamento();
+  }
+
   function atualizarForrosDisponiveis(){
     const container=document.getElementById("forros");
     if(!container)return false;
@@ -93,8 +96,8 @@
         container.appendChild(aviso);
       }
       state.forro="";
-      state.cor="";
       cards.forEach(card=>card.classList.remove("selected"));
+      limparPreviewSemDisponibilidade();
       return false;
     }
 
@@ -124,10 +127,7 @@
       aviso.className="cores-sem-foto";
       aviso.textContent="Nenhuma cor disponível para este forro no momento.";
       container.appendChild(aviso);
-      previewIndex=0;
-      fotosCarrosselAtuais=[];
-      atualizarPreview();
-      atualizarOrcamento();
+      limparPreviewSemDisponibilidade();
       return;
     }
 
@@ -161,11 +161,30 @@
     atualizarOrcamento();
   };
 
+  if(typeof carregarFotosCarrossel==="function"){
+    const carregarFotosOriginal=carregarFotosCarrossel;
+    carregarFotosCarrossel=async function(){
+      if(!state.forro||!state.cor){
+        limparPreviewSemDisponibilidade();
+        return;
+      }
+      await carregarFotosOriginal();
+      fotosCarrosselAtuais=(Array.isArray(fotosCarrosselAtuais)?fotosCarrosselAtuais:[]).filter(foto=>{
+        const cor=String(foto?.cor||"").trim();
+        return cor&&disponivel(cor,state.forro);
+      });
+      if(!fotosCarrosselAtuais.length)previewIndex=0;
+      else if(previewIndex>=fotosCarrosselAtuais.length)previewIndex=0;
+      atualizarPreview();
+    };
+  }
+
   function sincronizarTudo(){
     const temForro=atualizarForrosDisponiveis();
     atualizarCores();
     previewIndex=0;
-    if(temForro)Promise.resolve(carregarFotosCarrossel()).catch(()=>{});
+    if(temForro&&state.cor)Promise.resolve(carregarFotosCarrossel()).catch(()=>{});
+    else limparPreviewSemDisponibilidade();
   }
 
   const forros=document.getElementById("forros");
