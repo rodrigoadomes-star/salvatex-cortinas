@@ -7,7 +7,7 @@
 - rate limit de login;
 - resolução de tenant do Admin da Empresa pelo backend;
 - validação `company_id` ↔ domínio/tenant ↔ sessão;
-- isolamento por `store_id` nas rotas críticas de pedidos e catálogo revisadas;
+- isolamento por `store_id` nas rotas críticas de pedidos, catálogo e mídia revisadas;
 - planos, limites e feature flags;
 - exceções de limite por empresa;
 - categorias/atributos globais e por empresa;
@@ -18,7 +18,11 @@
 - bloqueio explícito de `object_key` pertencente a outro tenant/loja;
 - exclusão lógica de produtos e categorias usando `active=0` no Admin da Empresa;
 - estrutura de lixeira de mídia e referências reutilizáveis;
-- estruturas de IA, layouts, pagamentos, fretes, RBAC e suporte/impersonação;
+- RBAC aditivo com `platform_user_roles`, sem reconstruir `platform_users`;
+- permissões no backend para produtos, categorias, pedidos, mídia e financeiro da empresa;
+- papéis RADZ Super Admin, Suporte e Financeiro com papéis efetivos resolvidos na sessão;
+- endpoint seguro `/radz/api/readiness` para diagnosticar migrations/bindings sem expor secrets;
+- estruturas de IA, layouts, pagamentos, fretes e suporte/impersonação;
 - migrations verificadas como aditivas pelos workflows.
 
 ## Correções realizadas nesta auditoria
@@ -33,9 +37,9 @@
    - `migration_pending` mantém somente o caminho de compatibilidade temporário.
 
 3. **Idempotência de criação de produto**
-   - `platform_usage_events` passa a reservar `operation_id` no mesmo `DB.batch()` do INSERT do produto;
-   - duas requisições com o mesmo `operation_id` não devem criar dois produtos quando a migration avançada está ativa;
-   - repetição retorna o `entity_id` já associado à operação.
+   - `platform_usage_events` reserva `operation_id` no mesmo `DB.batch()` do INSERT do produto;
+   - requisições repetidas com a mesma operação não devem criar dois produtos quando a migration avançada está ativa;
+   - repetição retorna o `entity_id` já associado.
 
 4. **Soft delete operacional**
    - DELETE de produto passa a `active=0`;
@@ -43,22 +47,21 @@
    - restauração pode ocorrer pelo update normal reativando o registro;
    - não há mais exclusão física nessas duas rotas.
 
+5. **RBAC sem migration destrutiva**
+   - criado `platform_user_roles` para permitir múltiplos papéis sem alterar o CHECK legado de `platform_users.role`;
+   - backfill só ocorre para usuários ainda sem atribuição explícita;
+   - `owner → company_admin`, `manager → company_manager`, `staff → company_support`;
+   - Super Admin, Suporte e Financeiro passam a possuir atribuições separadas;
+   - rotas críticas do Admin da Empresa verificam permissão no backend, não no frontend.
+
+6. **Menor privilégio no RADZ Admin**
+   - o acesso padrão de `requireRadzAdmin` fica restrito a Super Admin e Suporte;
+   - Financeiro deve ser explicitamente autorizado por rota/permissão;
+   - login e sessão retornam os papéis efetivos, não apenas o papel legado usado para compatibilidade.
+
 ## CI
 
-Os workflows da branch validam:
-
-- sintaxe JavaScript;
-- ausência de statements destrutivos nas migrations principais;
-- criação das tabelas esperadas;
-- compatibilidade com dados existentes;
-- duas empresas utilizando valores iguais sem colisão cross-tenant;
-- unicidade dentro da mesma empresa;
-- idempotência por `operation_id`;
-- isolamento de `object_key` R2;
-- configuração global única de IA;
-- proteção cross-tenant de mídia;
-- criação de produto usando batch idempotente;
-- ausência de `DELETE FROM products` e `DELETE FROM categories` nas rotas administrativas.
+Os workflows da branch validam sintaxe JavaScript, migrations aditivas, ausência de `DROP` destrutivo, compatibilidade com dados existentes, isolamento entre empresas, idempotência por `operation_id`, proteção de `object_key` R2, configuração global única de IA, batch idempotente de produto, soft delete de catálogo e invariantes de RBAC. As últimas execuções após as alterações estruturais estão verdes.
 
 ## Pontos que NÃO podem ser aprovados apenas por análise estática
 
@@ -66,19 +69,20 @@ Estes itens permanecem bloqueados até acesso operacional ao Cloudflare Preview:
 
 1. aplicar `20260817_radz_super_admin_phase1.sql` no D1 Preview;
 2. aplicar `20260817_radz_super_admin_phase2_5.sql` no D1 Preview;
-3. criar Super Admin individual no D1 Preview;
-4. validar login real por e-mail/senha e revogação de sessão;
-5. criar duas empresas fictícias e executar matriz autenticada A ↔ B;
-6. validar upload real no R2 Preview;
-7. validar limite de armazenamento real;
-8. testar R2 salva / D1 falha;
-9. testar D1 disponível / R2 falha;
-10. validar lixeira e referências reais;
-11. validar objetos antigos sem metadados e estratégia de backfill;
-12. habilitar e testar impersonação apenas após auditoria real das ações;
-13. validar o Preview do configurador contra a referência de mídia do commit `7dda575`;
-14. validar o domínio de produção separado do Preview;
-15. somente depois considerar merge/publicação.
+3. aplicar `20260817_radz_rbac_assignments.sql` no D1 Preview;
+4. consultar `/radz/api/readiness` no runtime Preview;
+5. criar Super Admin individual no D1 Preview;
+6. validar login real por e-mail/senha, Financeiro, Suporte e revogação de sessão;
+7. criar duas empresas fictícias e executar matriz autenticada A ↔ B;
+8. validar upload real no R2 Preview;
+9. validar limite de armazenamento real;
+10. testar R2 salva / D1 falha e D1 disponível / R2 falha;
+11. validar lixeira e referências reais;
+12. validar objetos antigos sem metadados e estratégia de backfill;
+13. habilitar e testar impersonação apenas após auditoria real das ações;
+14. validar o Preview do configurador contra a referência de mídia do commit `7dda575`;
+15. validar o domínio de produção separado do Preview;
+16. somente depois considerar merge/publicação.
 
 ## Regra de publicação
 
