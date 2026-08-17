@@ -55,6 +55,7 @@ const CONFIG = {
     {valor:3,rotulo:"3x — Mais Volumosa"}
   ],
   mediaConfigurador: [],
+  estoqueCombinacoes: {},
   configuradorTecidos: {},
   configurador: { id:"wave", nome:"Cortina Wave", ativo:true }
 };
@@ -91,134 +92,45 @@ function aplicarConfigurador(wave) {
     });
   }
   CONFIG.mediaConfigurador=Array.isArray(wave.midia)?wave.midia:[];
+  CONFIG.estoqueCombinacoes=wave.estoqueCombinacoes&&typeof wave.estoqueCombinacoes==='object'?wave.estoqueCombinacoes:{};
 }
 
 window.CONFIG=CONFIG;
 window.CONFIG_READY=(async()=>{
-  const params=
-    new URLSearchParams(
-      window.location.search
-    );
-
-  const requestedId=
-    String(
-      params.get("id") ||
-      "wave"
-    )
-      .trim()
-      .toLowerCase();
-
-  const curtainIds=
-    new Set([
-      "wave",
-      "prega-macho",
-      "cortina-varao"
-    ]);
-
-  const configuratorId=
-    curtainIds.has(requestedId)
-      ? requestedId
-      : "wave";
+  const params=new URLSearchParams(window.location.search);
+  const requestedId=String(params.get("id")||"wave").trim().toLowerCase();
+  const curtainIds=new Set(["wave","prega-macho","cortina-varao"]);
+  const configuratorId=curtainIds.has(requestedId)?requestedId:"wave";
 
   try{
-    const configUrl=
-      configuratorId==="wave"
-        ? "/api/configurators/wave"
-        : "/api/configurators/" +
-          encodeURIComponent(
-            configuratorId
-          );
-
-    const [siteResp,cfgResp]=
-      await Promise.all([
-        fetch(
-          "/api/store-config",
-          {
-            cache:"no-store"
-          }
-        ),
-        fetch(
-          configUrl,
-          {
-            cache:"no-store"
-          }
-        )
-      ]);
+    const configUrl=configuratorId==="wave"?"/api/configurators/wave":"/api/configurators/"+encodeURIComponent(configuratorId);
+    const [siteResp,cfgResp]=await Promise.all([
+      fetch("/api/store-config",{cache:"no-store"}),
+      fetch(configUrl,{cache:"no-store"})
+    ]);
 
     if(siteResp.ok){
-      const d=
-        await siteResp.json();
-
-      if(
-        d?.ok &&
-        d.config
-      ){
-        mesclarConfig(
-          CONFIG,
-          d.config
-        );
-      }
+      const d=await siteResp.json();
+      if(d?.ok&&d.config)mesclarConfig(CONFIG,d.config);
     }
 
     if(cfgResp.ok){
-      const d=
-        await cfgResp.json();
-
-      const cfg=
-        d?.wave ||
-        d?.configurator;
-
-      if(
-        d?.ok &&
-        cfg
-      ){
-        aplicarConfigurador(
-          cfg
-        );
-
-        CONFIG.configurador.id=
-          cfg.id ||
-          configuratorId;
-
-        CONFIG.configurador.modelo=
-          cfg.modelo ||
-          (
-            configuratorId==="prega-macho"
-              ? "Prega Macho"
-              : configuratorId==="cortina-varao"
-                ? "Ilhós"
-                : "Wave"
-          );
-
-        CONFIG.configurador.descricao=
-          cfg.descricao ||
-          "";
-
-        console.info(
-          "Configurador carregado do Admin:",
-          configuratorId,
-          d.source ||
-          "",
-          d.updatedAt ||
-          ""
-        );
+      const d=await cfgResp.json();
+      const cfg=d?.wave||d?.configurator;
+      if(d?.ok&&cfg){
+        aplicarConfigurador(cfg);
+        CONFIG.configurador.id=cfg.id||configuratorId;
+        CONFIG.configurador.modelo=cfg.modelo||(configuratorId==="prega-macho"?"Prega Macho":configuratorId==="cortina-varao"?"Ilhós":"Wave");
+        CONFIG.configurador.descricao=cfg.descricao||"";
+        console.info("Configurador carregado do Admin:",configuratorId,d.source||"",d.updatedAt||"");
       }else{
-        console.warn(
-          "API respondeu sem configuração válida.",
-          d
-        );
+        console.warn("API respondeu sem configuração válida.",d);
       }
     }else{
-      console.warn(
-        "Falha HTTP ao carregar configurador:",
-        cfgResp.status
-      );
+      console.warn("Falha HTTP ao carregar configurador:",cfgResp.status);
     }
   }catch(erro){
-    console.warn(
-      "Configuração remota indisponível; usando fallback local.",
-      erro
-    );
+    console.warn("Configuração remota indisponível; usando fallback local.",erro);
   }
 
   return CONFIG;
