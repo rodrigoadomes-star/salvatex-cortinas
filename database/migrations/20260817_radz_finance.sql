@@ -74,6 +74,7 @@ SELECT
   b.external_charge_id,
   'Importado da cobrança legada por loja.',
   json_object(
+    'source','legacy',
     'legacyBillingId',b.id,
     'storeId',b.store_id,
     'grossSalesCents',COALESCE(b.gross_sales_cents,0),
