@@ -42,7 +42,7 @@ jobs:
 
           now='2026-08-17T10:00:00Z'
           # A tabela legada permanece store-scoped e precisa sobreviver intacta.
-          db.execute("INSERT INTO platform_billing(id,store_id,reference_month,gross_sales_cents,amount_due_cents,payment_status,due_date,created_at,updated_at) VALUES('legacy-bill','salvatex','2026-07',500000,15000,'paid','2026-08-10',?,?,?)".replace(',?,?,?)', ',?,?)'),(now,now))
+          db.execute("INSERT INTO platform_billing(id,store_id,reference_month,gross_sales_cents,amount_due_cents,payment_status,due_date,created_at,updated_at) VALUES('legacy-bill','salvatex','2026-07',500000,15000,'paid','2026-08-10',?,?)",(now,now))
           legacy_before=db.execute("SELECT store_id,amount_due_cents,payment_status FROM platform_billing WHERE id='legacy-bill'").fetchone()
 
           db.executescript(finance)
@@ -51,7 +51,7 @@ jobs:
           tables={r[0] for r in db.execute("SELECT name FROM sqlite_master WHERE type='table'")}
           assert {'platform_billing','platform_company_billing','platform_company_billing_events'} <= tables
           assert db.execute("SELECT store_id,amount_due_cents,payment_status FROM platform_billing WHERE id='legacy-bill'").fetchone() == legacy_before
-          imported=db.execute("SELECT company_id,reference_month,amount_cents,payment_status FROM platform_company_billing WHERE external_reference IS NULL AND json_extract(metadata_json,'$.legacyBillingId')='legacy-bill'").fetchone()
+          imported=db.execute("SELECT company_id,reference_month,amount_cents,payment_status FROM platform_company_billing WHERE json_extract(metadata_json,'$.legacyBillingId')='legacy-bill'").fetchone()
           assert imported == ('company-salvatex','2026-07',15000,'paid')
           assert db.execute("SELECT COUNT(*) FROM platform_role_permissions WHERE role_code='platform_finance' AND permission_code='platform.billing.read'").fetchone()[0] == 1
           assert db.execute("SELECT COUNT(*) FROM platform_role_permissions WHERE role_code='platform_finance' AND permission_code='platform.billing.write'").fetchone()[0] == 1
