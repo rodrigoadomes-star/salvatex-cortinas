@@ -21,17 +21,36 @@
     return String(midia.capa||midia.imagens?.find(src=>String(src||"").trim())||"").trim();
   }
 
-  function temFotoParaForro(forro){
+  function coresDoTecido(){
+    const diretas=Array.isArray(CONFIG.cores?.[state.tecido])?CONFIG.cores[state.tecido]:[];
+    if(diretas.length)return diretas;
+
+    const tecidoConfig=CONFIG.configuradorTecidos?.[state.tecido]||{};
+    if(Array.isArray(tecidoConfig.cores)&&tecidoConfig.cores.length)return tecidoConfig.cores;
+
     const lista=Array.isArray(CONFIG.mediaConfigurador)?CONFIG.mediaConfigurador:[];
     const tecidoBusca=normalizarChaveMidia(state.tecido);
-    const modeloBusca=normalizarChaveMidia(state.modelo||"Wave");
-    const forroBusca=normalizarForroMidia(forro);
+    return [...new Set(lista
+      .filter(item=>normalizarChaveMidia(item?.tecido)===tecidoBusca)
+      .map(item=>String(item?.cor||"").trim())
+      .filter(Boolean))];
+  }
 
-    return lista.some(item=>
-      normalizarChaveMidia(item.tecido)===tecidoBusca&&
-      normalizarChaveMidia(item.modelo||"Wave")===modeloBusca&&
-      normalizarForroMidia(item.forro)===forroBusca&&
-      temFoto(item)
+  function temFotoParaForro(forro){
+    /*
+      Usa exatamente o mesmo resolver de mídia das cores e do carrossel.
+      Isso evita divergência de nomes como "Ilhós", "Cortina de Ilhós"
+      e "Varão", além das variações comerciais dos nomes de forro.
+    */
+    return coresDoTecido().some(cor=>
+      temFoto(
+        obterMidiaAdmin(
+          state.tecido,
+          state.modelo,
+          cor,
+          forro
+        )
+      )
     );
   }
 
