@@ -34,7 +34,7 @@ const PAGE_BOOTSTRAP=`
 </script>`;
 
 class HeadBootstrap{element(element){element.prepend(PAGE_BOOTSTRAP,{html:true});}}
-class ProductionConfiguratorScripts{element(element){element.append('<script src="/js/configurador-media-forro.js?v=20260816-prod-final-3"></script><script src="/js/configurador-media-strict.js?v=20260816-prod-final-3"></script>',{html:true});}}
+class ProductionConfiguratorScripts{element(element){element.append('<script src="/js/configurador-media-strict.js?v=20260816-prod-final-4"></script><script src="/js/configurador-media-forro.js?v=20260816-prod-final-4"></script>',{html:true});}}
 
 export async function onRequest(context){
   const url=new URL(context.request.url);
