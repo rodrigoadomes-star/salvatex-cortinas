@@ -37,12 +37,17 @@ export async function trackedStorageBytes(db,companyId){
 export async function registerPlatformMedia(db,{companyId,storeId,key,originalName,mimeType,sizeBytes,checksum=null,userId=null,metadata={}}){
   if(!db||!companyId||!key)return {tracked:false,reason:'invalid'};
   if(!await hasTable(db,'platform_media_objects'))return {tracked:false,reason:'migration_pending'};
+  const expectedPrefix=storeId?`companies/${companyId}/stores/${storeId}/`:`companies/${companyId}/`;
+  if(!String(key).startsWith(expectedPrefix))return {tracked:false,reason:'tenant_prefix_mismatch'};
   const now=new Date().toISOString();
   try{
-    const existing=await db.prepare(`SELECT id FROM platform_media_objects WHERE object_key=?1 LIMIT 1`).bind(key).first();
+    const existing=await db.prepare(`SELECT id,company_id,store_id FROM platform_media_objects WHERE object_key=?1 LIMIT 1`).bind(key).first();
     if(existing){
-      await db.prepare(`UPDATE platform_media_objects SET status='active',size_bytes=?1,mime_type=?2,original_filename=?3,checksum=?4,metadata_json=?5,deleted_at=NULL,purge_after=NULL,updated_at=?6 WHERE id=?7 AND company_id=?8`)
-        .bind(Number(sizeBytes||0),mimeType||null,originalName||null,checksum||null,JSON.stringify(metadata||{}),now,existing.id,companyId).run();
+      if(existing.company_id!==companyId)return {tracked:false,reason:'cross_tenant_object_key'};
+      if(storeId&&existing.store_id&&existing.store_id!==storeId)return {tracked:false,reason:'cross_store_object_key'};
+      const result=await db.prepare(`UPDATE platform_media_objects SET status='active',store_id=COALESCE(store_id,?1),size_bytes=?2,mime_type=?3,original_filename=?4,checksum=?5,metadata_json=?6,deleted_at=NULL,purge_after=NULL,updated_at=?7 WHERE id=?8 AND company_id=?9`)
+        .bind(storeId||null,Number(sizeBytes||0),mimeType||null,originalName||null,checksum||null,JSON.stringify(metadata||{}),now,existing.id,companyId).run();
+      if(!Number(result?.meta?.changes||0))return {tracked:false,reason:'tenant_update_rejected'};
       return {tracked:true,id:existing.id,reused:true};
     }
     const id=crypto.randomUUID();
@@ -59,16 +64,18 @@ export async function registerPlatformMedia(db,{companyId,storeId,key,originalNa
 
 export async function markPlatformMediaTrash(db,{companyId,key,retentionDays=30}){
   if(!db||!companyId||!key||!await hasTable(db,'platform_media_objects'))return {tracked:false};
+  if(!String(key).startsWith(`companies/${companyId}/`))return {tracked:false,reason:'tenant_prefix_mismatch'};
   const now=new Date(),purge=new Date(now.getTime()+Math.max(1,Number(retentionDays||30))*86400000);
   try{
-    await db.prepare(`UPDATE platform_media_objects SET status='trash',deleted_at=?1,purge_after=?2,updated_at=?1 WHERE company_id=?3 AND object_key=?4`)
+    const result=await db.prepare(`UPDATE platform_media_objects SET status='trash',deleted_at=?1,purge_after=?2,updated_at=?1 WHERE company_id=?3 AND object_key=?4`)
       .bind(now.toISOString(),purge.toISOString(),companyId,key).run();
-    return {tracked:true};
+    return {tracked:Number(result?.meta?.changes||0)>0};
   }catch{return {tracked:false}}
 }
 
 export async function activeMediaReferences(db,{companyId,key}){
   if(!db||!companyId||!key||!await hasTable(db,'platform_media_references')||!await hasTable(db,'platform_media_objects'))return null;
+  if(!String(key).startsWith(`companies/${companyId}/`))return null;
   try{
     const row=await db.prepare(`SELECT COUNT(*) total
       FROM platform_media_references r
