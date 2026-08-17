@@ -14,7 +14,13 @@ jobs:
       - name: Check advanced JavaScript syntax
         run: |
           node --check functions/radz/api/advanced.js
+          node --check functions/radz/api/ai-settings.js
+          node --check functions/admin/api/_platform-usage.js
+          node --check functions/admin/api/catalog/products/index.js
+          node --check functions/admin/api/media/upload.js
+          node --check functions/admin/api/media/delete.js
           node --check radz-admin/radz-admin-advanced.js
+          node --check radz-admin/radz-admin-ai-settings-fix.js
       - name: Validate additive migrations and multiempresa invariants
         run: |
           python3 - <<'PY'
@@ -51,6 +57,7 @@ jobs:
           now='2026-08-17T03:00:00Z'
           db.execute("INSERT INTO platform_companies(id,slug,trade_name,legal_name,document_type,document_number,email,phone,status,plan_code,created_at,updated_at) VALUES('test-a','test-a','Teste A','Teste A','cnpj','00000000000100','a@test.local','', 'trial','free',?,?)",(now,now))
           db.execute("INSERT INTO platform_companies(id,slug,trade_name,legal_name,document_type,document_number,email,phone,status,plan_code,created_at,updated_at) VALUES('test-b','test-b','Teste B','Teste B','cnpj','00000000000200','b@test.local','', 'trial','free',?,?)",(now,now))
+
           db.execute("INSERT INTO platform_categories(id,company_id,name,slug,created_at,updated_at) VALUES('ca','test-a','Cortinas','cortinas',?,?)",(now,now))
           db.execute("INSERT INTO platform_categories(id,company_id,name,slug,created_at,updated_at) VALUES('cb','test-b','Cortinas','cortinas',?,?)",(now,now))
           try:
@@ -74,7 +81,21 @@ jobs:
           except sqlite3.IntegrityError:
             pass
 
+          # A configuração global de IA deve ter no máximo uma linha. O endpoint
+          # usa UPDATE + INSERT condicional porque company_id global é NULL.
+          db.execute("INSERT INTO platform_ai_settings(scope,company_id,enabled,prompt,instructions,forbidden_words_json,fallback_json,settings_json,updated_at) VALUES('global',NULL,0,'','','[]','{}','{}',?)",(now,))
+          try:
+            db.execute("INSERT INTO platform_ai_settings(scope,company_id,enabled,prompt,instructions,forbidden_words_json,fallback_json,settings_json,updated_at) VALUES('global',NULL,1,'','','[]','{}','{}',?)",(now,))
+            raise AssertionError('second global AI row accepted')
+          except sqlite3.IntegrityError:
+            pass
+          assert db.execute("SELECT COUNT(*) FROM platform_ai_settings WHERE scope='global'").fetchone()[0] == 1
+
           db.executescript(adv)
           assert db.execute("SELECT COUNT(*) FROM platform_categories WHERE company_id IN ('test-a','test-b')").fetchone()[0] == 2
-          print('RADZ advanced schema validated')
+          assert 'metadata.reason===\'write_failed\'' in Path('functions/admin/api/media/upload.js').read_text()
+          assert 'storage_bytes' in Path('functions/admin/api/media/upload.js').read_text()
+          assert 'product_created' in Path('functions/admin/api/catalog/products/index.js').read_text()
+          assert "UPDATE platform_ai_settings" in Path('functions/radz/api/ai-settings.js').read_text()
+          print('RADZ advanced schema and integration invariants validated')
           PY
