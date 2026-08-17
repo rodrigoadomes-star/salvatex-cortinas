@@ -25,22 +25,22 @@
   }
 
   function emEstoque(tecido,cor,forro,midia){
-    // Regra hierárquica:
-    // 1) Geral desligado = cor indisponível em TODOS os forros.
-    // 2) Geral ligado = cada forro decide sua própria disponibilidade.
     return corGlobalAtiva(tecido,cor)&&combinacaoAtiva(tecido,cor,forro,midia);
   }
 
   function disponivel(cor,forro){
+    if(!String(forro||'').trim())return false;
     const midia=obterMidiaAdmin(state.tecido,state.modelo,cor,forro);
     return !!midia&&temFoto(midia)&&emEstoque(state.tecido,cor,forro,midia);
   }
 
   function midiaExata(cor,forro){
+    if(!String(forro==null?state.forro:forro||'').trim())return null;
     return obterMidiaAdmin(state.tecido,state.modelo,cor,forro==null?state.forro:forro);
   }
 
   function capaDaSelecao(cor){
+    if(!state.forro)return "";
     const midia=midiaExata(cor,state.forro);
     if(!midia||!emEstoque(state.tecido,cor,state.forro,midia)||!temFoto(midia))return "";
     return String(midia.capa||midia.imagens?.find(src=>String(src||"").trim())||"").trim();
@@ -57,6 +57,7 @@
   }
 
   function temFotoParaForro(forro){
+    if(!String(forro||'').trim())return false;
     return coresDoTecido().some(cor=>disponivel(cor,forro));
   }
 
@@ -75,6 +76,14 @@
     try{if(typeof pararVideoAtual==='function')pararVideoAtual();}catch(_){}
     atualizarPreview();
     atualizarOrcamento();
+  }
+
+  function mostrarAvisoCores(container,texto){
+    container.innerHTML="";
+    const aviso=document.createElement("div");
+    aviso.className="cores-sem-foto";
+    aviso.textContent=texto;
+    container.appendChild(aviso);
   }
 
   function atualizarForrosDisponiveis(){
@@ -100,7 +109,10 @@
         container.appendChild(aviso);
       }
       state.forro="";
+      state.cor="";
       cards.forEach(card=>card.classList.remove("selected"));
+      const coresContainer=document.getElementById("cores-choice");
+      if(coresContainer)mostrarAvisoCores(coresContainer,"Nenhuma cor disponível porque não há opção de forro disponível no momento.");
       limparPreviewSemDisponibilidade();
       return false;
     }
@@ -121,16 +133,21 @@
   atualizarCores=function(){
     const container=document.getElementById("cores-choice");
     if(!container)return;
+
+    if(!String(state.forro||'').trim()){
+      state.cor="";
+      mostrarAvisoCores(container,"Nenhuma cor disponível porque não há opção de forro disponível no momento.");
+      limparPreviewSemDisponibilidade();
+      return;
+    }
+
     const todasCores=CONFIG.cores?.[state.tecido]||[];
     const cores=todasCores.filter(cor=>disponivel(cor,state.forro));
     if(!cores.includes(state.cor))state.cor=cores[0]||"";
     container.innerHTML="";
 
     if(!cores.length){
-      const aviso=document.createElement("div");
-      aviso.className="cores-sem-foto";
-      aviso.textContent="Nenhuma cor disponível para este forro no momento.";
-      container.appendChild(aviso);
+      mostrarAvisoCores(container,"Nenhuma cor disponível para este forro no momento.");
       limparPreviewSemDisponibilidade();
       return;
     }
@@ -185,9 +202,13 @@
 
   function sincronizarTudo(){
     const temForro=atualizarForrosDisponiveis();
+    if(!temForro){
+      limparPreviewSemDisponibilidade();
+      return;
+    }
     atualizarCores();
     previewIndex=0;
-    if(temForro&&state.cor)Promise.resolve(carregarFotosCarrossel()).catch(()=>{});
+    if(state.cor)Promise.resolve(carregarFotosCarrossel()).catch(()=>{});
     else limparPreviewSemDisponibilidade();
   }
 
