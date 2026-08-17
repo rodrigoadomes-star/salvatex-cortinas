@@ -1,7 +1,7 @@
 import { json, requireRadzAdmin } from './_auth.js';
 
 const GROUPS={
-  phase1:['platform_company_profile','platform_plans','platform_plan_limits','platform_feature_catalog','platform_plan_features','platform_company_limit_overrides','platform_settings','platform_auth_attempts'],
+  phase1:['platform_company_profile','platform_plans','platform_plan_limits','platform_feature_catalog','platform_plan_features','platform_company_limit_overrides','platform_company_feature_overrides','platform_settings','platform_auth_attempts'],
   advanced:['platform_categories','platform_attributes','platform_attribute_values','platform_category_attributes','platform_ai_settings','platform_usage_events','platform_generation_jobs','platform_layout_templates','platform_payment_providers','platform_company_payment_providers','platform_shipping_methods','platform_company_shipping_methods','platform_roles','platform_permissions','platform_role_permissions','platform_support_sessions','platform_media_objects','platform_media_references','platform_integrity_incidents'],
   rbac:['platform_user_roles'],
   finance:['platform_company_billing','platform_company_billing_events'],
