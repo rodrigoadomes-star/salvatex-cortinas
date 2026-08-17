@@ -55,6 +55,7 @@ const CONFIG = {
     {valor:3,rotulo:"3x — Mais Volumosa"}
   ],
   mediaConfigurador: [],
+  estoqueCombinacoes: {},
   configuradorTecidos: {},
   configurador: { id:"wave", nome:"Cortina Wave", ativo:true }
 };
@@ -91,6 +92,9 @@ function aplicarConfigurador(wave) {
     });
   }
   CONFIG.mediaConfigurador=Array.isArray(wave.midia)?wave.midia:[];
+  CONFIG.estoqueCombinacoes=wave.estoqueCombinacoes&&typeof wave.estoqueCombinacoes==="object"
+    ? {...wave.estoqueCombinacoes}
+    : {};
 }
 
 window.CONFIG=CONFIG;
