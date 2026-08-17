@@ -1,0 +1,37 @@
+name: Configurator media regression checks
+
+on:
+  push:
+    branches: [fix-configurator-media-regression-20260817]
+  pull_request:
+    branches: [main]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check JavaScript syntax
+        run: |
+          node --check js/configurador-media-strict.js
+          node --check js/configurador-media-forro.js
+          node --check js/admin-configurator-media-dedupe.js
+          node --check js/admin-configurator-combination-stock.js
+          node --check js/admin-configurator-media-controls.js
+          node --check functions/_middleware.js
+      - name: Assert media regression invariants
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          strict = Path('js/configurador-media-strict.js').read_text()
+          dedupe = Path('js/admin-configurator-media-dedupe.js').read_text()
+          middleware = Path('functions/_middleware.js').read_text()
+          admin = Path('admin/index.html').read_text()
+
+          assert '[...lista].reverse().find' in strict, 'Public resolver must use latest matching record'
+          assert 'baseComConteudo' not in strict, 'Old-media fallback must not return'
+          assert 'map.delete(k)' in dedupe and 'map.set(k,clone(item))' in dedupe, 'Admin must keep latest duplicate'
+          assert 'admin-configurator-media-dedupe.js' in admin, 'Admin dedupe layer must be loaded'
+          assert 'media-stable-20260817-1' in middleware and 'media-stable-20260817-1' in admin, 'Cache version must be synchronized'
+          print('Configurator media regression invariants OK')
+          PY
