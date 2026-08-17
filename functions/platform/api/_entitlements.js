@@ -39,7 +39,7 @@ export async function getEffectiveFeatures(db, companyId) {
   const company = await db.prepare("SELECT plan_code FROM platform_companies WHERE id=?1").bind(companyId).first();
   if (!company) return [];
   const rows = await db.prepare(`SELECT fc.feature_key,fc.name,fc.description,fc.global_enabled,
-      COALESCE(pf.enabled,0) plan_enabled,
+      pf.feature_key plan_feature_key,pf.enabled plan_enabled,pf.settings_json plan_settings,
       co.state company_state,co.settings_json company_settings,co.expires_at,
       legacy.enabled legacy_enabled,legacy.settings_json legacy_settings
     FROM platform_feature_catalog fc
@@ -53,23 +53,43 @@ export async function getEffectiveFeatures(db, companyId) {
   return (rows.results || []).map((row) => {
     let state = row.company_state || "inherit";
     if (row.expires_at && Date.parse(row.expires_at) <= now) state = "inherit";
-    // Compatibilidade: se o plano ainda não foi configurado para um recurso antigo,
-    // preserva o valor legado da empresa. O novo modelo passa a prevalecer assim
-    // que houver configuração explícita no plano ou override.
-    let planEnabled = Boolean(row.plan_enabled);
-    if (!row.plan_enabled && row.legacy_enabled != null && state === "inherit") planEnabled = Boolean(row.legacy_enabled);
+
+    const hasExplicitPlanRule = row.plan_feature_key != null;
+    let planEnabled = hasExplicitPlanRule ? Boolean(row.plan_enabled) : false;
+
+    // Compatibilidade: somente quando NÃO há registro explícito no plano,
+    // preserva a antiga configuração platform_features da empresa.
+    // Assim, um plano configurado explicitamente com enabled=0 continua bloqueado.
+    if (!hasExplicitPlanRule && row.legacy_enabled != null && state === "inherit") {
+      planEnabled = Boolean(row.legacy_enabled);
+    }
+
     let enabled = false;
-    if (!row.global_enabled) enabled = false;
-    else if (state === "deny") enabled = false;
-    else if (state === "allow") enabled = true;
-    else enabled = planEnabled;
+    let source = "plan";
+    if (!row.global_enabled) {
+      enabled = false;
+      source = "global_block";
+    } else if (state === "deny") {
+      enabled = false;
+      source = "company_override";
+    } else if (state === "allow") {
+      enabled = true;
+      source = "company_override";
+    } else if (hasExplicitPlanRule) {
+      enabled = planEnabled;
+      source = "plan";
+    } else if (row.legacy_enabled != null) {
+      enabled = planEnabled;
+      source = "legacy_company";
+    }
+
     return {
       feature_key: row.feature_key,
       name: row.name,
       description: row.description,
       enabled,
-      source: !row.global_enabled ? "global_block" : state !== "inherit" ? "company_override" : row.plan_enabled ? "plan" : row.legacy_enabled != null ? "legacy_company" : "plan",
-      settings_json: row.company_settings || row.legacy_settings || "{}",
+      source,
+      settings_json: row.company_settings || (hasExplicitPlanRule ? row.plan_settings : null) || row.legacy_settings || "{}",
     };
   });
 }
