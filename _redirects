@@ -1,4 +1,7 @@
-/ /platform/ 302
+/platform/cadastro /cadastro 301
+/platform/cadastro/ /cadastro 301
+/platform/login /login 301
+/platform/login/ /login 301
 /radz /radz-admin/ 301
 /radz/ /radz-admin/ 301
 /admin /admin/ 301
