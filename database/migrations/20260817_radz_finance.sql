@@ -1,9 +1,10 @@
 PRAGMA foreign_keys = ON;
 
 -- RADZ HUB — camada financeira da plataforma.
--- Migration aditiva. Não altera nem remove registros existentes.
+-- Migration aditiva. Não altera nem remove a tabela legada platform_billing,
+-- que continua vinculada a store_id e pode conter dados históricos.
 
-CREATE TABLE IF NOT EXISTS platform_billing (
+CREATE TABLE IF NOT EXISTS platform_company_billing (
   id TEXT PRIMARY KEY,
   company_id TEXT NOT NULL,
   reference_month TEXT NOT NULL,
@@ -25,14 +26,14 @@ CREATE TABLE IF NOT EXISTS platform_billing (
   FOREIGN KEY (updated_by_user_id) REFERENCES platform_users(id)
 );
 
-CREATE UNIQUE INDEX IF NOT EXISTS idx_platform_billing_company_month
-  ON platform_billing(company_id, reference_month);
-CREATE INDEX IF NOT EXISTS idx_platform_billing_status_due
-  ON platform_billing(payment_status, due_at);
-CREATE INDEX IF NOT EXISTS idx_platform_billing_company_updated
-  ON platform_billing(company_id, updated_at DESC);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_platform_company_billing_month
+  ON platform_company_billing(company_id, reference_month);
+CREATE INDEX IF NOT EXISTS idx_platform_company_billing_status_due
+  ON platform_company_billing(payment_status, due_at);
+CREATE INDEX IF NOT EXISTS idx_platform_company_billing_updated
+  ON platform_company_billing(company_id, updated_at DESC);
 
-CREATE TABLE IF NOT EXISTS platform_billing_events (
+CREATE TABLE IF NOT EXISTS platform_company_billing_events (
   id TEXT PRIMARY KEY,
   billing_id TEXT NOT NULL,
   company_id TEXT NOT NULL,
@@ -42,11 +43,45 @@ CREATE TABLE IF NOT EXISTS platform_billing_events (
   to_status TEXT,
   payload_json TEXT NOT NULL DEFAULT '{}',
   created_at TEXT NOT NULL,
-  FOREIGN KEY (billing_id) REFERENCES platform_billing(id),
+  FOREIGN KEY (billing_id) REFERENCES platform_company_billing(id),
   FOREIGN KEY (company_id) REFERENCES platform_companies(id),
   FOREIGN KEY (actor_user_id) REFERENCES platform_users(id)
 );
-CREATE INDEX IF NOT EXISTS idx_platform_billing_events_bill
-  ON platform_billing_events(billing_id, created_at DESC);
-CREATE INDEX IF NOT EXISTS idx_platform_billing_events_company
-  ON platform_billing_events(company_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_platform_company_billing_events_bill
+  ON platform_company_billing_events(billing_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_platform_company_billing_events_company
+  ON platform_company_billing_events(company_id, created_at DESC);
+
+-- Backfill não destrutivo da cobrança legada por loja para a empresa vinculada.
+-- INSERT OR IGNORE torna a migration idempotente e preserva qualquer cobrança
+-- já criada diretamente no novo modelo.
+INSERT OR IGNORE INTO platform_company_billing(
+  id,company_id,reference_month,amount_cents,payment_status,due_at,paid_at,
+  provider_code,external_reference,notes,metadata_json,created_at,updated_at
+)
+SELECT
+  'legacy-' || b.id,
+  pcs.company_id,
+  b.reference_month,
+  COALESCE(b.amount_due_cents,0),
+  CASE
+    WHEN b.payment_status IN ('pending','paid','overdue','cancelled','refunded','waived') THEN b.payment_status
+    ELSE 'pending'
+  END,
+  b.due_date,
+  b.paid_at,
+  NULL,
+  b.external_charge_id,
+  'Importado da cobrança legada por loja.',
+  json_object(
+    'legacyBillingId',b.id,
+    'storeId',b.store_id,
+    'grossSalesCents',COALESCE(b.gross_sales_cents,0),
+    'feePercent',COALESCE(b.fee_percent,0),
+    'minimumFeeCents',COALESCE(b.minimum_fee_cents,0),
+    'paymentMethod',COALESCE(b.payment_method,'')
+  ),
+  b.created_at,
+  b.updated_at
+FROM platform_billing b
+JOIN platform_company_stores pcs ON pcs.store_id=b.store_id;
