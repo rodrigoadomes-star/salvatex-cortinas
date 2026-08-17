@@ -16,7 +16,13 @@ jobs:
           node --check functions/radz/api/advanced.js
           node --check functions/radz/api/ai-settings.js
           node --check functions/admin/api/_platform-usage.js
+          node --check functions/admin/api/_permissions.js
           node --check functions/admin/api/catalog/products/index.js
+          node --check functions/admin/api/catalog/products/[id].js
+          node --check functions/admin/api/catalog/categories/index.js
+          node --check functions/admin/api/catalog/categories/[id].js
+          node --check functions/admin/api/orders/index.js
+          node --check functions/admin/api/orders/[id].js
           node --check functions/admin/api/media/upload.js
           node --check functions/admin/api/media/delete.js
           node --check radz-admin/radz-admin-advanced.js
@@ -31,7 +37,8 @@ jobs:
           saas = Path('database/radzhub_saas_v1.sql').read_text()
           p1 = Path('database/migrations/20260817_radz_super_admin_phase1.sql').read_text()
           adv = Path('database/migrations/20260817_radz_super_admin_phase2_5.sql').read_text()
-          upper = adv.upper()
+          rbac = Path('database/migrations/20260817_radz_rbac_assignments.sql').read_text()
+          upper = (adv + '\n' + rbac).upper()
           forbidden = ['DROP TABLE','DROP COLUMN','DELETE FROM PLATFORM_COMPANIES','DELETE FROM PRODUCTS','DELETE FROM ORDERS']
           assert not [x for x in forbidden if x in upper]
 
@@ -57,6 +64,13 @@ jobs:
           now='2026-08-17T03:00:00Z'
           db.execute("INSERT INTO platform_companies(id,slug,trade_name,legal_name,document_type,document_number,email,phone,status,plan_code,created_at,updated_at) VALUES('test-a','test-a','Teste A','Teste A','cnpj','00000000000100','a@test.local','', 'trial','free',?,?)",(now,now))
           db.execute("INSERT INTO platform_companies(id,slug,trade_name,legal_name,document_type,document_number,email,phone,status,plan_code,created_at,updated_at) VALUES('test-b','test-b','Teste B','Teste B','cnpj','00000000000200','b@test.local','', 'trial','free',?,?)",(now,now))
+          db.execute("INSERT INTO platform_users(id,company_id,name,email,password_hash,password_salt,password_iterations,role,active,created_at,updated_at) VALUES('user-a','test-a','User A','ua@test.local','x','y',210000,'owner',1,?,?)",(now,now))
+          db.execute("INSERT INTO platform_users(id,company_id,name,email,password_hash,password_salt,password_iterations,role,active,created_at,updated_at) VALUES('user-b','test-b','User B','ub@test.local','x','y',210000,'manager',1,?,?)",(now,now))
+          db.executescript(rbac)
+          assert db.execute("SELECT COUNT(*) FROM platform_user_roles WHERE user_id='user-a' AND company_id='test-a' AND role_code='company_admin'").fetchone()[0] == 1
+          assert db.execute("SELECT COUNT(*) FROM platform_user_roles WHERE user_id='user-b' AND company_id='test-b' AND role_code='company_manager'").fetchone()[0] == 1
+          assert db.execute("SELECT COUNT(*) FROM platform_role_permissions WHERE role_code='company_manager' AND permission_code='company.orders.write'").fetchone()[0] == 1
+          assert db.execute("SELECT COUNT(*) FROM platform_role_permissions WHERE role_code='company_manager' AND permission_code='company.products.delete'").fetchone()[0] == 0
 
           db.execute("INSERT INTO platform_categories(id,company_id,name,slug,created_at,updated_at) VALUES('ca','test-a','Cortinas','cortinas',?,?)",(now,now))
           db.execute("INSERT INTO platform_categories(id,company_id,name,slug,created_at,updated_at) VALUES('cb','test-b','Cortinas','cortinas',?,?)",(now,now))
@@ -90,12 +104,17 @@ jobs:
           assert db.execute("SELECT COUNT(*) FROM platform_ai_settings WHERE scope='global'").fetchone()[0] == 1
 
           db.executescript(adv)
+          db.executescript(rbac)
           assert db.execute("SELECT COUNT(*) FROM platform_categories WHERE company_id IN ('test-a','test-b')").fetchone()[0] == 2
+          assert db.execute("SELECT COUNT(*) FROM platform_user_roles WHERE user_id IN ('user-a','user-b')").fetchone()[0] == 2
 
           upload = Path('functions/admin/api/media/upload.js').read_text()
           usage = Path('functions/admin/api/_platform-usage.js').read_text()
           delete = Path('functions/admin/api/media/delete.js').read_text()
           products = Path('functions/admin/api/catalog/products/index.js').read_text()
+          product_item = Path('functions/admin/api/catalog/products/[id].js').read_text()
+          orders = Path('functions/admin/api/orders/[id].js').read_text()
+          permissions = Path('functions/admin/api/_permissions.js').read_text()
           ai = Path('functions/radz/api/ai-settings.js').read_text()
 
           assert "metadata.reason!=='migration_pending'" in upload
@@ -107,6 +126,9 @@ jobs:
           assert 'storage_bytes' in upload
           assert "context.env.DB.batch([usageInsert,productInsert])" in products
           assert "duplicate:true" in products and "operationId" in products
+          assert "company.products.delete" in product_item
+          assert "company.orders.read" in orders and "company.orders.write" in orders
+          assert "platform_user_roles" in permissions and "platform_role_permissions" in permissions
           assert "UPDATE platform_ai_settings" in ai
-          print('RADZ advanced schema, tenant isolation, atomic idempotency and integration invariants validated')
+          print('RADZ advanced schema, tenant isolation, RBAC, atomic idempotency and integration invariants validated')
           PY
