@@ -1,0 +1,56 @@
+name: RADZ unified production checks
+
+on:
+  push:
+    branches: [radz-unified-production]
+  pull_request:
+    branches: [main]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check critical JavaScript syntax
+        run: |
+          node --check js/config.js
+          node --check js/configurador-media-strict.js
+          node --check js/configurador-media-forro.js
+          node --check js/admin-configurator-media-dedupe.js
+          node --check js/admin-configurator-combination-stock.js
+          node --check js/admin-configurator-media-controls.js
+          node --check js/radz-analytics.js
+          node --check functions/_middleware.js
+          node --check functions/index.js
+          node --check functions/radz/api/health.js
+          node --check radz-admin/radz-admin.js
+          node --check radz-admin/meta.js
+          node --check radz-admin/infra.js
+      - name: Assert storefront and RADZ invariants
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          config = Path('js/config.js').read_text()
+          strict = Path('js/configurador-media-strict.js').read_text()
+          admin = Path('admin/index.html').read_text()
+          middleware = Path('functions/_middleware.js').read_text()
+          root_fn = Path('functions/index.js').read_text()
+          radz_admin = Path('radz-admin/index.html').read_text()
+          health = Path('functions/radz/api/health.js').read_text()
+
+          assert 'estoqueCombinacoes' in config, 'Configurator combination stock state missing'
+          assert '[...lista].reverse().find' in strict, 'Latest media record must be authoritative'
+          assert 'baseComConteudo' not in strict, 'Legacy media fallback must not return'
+          assert 'admin-configurator-media-dedupe.js' in admin
+          assert 'admin-configurator-combination-stock.js' in admin
+          assert 'admin-configurator-media-controls.js' in admin
+          assert 'media-stable-20260817-1' in admin
+          assert 'media-stable-20260817-1' in middleware
+          assert 'site-bootstrap-script' in middleware, 'Storefront bootstrap missing'
+          assert 'radz-analytics.js' in middleware, 'RADZ analytics injection missing'
+          assert "h==='radz-hub.pages.dev'" in root_fn, 'RADZ Pages hostname must resolve to RADZ public site'
+          assert 'Infraestrutura' in radz_admin and 'infra.js' in radz_admin
+          assert 'Nenhum secret é exposto' in health
+          print('RADZ unified production invariants OK')
+          PY
