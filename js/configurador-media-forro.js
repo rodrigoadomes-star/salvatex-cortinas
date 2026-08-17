@@ -19,14 +19,17 @@
 
   function emEstoque(tecido,cor,forro,midia){
     const mapa=CONFIG.estoqueCombinacoes&&typeof CONFIG.estoqueCombinacoes==='object'?CONFIG.estoqueCombinacoes:{};
+    const keys=Object.keys(mapa);
     const k=stockKey(tecido,cor,forro);
 
-    // A combinação exata tem prioridade absoluta. Assim, Branco sem forro
-    // pode estar indisponível sem afetar Branco + Forro leve.
     if(Object.prototype.hasOwnProperty.call(mapa,k))return mapa[k]!==false;
 
-    // Compatibilidade apenas para configurações antigas que ainda não têm
-    // estoque por combinação salvo.
+    // Depois que o configurador migrou para estoque por combinação,
+    // uma combinação sem chave própria nasce disponível. Ela não herda
+    // mais o checkbox geral antigo da cor.
+    if(keys.length)return true;
+
+    // Compatibilidade apenas para configuradores ainda não migrados.
     if(!corGlobalAtiva(tecido,cor))return false;
     return midia?.estoque!==false;
   }
