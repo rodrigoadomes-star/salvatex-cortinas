@@ -1,10 +1,10 @@
 import { json, requireRadzAdmin } from './_auth.js';
 
 const GROUPS={
-  phase1:['platform_company_profile','platform_plans','platform_plan_limits','platform_feature_catalog','platform_plan_features','platform_company_limit_overrides','platform_company_feature_overrides','platform_settings','platform_auth_attempts'],
+  phase1:['platform_company_profile','platform_plans','platform_plan_limits','platform_feature_catalog','platform_plan_features','platform_company_limit_overrides','platform_settings','platform_auth_attempts'],
   advanced:['platform_categories','platform_attributes','platform_attribute_values','platform_category_attributes','platform_ai_settings','platform_usage_events','platform_generation_jobs','platform_layout_templates','platform_payment_providers','platform_company_payment_providers','platform_shipping_methods','platform_company_shipping_methods','platform_roles','platform_permissions','platform_role_permissions','platform_support_sessions','platform_media_objects','platform_media_references','platform_integrity_incidents'],
   rbac:['platform_user_roles'],
-  finance:['platform_billing','platform_billing_events'],
+  finance:['platform_company_billing','platform_company_billing_events'],
 };
 
 async function existingTables(db){
@@ -27,7 +27,7 @@ export async function onRequestGet(context){
     context.env.DB.prepare("SELECT COUNT(*) total FROM platform_users WHERE company_id IS NULL AND active=1").first().catch(()=>({total:0})),
     context.env.DB.prepare("SELECT COUNT(*) total FROM platform_sessions WHERE company_id IS NULL AND expires_at>datetime('now')").first().catch(()=>({total:0})),
     tables.has('platform_integrity_incidents')?context.env.DB.prepare("SELECT COUNT(*) total FROM platform_integrity_incidents WHERE status IN ('open','acknowledged')").first():Promise.resolve({total:null}),
-    tables.has('platform_billing')?context.env.DB.prepare("SELECT COUNT(*) total,SUM(CASE WHEN payment_status IN ('pending','overdue') THEN 1 ELSE 0 END) pending FROM platform_billing").first():Promise.resolve({total:null,pending:null}),
+    tables.has('platform_company_billing')?context.env.DB.prepare("SELECT COUNT(*) total,SUM(CASE WHEN payment_status IN ('pending','overdue') THEN 1 ELSE 0 END) pending FROM platform_company_billing").first():Promise.resolve({total:null,pending:null}),
   ]);
   const schemaReady=Object.values(groups).every(x=>x.ready);
   return json({
