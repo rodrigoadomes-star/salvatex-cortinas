@@ -1,12 +1,12 @@
 import {
   json,
-  requireAdmin,
   logAdmin
 } from "../_auth.js";
+import { requireAdminPermission } from "../_permissions.js";
 import { activeMediaReferences, markPlatformMediaTrash } from "../_platform-usage.js";
 
 export async function onRequestDelete(context) {
-  const auth = await requireAdmin(context);
+  const auth = await requireAdminPermission(context,"company.products.delete");
   if (!auth.ok) return auth.response;
   if (!context.env.MEDIA) return json({ok:false,message:"Binding R2 MEDIA não configurado."},503);
 
@@ -18,8 +18,6 @@ export async function onRequestDelete(context) {
     return json({ok:false,message:"Arquivo não informado ou fora do escopo desta empresa."},400);
   }
 
-  // A object_key enviada pelo navegador nunca decide sozinha o que pode ser
-  // apagado: o prefixo já foi validado contra a empresa/loja da sessão.
   let metadataRow=null;
   try{
     metadataRow=await context.env.DB.prepare(`SELECT id,status FROM platform_media_objects
@@ -39,9 +37,7 @@ export async function onRequestDelete(context) {
     return json({ok:true,key,trashed:true,purgeAfterDays:30});
   }
 
-  // Compatibilidade temporária: objetos antigos ainda sem metadados continuam
-  // com a exclusão física legada. Depois do backfill R2→D1, este caminho deixa
-  // de ser usado sem precisar quebrar as lojas existentes.
+  // Compatibilidade temporária para objetos antigos ainda sem metadados.
   await context.env.MEDIA.delete(key);
   await logAdmin(context.env.DB,"media_deleted_legacy","media",key,{metadataTracked:false},auth.storeId);
   return json({ok:true,key,deleted:true,legacy:true});
