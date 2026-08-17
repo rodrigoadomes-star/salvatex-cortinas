@@ -7,7 +7,7 @@ const STATUSES=new Set(['pending','paid','overdue','cancelled','refunded','waive
 
 async function tableExists(db,name){try{return Boolean(await db.prepare("SELECT 1 ok FROM sqlite_master WHERE type='table' AND name=?1 LIMIT 1").bind(name).first())}catch{return false}}
 async function requireBillingTables(context){
-  const ok=await tableExists(context.env.DB,'platform_billing')&&await tableExists(context.env.DB,'platform_billing_events');
+  const ok=await tableExists(context.env.DB,'platform_company_billing')&&await tableExists(context.env.DB,'platform_company_billing_events');
   return ok?null:json({ok:false,code:'MIGRATION_REQUIRED',message:'A migration financeira ainda não foi aplicada.',migration:'database/migrations/20260817_radz_finance.sql'},409);
 }
 
@@ -35,8 +35,8 @@ export async function onRequestGet(context){
         b.id billing_id,b.payment_status,b.amount_cents,b.reference_month,b.due_at,b.paid_at,b.notes,b.updated_at
       FROM platform_companies c
       LEFT JOIN platform_company_profile p ON p.company_id=c.id
-      LEFT JOIN platform_billing b ON b.id=(
-        SELECT bx.id FROM platform_billing bx
+      LEFT JOIN platform_company_billing b ON b.id=(
+        SELECT bx.id FROM platform_company_billing bx
         WHERE bx.company_id=c.id
         ORDER BY bx.reference_month DESC,bx.updated_at DESC LIMIT 1
       )
@@ -74,17 +74,17 @@ export async function onRequestPost(context){
   const company=await context.env.DB.prepare("SELECT id FROM platform_companies WHERE id=?1 LIMIT 1").bind(companyId).first();
   if(!company)return json({ok:false,message:'Empresa não encontrada.'},404);
   const now=new Date().toISOString(),id=crypto.randomUUID(),actor=auth.session.user_id||null;
-  const previous=await context.env.DB.prepare("SELECT id,payment_status FROM platform_billing WHERE company_id=?1 AND reference_month=?2 LIMIT 1").bind(companyId,referenceMonth).first();
+  const previous=await context.env.DB.prepare("SELECT id,payment_status FROM platform_company_billing WHERE company_id=?1 AND reference_month=?2 LIMIT 1").bind(companyId,referenceMonth).first();
   const billingId=previous?.id||id;
   const dueAt=body.dueAt?cleanText(body.dueAt,40):null,paidAt=status==='paid'?(body.paidAt?cleanText(body.paidAt,40):now):null;
   const notes=cleanText(body.notes,1000);
-  const upsert=context.env.DB.prepare(`INSERT INTO platform_billing(id,company_id,reference_month,amount_cents,payment_status,due_at,paid_at,notes,created_by_user_id,updated_by_user_id,created_at,updated_at)
+  const upsert=context.env.DB.prepare(`INSERT INTO platform_company_billing(id,company_id,reference_month,amount_cents,payment_status,due_at,paid_at,notes,created_by_user_id,updated_by_user_id,created_at,updated_at)
     VALUES(?1,?2,?3,?4,?5,?6,?7,?8,?9,?9,?10,?10)
     ON CONFLICT(company_id,reference_month) DO UPDATE SET amount_cents=excluded.amount_cents,payment_status=excluded.payment_status,due_at=excluded.due_at,paid_at=excluded.paid_at,notes=excluded.notes,updated_by_user_id=excluded.updated_by_user_id,updated_at=excluded.updated_at`)
     .bind(billingId,companyId,referenceMonth,amountCents,status,dueAt,paidAt,notes,actor,now);
-  const event=context.env.DB.prepare(`INSERT INTO platform_billing_events(id,billing_id,company_id,actor_user_id,event_type,from_status,to_status,payload_json,created_at)
+  const event=context.env.DB.prepare(`INSERT INTO platform_company_billing_events(id,billing_id,company_id,actor_user_id,event_type,from_status,to_status,payload_json,created_at)
     VALUES(?1,?2,?3,?4,?5,?6,?7,?8,?9)`).bind(crypto.randomUUID(),billingId,companyId,actor,previous?'billing_updated':'billing_created',previous?.payment_status||null,status,JSON.stringify({referenceMonth,amountCents,dueAt}),now);
   await context.env.DB.batch([upsert,event]);
-  await auditRadz(context,auth,previous?'billing.updated':'billing.created','platform_billing',billingId,{companyId,referenceMonth,status,amountCents});
+  await auditRadz(context,auth,previous?'billing.updated':'billing.created','platform_company_billing',billingId,{companyId,referenceMonth,status,amountCents});
   return json({ok:true,billingId,companyId,referenceMonth,paymentStatus:status,amountCents});
 }
