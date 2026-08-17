@@ -23,9 +23,10 @@ async function hmacKey(secret){
   );
 }
 
-export async function createMetaState(secret){
+export async function createMetaState(secret, companyId){
   const payload={
     provider:"meta",
+    companyId:String(companyId||""),
     iat:Date.now(),
     exp:Date.now()+10*60*1000,
     nonce:crypto.randomUUID()
