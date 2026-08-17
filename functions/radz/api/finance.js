@@ -3,6 +3,7 @@ import { json, requireRadzPermission, auditRadz } from './_auth.js';
 function clampDays(value){return Math.max(1,Math.min(366,Number(value||30)));}
 function cleanText(value,max=500){return String(value??'').trim().slice(0,max);}
 function month(value){const v=cleanText(value,7);return /^\d{4}-\d{2}$/.test(v)?v:'';}
+function parseObject(value){try{const parsed=JSON.parse(value||'{}');return parsed&&typeof parsed==='object'&&!Array.isArray(parsed)?parsed:{}}catch{return {}}}
 const STATUSES=new Set(['pending','paid','overdue','cancelled','refunded','waived']);
 
 async function tableExists(db,name){try{return Boolean(await db.prepare("SELECT 1 ok FROM sqlite_master WHERE type='table' AND name=?1 LIMIT 1").bind(name).first())}catch{return false}}
@@ -86,7 +87,7 @@ export async function onRequestGet(context){
     companyId:x.company_id,companyName:x.trade_name,planCode:x.plan_code,companyStatus:x.status,
     billingDueAt:x.billing_due_at,billingId:x.billing_id||null,paymentStatus:x.payment_status||'unknown',
     amountCents:Number(x.amount_cents||0),referenceMonth:x.reference_month||null,dueAt:x.due_at||null,
-    paidAt:x.paid_at||null,notes:x.notes||'',metadata:x.metadata_json?JSON.parse(x.metadata_json):{},updatedAt:x.updated_at||null,
+    paidAt:x.paid_at||null,notes:x.notes||'',metadata:parseObject(x.metadata_json),updatedAt:x.updated_at||null,
   }));
 
   return json({ok:true,periodDays:days,metrics:{
@@ -116,8 +117,9 @@ export async function onRequestPost(context){
   }
 
   const status=cleanText(body.paymentStatus||'pending',20);
-  const amountCents=Math.max(0,Math.trunc(Number(body.amountCents||0)));
-  if(!STATUSES.has(status)||!Number.isFinite(amountCents))return json({ok:false,message:'Valor ou status inválido.'},400);
+  const rawAmount=Number(body.amountCents);
+  if(!STATUSES.has(status)||!Number.isFinite(rawAmount)||rawAmount<0)return json({ok:false,message:'Valor ou status inválido.'},400);
+  const amountCents=Math.trunc(rawAmount);
   const now=new Date().toISOString();
   const dueAt=body.dueAt?cleanText(body.dueAt,40):null;
   const paidAt=status==='paid'?(body.paidAt?cleanText(body.paidAt,40):now):null;
