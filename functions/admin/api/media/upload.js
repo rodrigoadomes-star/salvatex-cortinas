@@ -1,9 +1,9 @@
 import {
   json,
-  requireAdmin,
   clean,
   logAdmin
 } from "../_auth.js";
+import { requireAdminPermission } from "../_permissions.js";
 import { getEffectiveLimits } from "../../../platform/api/_entitlements.js";
 import { recordPlatformUsage, registerPlatformMedia, trackedStorageBytes } from "../_platform-usage.js";
 
@@ -50,7 +50,7 @@ async function sha256Hex(buffer){
 }
 
 export async function onRequestGet(context) {
-  const auth = await requireAdmin(context);
+  const auth = await requireAdminPermission(context,"company.products.write");
   if (!auth.ok) return auth.response;
   const bytes=await trackedStorageBytes(context.env.DB,auth.companyId);
   let limit=null;
@@ -67,7 +67,7 @@ export async function onRequestGet(context) {
 }
 
 export async function onRequestPost(context) {
-  const auth = await requireAdmin(context);
+  const auth = await requireAdminPermission(context,"company.products.write");
   if (!auth.ok) return auth.response;
   if (!context.env.MEDIA) return json({ok:false,code:"R2_NOT_CONFIGURED",message:"R2 ainda não configurado. Vincule o bucket usando o binding MEDIA."},503);
 
@@ -127,8 +127,6 @@ export async function onRequestPost(context) {
     metadata:{configurator,tecido,cor,forro,kind}
   });
 
-  // Se o D1 avançado já estiver ativo, qualquer falha de segurança/consistência
-  // reverte o PUT no R2. Somente migration_pending mantém compatibilidade legada.
   if(!metadata.tracked && metadata.reason!=='migration_pending'){
     try{await context.env.MEDIA.delete(key)}catch(_){}
     await logAdmin(context.env.DB,"media_upload_compensated","media",key,{reason:metadata.reason||'unknown'},auth.storeId);
