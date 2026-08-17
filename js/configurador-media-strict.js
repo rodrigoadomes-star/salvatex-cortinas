@@ -30,19 +30,30 @@
     const c=normalizarChaveMidia(cor);
     const f=canonForro(forro);
 
-    const encontrados=lista.filter(item=>
+    // A API já entrega apenas o configurador atual. Por isso, primeiro tentamos
+    // o modelo exato e, se os registros antigos estiverem sem modelo ou com
+    // nomenclatura antiga, usamos a mesma combinação de tecido/cor/forro como fallback.
+    const base=lista.filter(item=>
       normalizarChaveMidia(item?.tecido)===t&&
-      canonModelo(item?.modelo||modelo||"Wave")===m&&
       normalizarChaveMidia(item?.cor)===c&&
       canonForro(item?.forro)===f
     );
 
-    if(!encontrados.length)return null;
+    if(!base.length)return null;
 
-    const comConteudo=encontrados.filter(temConteudo);
-    const fonte=(comConteudo.length?comConteudo:encontrados).at(-1);
+    const exatos=base.filter(item=>canonModelo(item?.modelo||"")===m);
+    const exatosComConteudo=exatos.filter(temConteudo);
+    const baseComConteudo=base.filter(temConteudo);
+
+    const encontrados=
+      exatosComConteudo.length?exatosComConteudo:
+      baseComConteudo.length?baseComConteudo:
+      exatos.length?exatos:
+      base;
+
+    const fonte=encontrados.at(-1);
     const todasImagens=[];
-    encontrados.forEach(item=>imagens(item).forEach(src=>{if(!todasImagens.includes(src))todasImagens.push(src)}));
+    encontrados.forEach(item=>imagens(item).forEach(src=>{if(!todasImagens.includes(src))todasImagens.push(src);}));
 
     const estoqueExplicito=[...encontrados].reverse().find(item=>typeof item?.estoque==="boolean");
     const estoque=estoqueExplicito?estoqueExplicito.estoque:true;
@@ -50,7 +61,7 @@
     return {
       ...fonte,
       tecido:fonte?.tecido||tecido,
-      modelo:fonte?.modelo||modelo,
+      modelo:modelo||fonte?.modelo||"",
       cor:fonte?.cor||cor,
       forro:fonte?.forro||forro,
       estoque,
@@ -73,7 +84,7 @@
           previewIndex=0;
           Promise.resolve(carregarFotosCarrossel()).catch(()=>{});
         }
-      }catch(error){console.error("strict configurator media",error)}
+      }catch(error){console.error("strict configurator media",error);}
     },0);
   }).catch(()=>{});
 })();
