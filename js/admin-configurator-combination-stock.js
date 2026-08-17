@@ -1,36 +1,44 @@
 (function(){
-  function boolStock(item){return item?.estoque!==false;}
+  let estoqueCombinacoes={};
 
-  if(typeof cfgCloneMediaItem==='function'){
-    const originalClone=cfgCloneMediaItem;
-    cfgCloneMediaItem=function(item={}){
-      const out=originalClone(item);
-      out.estoque=item?.estoque!==false;
-      return out;
+  function key(tecido,cor,forro){
+    return [String(tecido||'').trim(),String(cor||'').trim(),String(forro||'').trim()].join('|||');
+  }
+
+  function readStock(tecido,cor,forro,fallback=true){
+    const k=key(tecido,cor,forro);
+    return Object.prototype.hasOwnProperty.call(estoqueCombinacoes,k)?estoqueCombinacoes[k]!==false:fallback!==false;
+  }
+
+  function writeStock(tecido,cor,forro,value){
+    estoqueCombinacoes[key(tecido,cor,forro)]=Boolean(value);
+  }
+
+  if(typeof cfgInitMediaState==='function'){
+    const originalInit=cfgInitMediaState;
+    cfgInitMediaState=function(cfg){
+      originalInit(cfg);
+      estoqueCombinacoes={...(cfg?.estoqueCombinacoes||{})};
     };
   }
 
   if(typeof cfgOptionCardHtml==='function'){
     const originalCard=cfgOptionCardHtml;
     cfgOptionCardHtml=function(tecido,cor,forro,modelo,media,comEstoque){
-      return originalCard(tecido,cor,forro,modelo,media,boolStock(media));
+      return originalCard(tecido,cor,forro,modelo,media,readStock(tecido,cor,forro,comEstoque));
     };
   }
 
-  if(typeof cfgSyncMediaStateFromDom==='function'){
-    const originalSync=cfgSyncMediaStateFromDom;
-    cfgSyncMediaStateFromDom=function(){
-      originalSync();
+  if(typeof collectConfigurator==='function'){
+    const originalCollect=collectConfigurator;
+    collectConfigurator=function(form,base,id){
       document.querySelectorAll('.cfg-option-media-card').forEach(card=>{
-        const item=cfgFindMedia(
-          card.dataset.tecido||'',
-          card.dataset.cor||'',
-          card.dataset.forro||'',
-          card.dataset.modelo||''
-        );
         const stock=card.querySelector('.cfg-tab-stock');
-        if(stock)item.estoque=Boolean(stock.checked);
+        if(stock)writeStock(card.dataset.tecido||'',card.dataset.cor||'',card.dataset.forro||'',stock.checked);
       });
+      const data=originalCollect(form,base,id);
+      data.estoqueCombinacoes={...estoqueCombinacoes};
+      return data;
     };
   }
 
@@ -41,18 +49,20 @@
       form.querySelectorAll('.cfg-option-media-card').forEach(card=>{
         const stock=card.querySelector('.cfg-tab-stock');
         if(!stock)return;
+        const tecido=card.dataset.tecido||'';
+        const cor=card.dataset.cor||'';
+        const forro=card.dataset.forro||'';
+        const current=readStock(tecido,cor,forro,stock.checked);
+        stock.checked=current;
+        const label=stock.closest('.cfg-option-stock');
+        label?.classList.toggle('is-out',!current);
+        const span=label?.querySelector('span');
+        if(span)span.textContent=current?'Com estoque':'Sem estoque';
+
         stock.onchange=async()=>{
-          const label=stock.closest('.cfg-option-stock');
+          writeStock(tecido,cor,forro,stock.checked);
           label?.classList.toggle('is-out',!stock.checked);
-          const span=label?.querySelector('span');
           if(span)span.textContent=stock.checked?'Com estoque':'Sem estoque';
-          const item=cfgFindMedia(
-            card.dataset.tecido||'',
-            card.dataset.cor||'',
-            card.dataset.forro||'',
-            card.dataset.modelo||''
-          );
-          item.estoque=Boolean(stock.checked);
           const status=card.querySelector('.upload-status');
           try{
             if(status)status.textContent='Salvando disponibilidade...';
