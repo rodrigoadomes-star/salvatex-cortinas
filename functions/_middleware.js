@@ -91,13 +91,7 @@ class HeadBootstrap{
 
 class ProductionConfiguratorScripts{
   element(element){
-    element.append('<script src="/js/configurador-media-forro.js?v=20260816-prod-final-1"></script><script src="/js/configurador-media-strict.js?v=20260816-prod-final-1"></script>',{html:true});
-  }
-}
-
-class ProductionAdminScripts{
-  element(element){
-    element.append('<script src="/js/admin-configurator-combination-stock.js?v=20260816-prod-final-1"></script><script src="/js/admin-configurator-media-controls.js?v=20260816-prod-final-1"></script>',{html:true});
+    element.append('<script src="/js/configurador-media-forro.js?v=20260816-prod-final-2"></script><script src="/js/configurador-media-strict.js?v=20260816-prod-final-2"></script>',{html:true});
   }
 }
 
@@ -122,10 +116,6 @@ export async function onRequest(context){
 
     if(url.pathname==="/configurador"||url.pathname==="/configurador.html"){
       rewriter=rewriter.on("body",new ProductionConfiguratorScripts());
-    }
-
-    if(url.pathname==="/admin"||url.pathname==="/admin/"||url.pathname==="/admin/index.html"){
-      rewriter=rewriter.on("body",new ProductionAdminScripts());
     }
 
     return rewriter.transform(secured);
