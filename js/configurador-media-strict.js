@@ -33,15 +33,18 @@
     return src;
   }
   function imagens(item){return Array.isArray(item?.imagens)?item.imagens.map(normalizarUrlMidia).filter(Boolean):[];}
-  function temConteudo(item){return Boolean(normalizarUrlMidia(item?.capa)||normalizarUrlMidia(item?.video)||imagens(item).length);}
 
   obterMidiaAdmin=function(tecido,modelo,cor,forro){
     const lista=Array.isArray(CONFIG?.mediaConfigurador)?CONFIG.mediaConfigurador:[];
     const t=normalizarChaveMidia(tecido);
-    const m=canonModelo(modelo||"Wave");
+    const m=canonModelo(modelo||CONFIG?.configurador?.modelo||"");
     const c=normalizarChaveMidia(cor);
     const f=canonForro(forro);
 
+    // Cada endpoint de configurador devolve somente a sua configuração.
+    // O último registro da combinação é a fonte de verdade. Isso impede que
+    // fotos antigas voltem depois de uma exclusão quando existem duplicatas
+    // legadas no JSON salvo no D1.
     const base=lista.filter(item=>
       normalizarChaveMidia(item?.tecido)===t&&
       normalizarChaveMidia(item?.cor)===c&&
@@ -50,15 +53,8 @@
     if(!base.length)return null;
 
     const exatos=base.filter(item=>canonModelo(item?.modelo||"")===m);
-    const exatosComConteudo=exatos.filter(temConteudo);
-    const baseComConteudo=base.filter(temConteudo);
-    const encontrados=exatosComConteudo.length?exatosComConteudo:baseComConteudo.length?baseComConteudo:exatos.length?exatos:base;
-
-    const fonte=encontrados.at(-1);
-    const todasImagens=[];
-    encontrados.forEach(item=>imagens(item).forEach(src=>{if(!todasImagens.includes(src))todasImagens.push(src);}));
-    const estoqueExplicito=[...encontrados].reverse().find(item=>typeof item?.estoque==="boolean");
-    const estoque=estoqueExplicito?estoqueExplicito.estoque:true;
+    const fonte=(exatos.length?exatos:base).at(-1);
+    if(!fonte)return null;
 
     return {
       ...fonte,
@@ -66,15 +62,15 @@
       modelo:modelo||fonte?.modelo||"",
       cor:fonte?.cor||cor,
       forro:fonte?.forro||forro,
-      estoque,
-      capa:[...encontrados].reverse().map(x=>normalizarUrlMidia(x?.capa)).find(Boolean)||"",
-      video:[...encontrados].reverse().map(x=>normalizarUrlMidia(x?.video)).find(Boolean)||"",
-      imagens:todasImagens
+      estoque:typeof fonte?.estoque==="boolean"?fonte.estoque:true,
+      capa:normalizarUrlMidia(fonte?.capa),
+      video:normalizarUrlMidia(fonte?.video),
+      imagens:[...new Set(imagens(fonte))]
     };
   };
 
   obterCapaCorAdmin=function(tecido,cor){
-    const item=obterMidiaAdmin(tecido,state?.modelo||"Wave",cor,state?.forro||"");
+    const item=obterMidiaAdmin(tecido,state?.modelo||CONFIG?.configurador?.modelo||"Wave",cor,state?.forro||"");
     return item&&item.estoque!==false?(normalizarUrlMidia(item.capa)||imagens(item)[0]||""):"";
   };
 
