@@ -14,163 +14,21 @@ const PAGE_BOOTSTRAP=`
 </style>
 <script id="site-bootstrap-script">
 (function(){
-  var root=document.documentElement;
-  root.classList.add('site-booting');
-  var originalFetch=window.fetch;
-  var pending=0;
-  var domReady=document.readyState!=='loading';
-  var readyTimer=0;
-  var finished=false;
-  var prefetched={};
-  function tracked(input){
-    try{
-      var raw=typeof input==='string'?input:(input&&input.url)||'';
-      var url=new URL(raw,location.href);
-      if(url.origin!==location.origin)return false;
-      return url.pathname.indexOf('/api/')===0||url.pathname.indexOf('/admin/api/')===0||url.pathname.indexOf('/platform/api/')===0||url.pathname.indexOf('/radz/api/')===0;
-    }catch(_){return false}
-  }
-  function finish(){
-    if(finished)return;
-    finished=true;
-    clearTimeout(readyTimer);
-    root.classList.remove('site-booting');
-    root.classList.add('site-ready');
-  }
-  function schedule(){
-    if(finished||!domReady||pending>0)return;
-    clearTimeout(readyTimer);
-    readyTimer=setTimeout(function(){if(domReady&&pending===0)finish()},20);
-  }
-  window.fetch=function(){
-    var args=arguments;
-    var watch=tracked(args[0]);
-    if(watch){pending++;clearTimeout(readyTimer)}
-    var result;
-    try{result=originalFetch.apply(this,args)}catch(error){if(watch){pending=Math.max(0,pending-1);schedule()}throw error}
-    if(!watch)return result;
-    return Promise.resolve(result).finally(function(){pending=Math.max(0,pending-1);schedule()});
-  };
-  function internalLink(anchor){
-    if(!anchor||!anchor.href||anchor.target||anchor.hasAttribute('download'))return null;
-    try{
-      var url=new URL(anchor.href,location.href);
-      if(url.origin!==location.origin)return null;
-      if(url.pathname===location.pathname&&url.search===location.search)return null;
-      return url;
-    }catch(_){return null}
-  }
-  function prefetch(anchor){
-    var url=internalLink(anchor);
-    if(!url||prefetched[url.href])return;
-    prefetched[url.href]=true;
-    originalFetch(url.href,{method:'GET',credentials:'same-origin',cache:'force-cache'}).catch(function(){});
-  }
-  document.addEventListener('pointerover',function(e){var a=e.target&&e.target.closest?e.target.closest('a'):null;prefetch(a)},{passive:true});
-  document.addEventListener('touchstart',function(e){var a=e.target&&e.target.closest?e.target.closest('a'):null;prefetch(a)},{passive:true});
-  if(!domReady){document.addEventListener('DOMContentLoaded',function(){domReady=true;schedule()},{once:true})}else{schedule()}
-  setTimeout(finish,1000);
+  var root=document.documentElement;root.classList.add('site-booting');var originalFetch=window.fetch;var pending=0;var domReady=document.readyState!=='loading';var readyTimer=0;var finished=false;var prefetched={};
+  function tracked(input){try{var raw=typeof input==='string'?input:(input&&input.url)||'';var url=new URL(raw,location.href);if(url.origin!==location.origin)return false;return url.pathname.indexOf('/api/')===0||url.pathname.indexOf('/admin/api/')===0||url.pathname.indexOf('/platform/api/')===0||url.pathname.indexOf('/radz/api/')===0}catch(_){return false}}
+  function finish(){if(finished)return;finished=true;clearTimeout(readyTimer);root.classList.remove('site-booting');root.classList.add('site-ready')}
+  function schedule(){if(finished||!domReady||pending>0)return;clearTimeout(readyTimer);readyTimer=setTimeout(function(){if(domReady&&pending===0)finish()},20)}
+  window.fetch=function(){var args=arguments;var watch=tracked(args[0]);if(watch){pending++;clearTimeout(readyTimer)}var result;try{result=originalFetch.apply(this,args)}catch(error){if(watch){pending=Math.max(0,pending-1);schedule()}throw error}if(!watch)return result;return Promise.resolve(result).finally(function(){pending=Math.max(0,pending-1);schedule()})};
+  function internalLink(anchor){if(!anchor||!anchor.href||anchor.target||anchor.hasAttribute('download'))return null;try{var url=new URL(anchor.href,location.href);if(url.origin!==location.origin)return null;if(url.pathname===location.pathname&&url.search===location.search)return null;return url}catch(_){return null}}
+  function prefetch(anchor){var url=internalLink(anchor);if(!url||prefetched[url.href])return;prefetched[url.href]=true;originalFetch(url.href,{method:'GET',credentials:'same-origin',cache:'force-cache'}).catch(function(){})}
+  document.addEventListener('pointerover',function(e){var a=e.target&&e.target.closest?e.target.closest('a'):null;prefetch(a)},{passive:true});document.addEventListener('touchstart',function(e){var a=e.target&&e.target.closest?e.target.closest('a'):null;prefetch(a)},{passive:true});if(!domReady){document.addEventListener('DOMContentLoaded',function(){domReady=true;schedule()},{once:true})}else{schedule()}setTimeout(finish,1000);
 })();
 </script>`;
-
 class HeadBootstrap{element(element){element.prepend(PAGE_BOOTSTRAP,{html:true})}}
-class ConfiguratorScripts{
-  element(element){
-    element.append('<script src="/js/configurador-media-forro.js?v=20260816-8"></script><script src="/js/configurador-media-strict.js?v=20260816-1"></script>',{html:true});
-  }
-}
-class AdminScripts{
-  element(element){
-    element.append('<script src="/js/admin-configurator-media-controls.js?v=20260816-1"></script>',{html:true});
-  }
-}
-
-function isPreviewHost(hostname){
-  const host=String(hostname||"").toLowerCase();
-  return host.endsWith(".salvatex-cortinas.pages.dev")&&host!=="salvatex-cortinas.pages.dev";
-}
-
-function productionMediaUrl(value){
-  const src=String(value||"").trim();
-  if(!src)return src;
-  if(src.startsWith("/media/"))return PRODUCTION_ORIGIN+src;
-  if(src.startsWith("media/"))return PRODUCTION_ORIGIN+"/"+src;
-  return src;
-}
-
-function normalizePreviewMedia(configurator){
-  const cfg=JSON.parse(JSON.stringify(configurator||{}));
-  cfg.midia=Array.isArray(cfg.midia)?cfg.midia.map(item=>{
-    const media={...item};
-    if(media.capa)media.capa=productionMediaUrl(media.capa);
-    if(media.video)media.video=productionMediaUrl(media.video);
-    if(Array.isArray(media.imagens))media.imagens=media.imagens.map(productionMediaUrl);
-    return media;
-  }):[];
-  return cfg;
-}
-
-async function syncPreviewConfiguratorData(context,url){
-  if(!isPreviewHost(url.hostname)||!context.env.DB)return;
-  if(url.pathname!=="/configurador"&&url.pathname!=="/configurador.html")return;
-
-  const markerKey="preview_configurators_synced_from_production_v2";
-  const now=Date.now();
-
-  try{
-    const marker=await context.env.DB.prepare(`SELECT value_json FROM store_configs WHERE store_id='salvatex' AND config_key=?1`).bind(markerKey).first();
-    if(marker?.value_json){
-      try{
-        const saved=JSON.parse(marker.value_json);
-        if(now-Number(saved?.syncedAt||0)<300000)return;
-      }catch{}
-    }
-
-    const ids=["wave","prega-macho","cortina-varao"];
-    const responses=await Promise.all(ids.map(id=>fetch(PRODUCTION_ORIGIN+"/api/configurators/"+encodeURIComponent(id),{headers:{accept:"application/json"},cf:{cacheTtl:0,cacheEverything:false}})));
-    const payloads=await Promise.all(responses.map(async(response,index)=>{
-      if(!response.ok)throw new Error("Produção retornou HTTP "+response.status+" para "+ids[index]);
-      const data=await response.json();
-      const cfg=data?.configurator||data?.wave;
-      if(!data?.ok||!cfg)throw new Error("Configuração inválida em produção para "+ids[index]);
-      return normalizePreviewMedia(cfg);
-    }));
-
-    const syncedAt=new Date().toISOString();
-    const statements=ids.map((id,index)=>context.env.DB.prepare(`INSERT INTO store_configs(store_id,config_key,value_json,updated_at) VALUES('salvatex',?1,?2,?3) ON CONFLICT(store_id,config_key) DO UPDATE SET value_json=excluded.value_json,updated_at=excluded.updated_at`).bind("configurator_"+id.replaceAll("-","_"),JSON.stringify(payloads[index]),syncedAt));
-    statements.push(context.env.DB.prepare(`INSERT INTO store_configs(store_id,config_key,value_json,updated_at) VALUES('salvatex',?1,?2,?3) ON CONFLICT(store_id,config_key) DO UPDATE SET value_json=excluded.value_json,updated_at=excluded.updated_at`).bind(markerKey,JSON.stringify({syncedAt:now,source:PRODUCTION_ORIGIN}),syncedAt));
-    await context.env.DB.batch(statements);
-  }catch(error){
-    console.error("preview configurator sync",error);
-  }
-}
-
-export async function onRequest(context){
-  const url=new URL(context.request.url);
-  await syncPreviewConfiguratorData(context,url);
-
-  const response=await context.next();
-  const headers=new Headers(response.headers);
-  headers.set("content-security-policy",CSP);
-  headers.set("x-content-type-options","nosniff");
-  headers.set("x-frame-options","DENY");
-  headers.set("referrer-policy","strict-origin-when-cross-origin");
-  headers.set("permissions-policy","camera=(), microphone=(), geolocation=(), payment=()");
-  headers.set("cross-origin-opener-policy","same-origin-allow-popups");
-  headers.set("strict-transport-security","max-age=31536000; includeSubDomains");
-  if(url.pathname.startsWith("/admin"))headers.set("cache-control","no-store");
-  const contentType=headers.get("content-type")||"";
-  if(response.status===200&&contentType.includes("text/html")){
-    headers.delete("content-length");
-    const secured=new Response(response.body,{status:response.status,statusText:response.statusText,headers});
-    let rewriter=new HTMLRewriter().on("head",new HeadBootstrap());
-    if(url.pathname==="/configurador"||url.pathname==="/configurador.html"){
-      rewriter=rewriter.on("body",new ConfiguratorScripts());
-    }
-    if(url.pathname==="/admin"||url.pathname==="/admin/"||url.pathname==="/admin/index.html"){
-      rewriter=rewriter.on("body",new AdminScripts());
-    }
-    return rewriter.transform(secured);
-  }
-  return new Response(response.body,{status:response.status,statusText:response.statusText,headers});
-}
+class ConfiguratorScripts{element(element){element.append('<script src="/js/configurador-media-forro.js?v=20260816-9"></script><script src="/js/configurador-media-strict.js?v=20260816-1"></script>',{html:true});}}
+class AdminScripts{element(element){element.append('<script src="/js/admin-configurator-combination-stock.js?v=20260816-1"></script><script src="/js/admin-configurator-media-controls.js?v=20260816-1"></script>',{html:true});}}
+function isPreviewHost(hostname){const host=String(hostname||"").toLowerCase();return host.endsWith(".salvatex-cortinas.pages.dev")&&host!=="salvatex-cortinas.pages.dev";}
+function productionMediaUrl(value){const src=String(value||"").trim();if(!src)return src;if(src.startsWith("/media/"))return PRODUCTION_ORIGIN+src;if(src.startsWith("media/"))return PRODUCTION_ORIGIN+"/"+src;return src;}
+function normalizePreviewMedia(configurator){const cfg=JSON.parse(JSON.stringify(configurator||{}));cfg.midia=Array.isArray(cfg.midia)?cfg.midia.map(item=>{const media={...item};if(media.capa)media.capa=productionMediaUrl(media.capa);if(media.video)media.video=productionMediaUrl(media.video);if(Array.isArray(media.imagens))media.imagens=media.imagens.map(productionMediaUrl);return media;}):[];return cfg;}
+async function syncPreviewConfiguratorData(context,url){if(!isPreviewHost(url.hostname)||!context.env.DB)return;if(url.pathname!=="/configurador"&&url.pathname!=="/configurador.html")return;const markerKey="preview_configurators_synced_from_production_v2";const now=Date.now();try{const marker=await context.env.DB.prepare(`SELECT value_json FROM store_configs WHERE store_id='salvatex' AND config_key=?1`).bind(markerKey).first();if(marker?.value_json){try{const saved=JSON.parse(marker.value_json);if(now-Number(saved?.syncedAt||0)<300000)return;}catch{}}const ids=["wave","prega-macho","cortina-varao"];const responses=await Promise.all(ids.map(id=>fetch(PRODUCTION_ORIGIN+"/api/configurators/"+encodeURIComponent(id),{headers:{accept:"application/json"},cf:{cacheTtl:0,cacheEverything:false}})));const payloads=await Promise.all(responses.map(async(response,index)=>{if(!response.ok)throw new Error("Produção retornou HTTP "+response.status+" para "+ids[index]);const data=await response.json();const cfg=data?.configurator||data?.wave;if(!data?.ok||!cfg)throw new Error("Configuração inválida em produção para "+ids[index]);return normalizePreviewMedia(cfg);}));const syncedAt=new Date().toISOString();const statements=ids.map((id,index)=>context.env.DB.prepare(`INSERT INTO store_configs(store_id,config_key,value_json,updated_at) VALUES('salvatex',?1,?2,?3) ON CONFLICT(store_id,config_key) DO UPDATE SET value_json=excluded.value_json,updated_at=excluded.updated_at`).bind("configurator_"+id.replaceAll("-","_"),JSON.stringify(payloads[index]),syncedAt));statements.push(context.env.DB.prepare(`INSERT INTO store_configs(store_id,config_key,value_json,updated_at) VALUES('salvatex',?1,?2,?3) ON CONFLICT(store_id,config_key) DO UPDATE SET value_json=excluded.value_json,updated_at=excluded.updated_at`).bind(markerKey,JSON.stringify({syncedAt:now,source:PRODUCTION_ORIGIN}),syncedAt));await context.env.DB.batch(statements);}catch(error){console.error("preview configurator sync",error);}}
+export async function onRequest(context){const url=new URL(context.request.url);await syncPreviewConfiguratorData(context,url);const response=await context.next();const headers=new Headers(response.headers);headers.set("content-security-policy",CSP);headers.set("x-content-type-options","nosniff");headers.set("x-frame-options","DENY");headers.set("referrer-policy","strict-origin-when-cross-origin");headers.set("permissions-policy","camera=(), microphone=(), geolocation=(), payment=()");headers.set("cross-origin-opener-policy","same-origin-allow-popups");headers.set("strict-transport-security","max-age=31536000; includeSubDomains");if(url.pathname.startsWith("/admin"))headers.set("cache-control","no-store");const contentType=headers.get("content-type")||"";if(response.status===200&&contentType.includes("text/html")){headers.delete("content-length");const secured=new Response(response.body,{status:response.status,statusText:response.statusText,headers});let rewriter=new HTMLRewriter().on("head",new HeadBootstrap());if(url.pathname==="/configurador"||url.pathname==="/configurador.html")rewriter=rewriter.on("body",new ConfiguratorScripts());if(url.pathname==="/admin"||url.pathname==="/admin/"||url.pathname==="/admin/index.html")rewriter=rewriter.on("body",new AdminScripts());return rewriter.transform(secured);}return new Response(response.body,{status:response.status,statusText:response.statusText,headers});}
