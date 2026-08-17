@@ -92,9 +92,6 @@ export async function onRequestPost(context) {
   const fileSize=Number(file.size||0);
   if (fileSize > max) return json({ok:false,message:isVideo?"Vídeo acima de 150 MB.":"Imagem acima de 20 MB."},400);
 
-  // O limite de armazenamento passa a ser aplicado somente quando a migration
-  // de metadados R2 já está ativa. Antes disso, o comportamento legado continua
-  // para não bloquear lojas existentes por falta de contagem histórica.
   const tracked=await trackedStorageBytes(context.env.DB,auth.companyId);
   let storageLimit=null;
   try{const limits=await getEffectiveLimits(context.env.DB,auth.companyId);storageLimit=limits.storage_bytes==null?null:Number(limits.storage_bytes)}catch(_){}
@@ -130,11 +127,11 @@ export async function onRequestPost(context) {
     metadata:{configurator,tecido,cor,forro,kind}
   });
 
-  // Se a tabela existe e a gravação D1 falhou, compensa o PUT no R2 para não
-  // deixar inconsistência silenciosa. Quando a migration ainda não existe,
-  // preserva compatibilidade com o fluxo anterior.
-  if(metadata.reason==='write_failed'){
+  // Se o D1 avançado já estiver ativo, qualquer falha de segurança/consistência
+  // reverte o PUT no R2. Somente migration_pending mantém compatibilidade legada.
+  if(!metadata.tracked && metadata.reason!=='migration_pending'){
     try{await context.env.MEDIA.delete(key)}catch(_){}
+    await logAdmin(context.env.DB,"media_upload_compensated","media",key,{reason:metadata.reason||'unknown'},auth.storeId);
     return json({ok:false,code:'MEDIA_METADATA_FAILED',message:'O arquivo não pôde ser registrado com segurança. O upload foi revertido.'},500);
   }
 
