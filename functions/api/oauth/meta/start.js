@@ -30,5 +30,5 @@ export async function onRequestGet(context){
   url.searchParams.set("response_type","code");
   url.searchParams.set("scope","ads_read,ads_management,business_management");
 
-  return json({ok:true,url:url.toString(),redirectUri:redirect});
+  return Response.redirect(url.toString(),302);
 }
