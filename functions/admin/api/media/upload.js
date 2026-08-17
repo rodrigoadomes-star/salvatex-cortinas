@@ -6,12 +6,14 @@ import {
 import { requireAdminPermission } from "../_permissions.js";
 import { getEffectiveLimits } from "../../../platform/api/_entitlements.js";
 import { recordPlatformUsage, registerPlatformMedia, trackedStorageBytes } from "../_platform-usage.js";
+import { extensionMatchesMime, validateMediaSignature } from "./_file-validation.js";
 
 const IMAGE_TYPES = new Set([
   "image/jpeg",
   "image/png",
   "image/webp",
-  "image/gif"
+  "image/gif",
+  "image/avif"
 ]);
 
 const VIDEO_TYPES = new Set([
@@ -26,6 +28,7 @@ function extensionFromType(type) {
     "image/png": "png",
     "image/webp": "webp",
     "image/gif": "gif",
+    "image/avif": "avif",
     "video/mp4": "mp4",
     "video/webm": "webm",
     "video/quicktime": "mov"
@@ -62,6 +65,8 @@ export async function onRequestGet(context) {
     trackedBytes: bytes,
     storageLimitBytes: limit,
     trackingReady: bytes !== null,
+    acceptedImageTypes:[...IMAGE_TYPES],
+    acceptedVideoTypes:[...VIDEO_TYPES],
     message: context.env.MEDIA ? "R2 conectado." : "Crie um bucket R2 e vincule-o ao projeto com o binding MEDIA."
   });
 }
@@ -81,15 +86,12 @@ export async function onRequestPost(context) {
   const type = String(file.type || "").toLowerCase();
   const isImage = IMAGE_TYPES.has(type);
   const isVideo = VIDEO_TYPES.has(type);
-  if (!isImage && !isVideo) return json({ok:false,message:"Formato não suportado. Use JPG, JPEG, PNG, WebP, GIF, MP4, WebM ou MOV."},400);
-
-  const suppliedExtension = String(file.name || "").toLowerCase().split(".").pop();
-  const expectedExtension = extensionFromType(type);
-  const extensionAliases = expectedExtension === "jpg" ? ["jpg", "jpeg"] : [expectedExtension];
-  if (!extensionAliases.includes(suppliedExtension)) return json({ok:false,message:"A extensão do arquivo não corresponde ao MIME informado."},400);
+  if (!isImage && !isVideo) return json({ok:false,message:"Formato não suportado. Use JPG, JPEG, PNG, WebP, GIF, AVIF, MP4, WebM ou MOV."},400);
+  if (!extensionMatchesMime(file.name,type)) return json({ok:false,code:"FILE_EXTENSION_MISMATCH",message:"A extensão do arquivo não corresponde ao tipo informado."},400);
 
   const max = isVideo ? 150 * 1024 * 1024 : 20 * 1024 * 1024;
   const fileSize=Number(file.size||0);
+  if (!Number.isFinite(fileSize) || fileSize <= 0) return json({ok:false,message:"Arquivo vazio ou inválido."},400);
   if (fileSize > max) return json({ok:false,message:isVideo?"Vídeo acima de 150 MB.":"Imagem acima de 20 MB."},400);
 
   const tracked=await trackedStorageBytes(context.env.DB,auth.companyId);
@@ -97,6 +99,13 @@ export async function onRequestPost(context) {
   try{const limits=await getEffectiveLimits(context.env.DB,auth.companyId);storageLimit=limits.storage_bytes==null?null:Number(limits.storage_bytes)}catch(_){}
   if(tracked!==null&&storageLimit!==null&&tracked+fileSize>storageLimit){
     return json({ok:false,code:'STORAGE_LIMIT_REACHED',message:'Limite de armazenamento do plano atingido.',usedBytes:tracked,uploadBytes:fileSize,limitBytes:storageLimit},409);
+  }
+
+  const buffer=await file.arrayBuffer();
+  const signature=validateMediaSignature(buffer,type);
+  if(!signature.ok){
+    await logAdmin(context.env.DB,"media_upload_rejected","media",clean(file.name,240),{reason:signature.reason,mimeType:type,size:fileSize},auth.storeId).catch(()=>{});
+    return json({ok:false,code:"FILE_SIGNATURE_MISMATCH",message:"O conteúdo do arquivo não corresponde ao formato declarado."},400);
   }
 
   const configurator = slug(form.get("configurator") || form.get("folder") || "geral");
@@ -107,7 +116,6 @@ export async function onRequestPost(context) {
   const extension = extensionFromType(type);
   const key = ["companies",auth.companyId,"stores",auth.storeId,"public","configuradores",configurator,tecido,cor,forro,kind,`${crypto.randomUUID()}.${extension}`].join("/");
   const now = new Date().toISOString();
-  const buffer=await file.arrayBuffer();
   const checksum=await sha256Hex(buffer);
 
   await context.env.MEDIA.put(key,buffer,{
