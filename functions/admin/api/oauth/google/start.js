@@ -1,7 +1,8 @@
-import { json, requireAdmin } from "../../_auth.js";
+import { json } from "../../_auth.js";
+import { requireAdminPermission } from "../../_permissions.js";
 import {baseUrl,saveState} from "../_oauth.js";
 export async function onRequestGet(context){
-  const a=await requireAdmin(context);if(!a.ok)return a.response;
+  const a=await requireAdminPermission(context,'company.integrations.write');if(!a.ok)return a.response;
   if(!context.env.GOOGLE_OAUTH_CLIENT_ID||!context.env.GOOGLE_OAUTH_CLIENT_SECRET)return json({ok:false,message:'Configure GOOGLE_OAUTH_CLIENT_ID e GOOGLE_OAUTH_CLIENT_SECRET no Cloudflare.'},503);
   const state=crypto.randomUUID();
   await saveState(context.env.DB,'google',state,a.storeId);
