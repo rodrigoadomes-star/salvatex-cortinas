@@ -44,12 +44,16 @@
     const todasImagens=[];
     encontrados.forEach(item=>imagens(item).forEach(src=>{if(!todasImagens.includes(src))todasImagens.push(src)}));
 
+    const estoqueExplicito=[...encontrados].reverse().find(item=>typeof item?.estoque==="boolean");
+    const estoque=estoqueExplicito?estoqueExplicito.estoque:true;
+
     return {
       ...fonte,
       tecido:fonte?.tecido||tecido,
       modelo:fonte?.modelo||modelo,
       cor:fonte?.cor||cor,
       forro:fonte?.forro||forro,
+      estoque,
       capa:[...encontrados].reverse().map(x=>texto(x?.capa)).find(Boolean)||"",
       video:[...encontrados].reverse().map(x=>texto(x?.video)).find(Boolean)||"",
       imagens:todasImagens
@@ -58,7 +62,7 @@
 
   obterCapaCorAdmin=function(tecido,cor){
     const item=obterMidiaAdmin(tecido,state?.modelo||"Wave",cor,state?.forro||"");
-    return item?(texto(item.capa)||imagens(item)[0]||""):"";
+    return item&&item.estoque!==false?(texto(item.capa)||imagens(item)[0]||""):"";
   };
 
   Promise.resolve(window.CONFIG_READY).then(()=>{
