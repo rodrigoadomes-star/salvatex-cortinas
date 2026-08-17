@@ -18,11 +18,11 @@ export async function onRequestGet(context) {
       SUM(CASE WHEN COALESCE(p.access_blocked,0)=1 THEN 1 ELSE 0 END) blocked
     FROM platform_companies c
     LEFT JOIN platform_company_profile p ON p.company_id=c.id
-    WHERE p.deleted_at IS NULL OR p.deleted_at IS NULL`).first(),
+    WHERE p.deleted_at IS NULL`).first(),
     context.env.DB.prepare(`SELECT c.plan_code,COUNT(*) companies
       FROM platform_companies c
       LEFT JOIN platform_company_profile p ON p.company_id=c.id
-      WHERE p.deleted_at IS NULL OR p.deleted_at IS NULL
+      WHERE p.deleted_at IS NULL
       GROUP BY c.plan_code ORDER BY companies DESC`).all(),
     context.env.DB.prepare(`SELECT COUNT(*) total FROM products`).first(),
     context.env.DB.prepare(`SELECT COUNT(*) total FROM orders WHERE created_at>=datetime('now',?1)`).bind(since).first(),
