@@ -1,0 +1,53 @@
+name: RADZ commerce and marketing checks
+
+on:
+  push:
+    branches: [radz-super-admin-phase1]
+  pull_request:
+    branches: [radz-hub-arquitetura-unificada]
+
+jobs:
+  commerce-marketing:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check JavaScript syntax
+        run: |
+          node --check functions/admin/api/media/_file-validation.js
+          node --check functions/admin/api/media/upload.js
+          node --check functions/admin/api/catalog/products/_media.js
+          node --check functions/admin/api/catalog/products/index.js
+          node --check functions/admin/api/catalog/products/[id].js
+          node --check functions/api/marketing.js
+          node --check functions/api/track.js
+          node --check js/marketing.js
+          node --check js/produto.js
+          node --check js/admin-product-enhancements.js
+      - name: Validate security and tracking invariants
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          upload=Path('functions/admin/api/media/upload.js').read_text()
+          sig=Path('functions/admin/api/media/_file-validation.js').read_text()
+          create=Path('functions/admin/api/catalog/products/index.js').read_text()
+          update=Path('functions/admin/api/catalog/products/[id].js').read_text()
+          public_marketing=Path('functions/api/marketing.js').read_text()
+          track=Path('functions/api/track.js').read_text()
+          storefront=Path('js/marketing.js').read_text()
+          product=Path('js/produto.js').read_text()
+          admin=Path('js/admin-product-enhancements.js').read_text()
+          assert 'validateMediaSignature(buffer,type)' in upload
+          assert 'signature_mismatch' in sig
+          assert 'image/avif' in upload
+          assert 'normalizeProductImages' in create and 'normalizeProductImages' in update
+          assert 'images_json' in create and 'images_json' in update
+          assert 'requireStoreTenant' in public_marketing and "store_id='salvatex'" not in public_marketing
+          assert 'requireStoreTenant' in track and "store_id='salvatex'" not in track
+          assert 'event_disabled' in track
+          assert "enabled('pageView')" in storefront
+          assert "trackProduto('view_item'" in product
+          assert "trackProduto('add_to_cart'" in product
+          assert 'Gerador de anúncios' in admin
+          assert 'sem chamada de IA' in admin
+          print('Commerce upload, product gallery, tenant tracking and ad generator invariants validated')
+          PY
