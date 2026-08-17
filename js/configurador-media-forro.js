@@ -11,7 +11,20 @@
     return [String(tecido||'').trim(),String(cor||'').trim(),String(forro||'').trim()].join('|||');
   }
 
+  function corGlobalAtiva(tecido,cor){
+    const tecidoCfg=CONFIG.configuradorTecidos?.[tecido]||{};
+    const mapa=tecidoCfg.coresAtivas&&typeof tecidoCfg.coresAtivas==='object'?tecidoCfg.coresAtivas:{};
+    return mapa[cor]!==false;
+  }
+
   function emEstoque(tecido,cor,forro,midia){
+    // Compatibilidade com o painel principal atual: se a cor estiver
+    // desativada globalmente no tecido, ela nunca aparece na loja.
+    if(!corGlobalAtiva(tecido,cor))return false;
+
+    // No Preview novo, a disponibilidade pode ser controlada por combinação
+    // exata de tecido + cor + forro. Essa regra tem prioridade sobre o campo
+    // legado salvo junto da mídia.
     const mapa=CONFIG.estoqueCombinacoes&&typeof CONFIG.estoqueCombinacoes==='object'?CONFIG.estoqueCombinacoes:{};
     const k=stockKey(tecido,cor,forro);
     if(Object.prototype.hasOwnProperty.call(mapa,k))return mapa[k]!==false;
@@ -80,6 +93,7 @@
         container.appendChild(aviso);
       }
       state.forro="";
+      state.cor="";
       cards.forEach(card=>card.classList.remove("selected"));
       return false;
     }
