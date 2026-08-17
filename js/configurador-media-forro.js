@@ -18,10 +18,16 @@
   }
 
   function emEstoque(tecido,cor,forro,midia){
-    if(!corGlobalAtiva(tecido,cor))return false;
     const mapa=CONFIG.estoqueCombinacoes&&typeof CONFIG.estoqueCombinacoes==='object'?CONFIG.estoqueCombinacoes:{};
     const k=stockKey(tecido,cor,forro);
+
+    // A combinação exata tem prioridade absoluta. Assim, Branco sem forro
+    // pode estar indisponível sem afetar Branco + Forro leve.
     if(Object.prototype.hasOwnProperty.call(mapa,k))return mapa[k]!==false;
+
+    // Compatibilidade apenas para configurações antigas que ainda não têm
+    // estoque por combinação salvo.
+    if(!corGlobalAtiva(tecido,cor))return false;
     return midia?.estoque!==false;
   }
 
