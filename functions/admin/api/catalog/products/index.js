@@ -1,6 +1,7 @@
 import { json, clean, slugify, cents, logAdmin } from "../../_auth.js";
 import { requireAdminPermission } from "../../_permissions.js";
 import { assertFeature, getEffectiveLimits } from "../../../../platform/api/_entitlements.js";
+import { normalizeProductImages, validateProductMediaUrl } from "./_media.js";
 
 async function allowedCatalog(context,a){
   const enabled=await assertFeature(context.env.DB,a.companyId,"catalog");
@@ -37,10 +38,13 @@ export async function onRequestPost(context){
 
   let b={};try{b=await context.request.json()}catch{return json({ok:false,message:"JSON inválido"},400)}
   const name=clean(b.name,240);if(!name)return json({ok:false,message:"Nome obrigatório"},400);
+  const main=validateProductMediaUrl(b.imageUrl,a);if(!main.ok)return json({ok:false,message:main.message},422);
+  const gallery=normalizeProductImages(b.images,a);if(!gallery.ok)return json({ok:false,message:gallery.message},422);
+  const images=[...gallery.images];if(main.url&&!images.includes(main.url))images.unshift(main.url);
   const operationId=clean(b.operationId||context.request.headers.get('idempotency-key')||crypto.randomUUID(),160);
   const id=crypto.randomUUID(),now=new Date().toISOString();
 
-  const productInsert=context.env.DB.prepare(`INSERT INTO products(id,store_id,category_id,name,slug,sku,product_type,sale_type,configurator,description,base_price_cents,stock,track_stock,active,featured,image_url,images_json,options_json,metadata_json,created_at,updated_at) VALUES(?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11,?12,?13,?14,?15,?16,?17,?18,?19,?20,?20)`).bind(id,a.storeId,b.categoryId||null,name,slugify(b.slug||name),clean(b.sku,120),clean(b.productType||"pronta_entrega",80),clean(b.saleType||"pronta_entrega",80),clean(b.configurator,120)||null,clean(b.description,5000),cents(b.basePrice),b.stock===""||b.stock==null?null:Number(b.stock),b.trackStock?1:0,b.active===false?0:1,b.featured?1:0,clean(b.imageUrl,1000)||null,JSON.stringify(Array.isArray(b.images)?b.images:[]),JSON.stringify(b.options||{}),JSON.stringify(b.metadata||{}),now);
+  const productInsert=context.env.DB.prepare(`INSERT INTO products(id,store_id,category_id,name,slug,sku,product_type,sale_type,configurator,description,base_price_cents,stock,track_stock,active,featured,image_url,images_json,options_json,metadata_json,created_at,updated_at) VALUES(?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11,?12,?13,?14,?15,?16,?17,?18,?19,?20,?20)`).bind(id,a.storeId,b.categoryId||null,name,slugify(b.slug||name),clean(b.sku,120),clean(b.productType||"pronta_entrega",80),clean(b.saleType||"pronta_entrega",80),clean(b.configurator,120)||null,clean(b.description,5000),cents(b.basePrice),b.stock===""||b.stock==null?null:Number(b.stock),b.trackStock?1:0,b.active===false?0:1,b.featured?1:0,main.url||images[0]||null,JSON.stringify(images),JSON.stringify(b.options||{}),JSON.stringify(b.metadata||{}),now);
 
   const ledgerReady=await usageLedgerReady(context.env.DB);
   if(ledgerReady){
@@ -63,8 +67,8 @@ export async function onRequestPost(context){
     await productInsert.run();
   }
 
-  await logAdmin(context.env.DB,"product_created","product",id,{name,operationId},a.storeId);
+  await logAdmin(context.env.DB,"product_created","product",id,{name,operationId,imageCount:images.length},a.storeId);
   await context.env.DB.prepare(`INSERT INTO platform_audit_logs(actor_user_id,company_id,action,target_type,target_id,metadata_json,created_at)
-    VALUES(?1,?2,'product_created','product',?3,?4,?5)`).bind(a.user.id,a.companyId,id,JSON.stringify({name,storeId:a.storeId,operationId}),now).run().catch(()=>{});
+    VALUES(?1,?2,'product_created','product',?3,?4,?5)`).bind(a.user.id,a.companyId,id,JSON.stringify({name,storeId:a.storeId,operationId,imageCount:images.length}),now).run().catch(()=>{});
   return json({ok:true,id,operationId},201)
 }
