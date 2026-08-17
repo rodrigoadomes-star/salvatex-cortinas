@@ -17,15 +17,18 @@
     return mapa[cor]!==false;
   }
 
-  function emEstoque(tecido,cor,forro,midia){
+  function combinacaoAtiva(tecido,cor,forro,midia){
     const mapa=CONFIG.estoqueCombinacoes&&typeof CONFIG.estoqueCombinacoes==='object'?CONFIG.estoqueCombinacoes:{};
-    const keys=Object.keys(mapa);
     const k=stockKey(tecido,cor,forro);
-
     if(Object.prototype.hasOwnProperty.call(mapa,k))return mapa[k]!==false;
-    if(keys.length)return true;
-    if(!corGlobalAtiva(tecido,cor))return false;
     return midia?.estoque!==false;
+  }
+
+  function emEstoque(tecido,cor,forro,midia){
+    // Regra hierárquica:
+    // 1) Geral desligado = cor indisponível em TODOS os forros.
+    // 2) Geral ligado = cada forro decide sua própria disponibilidade.
+    return corGlobalAtiva(tecido,cor)&&combinacaoAtiva(tecido,cor,forro,midia);
   }
 
   function disponivel(cor,forro){
