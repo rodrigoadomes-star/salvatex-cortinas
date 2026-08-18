@@ -8,7 +8,7 @@
   <link rel="stylesheet" href="../css/admin.css?v=final-20260818-2">
   <link rel="stylesheet" href="../css/admin-messages.css?v=20260815-7">
   <style>
-    #admin-nav .analytics-nav-link{display:flex;align-items:center;gap:11px;width:100%;box-sizing:border-box;padding:11px 14px;border-radius:9px;color:inherit;text-decoration:none;font:inherit}#admin-nav .analytics-nav-link:hover,#admin-nav .analytics-nav-link.active{background:rgba(255,255,255,.08)}
+    #admin-nav .analytics-nav-link{display:flex;align-items:center;gap:11px;width:100%;box-sizing:border-box;padding:11px 14px;border:0;border-radius:9px;background:transparent;color:inherit;text-decoration:none;font:inherit;text-align:left;cursor:pointer}#admin-nav .analytics-nav-link:hover,#admin-nav .analytics-nav-link.active{background:rgba(255,255,255,.08)}
     .login-help{display:flex;justify-content:flex-end;margin-top:-4px}.login-help button{border:0;background:none;color:#315b7d;cursor:pointer;font:inherit;font-size:13px;padding:4px 0}.login-help button:hover{text-decoration:underline}.login-notice{font-size:13px;line-height:1.45;margin-top:10px;color:#52606d}.login-notice.success{color:#1b7f46}.login-notice.error{color:#b42318}
     .sidebar{height:100vh;overflow:hidden}.sidebar #admin-nav{max-height:calc(100vh - 220px);overflow-y:auto;overflow-x:hidden;padding-right:4px;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.28) transparent}.sidebar #admin-nav::-webkit-scrollbar{width:6px}.sidebar #admin-nav::-webkit-scrollbar-thumb{background:rgba(255,255,255,.28);border-radius:999px}.sidebar #admin-nav::-webkit-scrollbar-track{background:transparent}
   </style>
@@ -47,9 +47,9 @@
       <button data-view="layout"><span>✦</span>Layout do site</button>
       <button data-view="media"><span>▧</span>Mídia</button>
       <button data-view="coupons"><span>✂</span>Cupons</button>
-      <a class="analytics-nav-link" href="#analytics" data-radz-panel="analytics"><span>◉</span>Visitas e conversão</a>
-      <a class="analytics-nav-link" href="#marketing" data-radz-panel="marketing"><span>◎</span>Marketing e Analytics</a>
-      <a class="analytics-nav-link" href="#meta" data-radz-panel="meta"><span>◌</span>Meta Ads (Beta)</a>
+      <button type="button" class="analytics-nav-link" data-radz-panel="analytics"><span>◉</span>Visitas e conversão</button>
+      <button type="button" class="analytics-nav-link" data-radz-panel="marketing"><span>◎</span>Marketing e Analytics</button>
+      <button type="button" class="analytics-nav-link" data-radz-panel="meta"><span>◌</span>Meta Ads (Beta)</button>
       <button data-view="reports"><span>▥</span>Relatórios</button>
       <button data-view="configurators"><span>◫</span>Configuradores</button>
       <button data-view="settings"><span>⚙</span>Configurações</button>
@@ -71,8 +71,7 @@
 <div id="admin-toast" class="admin-toast"></div>
 <script src="../js/admin.js?v=media-stable-20260817-1"></script>
 <script src="../js/admin-auth.js?v=20260818-2"></script>
-<script src="../js/admin-marketing-shell.js?v=20260818-2"></script>
-<script src="../js/admin-shell-router.js?v=20260818-1"></script>
+<script src="../js/admin-marketing-shell.js?v=20260818-3"></script>
 <script src="../js/admin-plan-upgrade.js?v=20260818-1"></script>
 <script src="../js/admin-configurator-media-dedupe.js?v=media-stable-20260817-1"></script>
 <script src="../js/admin-configurator-combination-stock.js?v=media-stable-20260817-1"></script>
