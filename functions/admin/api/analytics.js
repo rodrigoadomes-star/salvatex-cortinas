@@ -1,15 +1,17 @@
 import { requireAdmin, json } from './_auth.js';
 
 function isoDate(value){return /^\d{4}-\d{2}-\d{2}$/.test(String(value||''))?String(value):null}
-async function companyForRequest(db,request){
-  const host=new URL(request.url).hostname.toLowerCase();
-  const byDomain=await db.prepare(`SELECT d.company_id, pcs.store_id FROM platform_domains d LEFT JOIN platform_company_stores pcs ON pcs.company_id=d.company_id WHERE lower(d.hostname)=?1 AND d.status='active' LIMIT 1`).bind(host).first();
-  if(byDomain?.company_id)return byDomain;
-  return await db.prepare(`SELECT company_id,store_id FROM platform_company_stores WHERE company_id='company-salvatex' LIMIT 1`).first();
+async function companyForStore(db,storeId){
+  try{
+    const row=await db.prepare(`SELECT company_id,store_id FROM platform_company_stores WHERE store_id=?1 LIMIT 1`).bind(storeId).first();
+    if(row?.company_id)return row;
+  }catch(_){ }
+  if(storeId==='salvatex')return {company_id:'company-salvatex',store_id:'salvatex'};
+  return null;
 }
 export async function onRequestGet(context){
   const auth=await requireAdmin(context); if(!auth.ok)return auth.response;
-  const tenant=await companyForRequest(context.env.DB,context.request); if(!tenant?.company_id)return json({ok:false,code:'COMPANY_NOT_FOUND'},404);
+  const tenant=await companyForStore(context.env.DB,auth.storeId); if(!tenant?.company_id)return json({ok:false,code:'COMPANY_NOT_FOUND'},404);
   const u=new URL(context.request.url),today=new Date(),defaultFrom=new Date(today.getTime()-29*86400000).toISOString().slice(0,10);
   const from=isoDate(u.searchParams.get('from'))||defaultFrom,to=isoDate(u.searchParams.get('to'))||today.toISOString().slice(0,10);
   if(from>to)return json({ok:false,code:'INVALID_RANGE'},400);
@@ -22,5 +24,5 @@ export async function onRequestGet(context){
     context.env.DB.prepare(`SELECT COALESCE(NULLIF(device_type,''),'desconhecido') device,COUNT(*) visits FROM platform_analytics_events WHERE company_id=?1 AND event_type='page_view' AND event_date BETWEEN ?2 AND ?3 GROUP BY device ORDER BY visits DESC`).bind(tenant.company_id,from,to).all()
   ]);
   const pageViews=Number(totals?.page_views||0),orders=Number(totals?.orders||0);
-  return json({ok:true,companyId:tenant.company_id,from,to,summary:{...totals,visitors:Number(unique?.visitors||0),sessions:Number(unique?.sessions||0),conversionRate:pageViews?Number(((orders/pageViews)*100).toFixed(2)):0},series:series.results||[],sources:sources.results||[],pages:pages.results||[],devices:devices.results||[]});
+  return json({ok:true,storeId:auth.storeId,companyId:tenant.company_id,from,to,summary:{...totals,visitors:Number(unique?.visitors||0),sessions:Number(unique?.sessions||0),conversionRate:pageViews?Number(((orders/pageViews)*100).toFixed(2)):0},series:series.results||[],sources:sources.results||[],pages:pages.results||[],devices:devices.results||[]});
 }
