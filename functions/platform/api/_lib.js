@@ -89,18 +89,51 @@ export function cookie(request, name) {
   return item ? decodeURIComponent(item.slice(name.length + 1)) : "";
 }
 
-export async function verifyTurnstile(env, request, token) {
-  if (String(env.TURNSTILE_ENFORCE || "false").toLowerCase() !== "true") return true;
-  if (!env.TURNSTILE_SECRET_KEY || !token) return false;
+export async function verifyTurnstileDetailed(env, request, token) {
+  const enforced = String(env.TURNSTILE_ENFORCE || "false").toLowerCase() === "true";
+  if (!enforced) return { ok: true, code: "TURNSTILE_DISABLED" };
+  if (!env.TURNSTILE_SECRET_KEY) return { ok: false, code: "TURNSTILE_SECRET_MISSING" };
+  if (!String(token || "").trim()) return { ok: false, code: "TURNSTILE_TOKEN_MISSING" };
+
   const form = new FormData();
   form.set("secret", env.TURNSTILE_SECRET_KEY);
-  form.set("response", token);
-  const ip = request.headers.get("CF-Connecting-IP");
-  if (ip) form.set("remoteip", ip);
-  const response = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", { method: "POST", body: form });
-  if (!response.ok) return false;
-  const result = await response.json();
-  return result.success === true;
+  form.set("response", String(token).trim());
+
+  // remoteip is optional in Cloudflare Siteverify. Omitting it avoids false negatives
+  // when requests cross proxies or IPv4/IPv6 translation between widget and Worker.
+  let response;
+  try {
+    response = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
+      method: "POST",
+      body: form
+    });
+  } catch {
+    return { ok: false, code: "TURNSTILE_SITEVERIFY_UNAVAILABLE" };
+  }
+
+  if (!response.ok) return { ok: false, code: "TURNSTILE_SITEVERIFY_HTTP" };
+
+  let result;
+  try {
+    result = await response.json();
+  } catch {
+    return { ok: false, code: "TURNSTILE_SITEVERIFY_INVALID_RESPONSE" };
+  }
+
+  if (result.success === true) return { ok: true, code: "TURNSTILE_OK", hostname: result.hostname || null };
+
+  const errors = Array.isArray(result["error-codes"]) ? result["error-codes"].map(String) : [];
+  let code = "TURNSTILE_INVALID";
+  if (errors.includes("invalid-input-secret") || errors.includes("missing-input-secret")) code = "TURNSTILE_SECRET_INVALID";
+  else if (errors.includes("timeout-or-duplicate")) code = "TURNSTILE_TOKEN_EXPIRED";
+  else if (errors.includes("invalid-input-response") || errors.includes("missing-input-response")) code = "TURNSTILE_TOKEN_INVALID";
+
+  return { ok: false, code };
+}
+
+export async function verifyTurnstile(env, request, token) {
+  const result = await verifyTurnstileDetailed(env, request, token);
+  return result.ok;
 }
 
 export async function audit(env, request, action, companyId, userId, metadata = {}) {
@@ -111,5 +144,3 @@ export async function audit(env, request, action, companyId, userId, metadata = 
     VALUES (?1, ?2, ?3, ?4, ?5, ?6)`)
     .bind(userId || null, companyId || null, action, JSON.stringify(metadata), ipHash, new Date().toISOString()).run();
 }
-
-
