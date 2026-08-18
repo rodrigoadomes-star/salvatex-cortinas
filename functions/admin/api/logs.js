@@ -1,2 +1,2 @@
 import { json, requireAdmin } from "./_auth.js";
-export async function onRequestGet(context){const auth=await requireAdmin(context);if(!auth.ok)return auth.response; const rows=await context.env.DB.prepare(`SELECT id,action,entity_type,entity_id,payload_json,created_at FROM admin_logs WHERE store_id='salvatex' ORDER BY created_at DESC LIMIT 300`).all(); return json({ok:true,logs:rows.results||[]});}
+export async function onRequestGet(context){const auth=await requireAdmin(context);if(!auth.ok)return auth.response;const rows=await context.env.DB.prepare(`SELECT id,action,entity_type,entity_id,payload_json,created_at FROM admin_logs WHERE store_id=?1 ORDER BY created_at DESC LIMIT 300`).bind(auth.storeId).all();return json({ok:true,logs:rows.results||[]});}
