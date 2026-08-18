@@ -6,6 +6,11 @@ export async function onRequestGet(context) {
   const result = await context.env.DB.prepare(`SELECT c.id,c.slug,c.legal_name,c.trade_name,c.document_type,c.document_number,
       c.email,c.phone,c.segment,c.status,c.plan_code,c.platform_fee_basis_points,c.created_at,
       s.id store_id,s.active store_active,
+      COALESCE(
+        (SELECT d.hostname FROM platform_domains d WHERE d.company_id=c.id AND d.domain_type='platform_subdomain' AND d.status IN ('active','pending','verifying') ORDER BY CASE WHEN d.status='active' THEN 0 WHEN d.status='verifying' THEN 1 ELSE 2 END,d.created_at LIMIT 1),
+        (SELECT d.hostname FROM platform_domains d WHERE d.company_id=c.id AND d.status='active' ORDER BY d.created_at LIMIT 1),
+        CASE WHEN s.id='salvatex' THEN 'salvatex.radzhub.com.br' ELSE c.slug||'.radzhub.com.br' END
+      ) preferred_hostname,
       (SELECT COUNT(*) FROM platform_domains d WHERE d.company_id=c.id AND d.status='active') active_domains,
       (SELECT COUNT(*) FROM platform_users u WHERE u.company_id=c.id AND u.active=1) active_users
     FROM platform_companies c
@@ -33,4 +38,3 @@ export async function onRequestPatch(context) {
     VALUES (?1,'platform.company.updated','company',?1,?2,?3)`).bind(id,JSON.stringify({status,fee}),now).run();
   return json({ok:true});
 }
-
