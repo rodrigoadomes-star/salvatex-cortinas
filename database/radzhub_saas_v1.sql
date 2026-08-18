@@ -94,7 +94,7 @@ INSERT OR IGNORE INTO platform_companies (
   id, slug, legal_name, trade_name, document_type, document_number,
   email, status, plan_code, platform_fee_basis_points, created_at, updated_at
 ) VALUES (
-  'company-salvatex', 'salvatex-cortinas', 'Salvatex Cortinas', 'Salvatex Cortinas',
+  'company-salvatex', 'salvatex', 'Salvatex Cortinas', 'Salvatex Cortinas',
   'cnpj', 'PENDENTE_CONFIGURACAO', 'PENDENTE_CONFIGURACAO', 'active', 'founder', 100,
   datetime('now'), datetime('now')
 );
@@ -112,10 +112,10 @@ INSERT OR IGNORE INTO platform_company_stores (company_id, store_id, created_at)
 VALUES ('company-salvatex', 'salvatex', datetime('now'));
 
 INSERT OR IGNORE INTO platform_domains (
-  id, company_id, hostname, domain_type, status, created_at, updated_at
+  id, company_id, hostname, domain_type, status, verification_method, verified_at, created_at, updated_at
 ) VALUES (
-  'domain-salvatex-pages', 'company-salvatex', 'salvatex-cortinas.pages.dev',
-  'custom', 'active', datetime('now'), datetime('now')
+  'domain-salvatex-radzhub', 'company-salvatex', 'salvatex.radzhub.com.br',
+  'platform_subdomain', 'active', 'platform', datetime('now'), datetime('now'), datetime('now')
 );
 
 INSERT OR IGNORE INTO platform_features (company_id, feature_key, enabled, settings_json, updated_at)
@@ -126,4 +126,3 @@ VALUES
   ('company-salvatex','custom_domain',1,'{}',datetime('now')),
   ('company-salvatex','shipping',1,'{}',datetime('now')),
   ('company-salvatex','payments',1,'{}',datetime('now'));
-
