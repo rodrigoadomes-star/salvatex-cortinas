@@ -1,8 +1,11 @@
 import {requireAdmin,json} from './_auth.js';
-async function companyIdForStore(db,storeId){try{const row=await db.prepare(`SELECT company_id FROM platform_company_stores WHERE store_id=?1 LIMIT 1`).bind(storeId).first();return row?.company_id?String(row.company_id):''}catch{return ''}}
+async function companyForStore(db,storeId){try{return await db.prepare(`SELECT c.id,c.plan_code FROM platform_company_stores pcs JOIN platform_companies c ON c.id=pcs.company_id WHERE pcs.store_id=?1 LIMIT 1`).bind(storeId).first()}catch{return null}}
+function isBusiness(plan){return String(plan||'').trim().toLowerCase()==='business'}
 export async function onRequestGet(context){
   const auth=await requireAdmin(context);if(!auth.ok)return auth.response;
-  const companyId=await companyIdForStore(context.env.DB,auth.storeId);if(!companyId)return json({ok:false,code:'COMPANY_NOT_FOUND',message:'Empresa não vinculada à plataforma.'},404);
+  const company=await companyForStore(context.env.DB,auth.storeId);if(!company?.id)return json({ok:false,code:'COMPANY_NOT_FOUND',message:'Empresa não vinculada à plataforma.'},404);
+  if(!isBusiness(company.plan_code))return json({ok:false,code:'BUSINESS_PLAN_REQUIRED',message:'Meta Ads (Beta) está disponível somente no plano Business.'},403);
+  const companyId=String(company.id);
   const integration=await context.env.DB.prepare(`SELECT status,external_account_id,external_account_name,token_expires_at,connected_at,last_checked_at,last_error,updated_at,metadata_json FROM platform_integrations WHERE company_id=?1 AND provider='meta' LIMIT 1`).bind(companyId).first().catch(()=>null);
   let metadata={};try{metadata=integration?.metadata_json?JSON.parse(integration.metadata_json):{}}catch{}
   const tenantConnected=integration?.status==='connected'&&metadata.connection_source==='tenant';
@@ -17,7 +20,9 @@ export async function onRequestGet(context){
 }
 export async function onRequestPatch(context){
   const auth=await requireAdmin(context);if(!auth.ok)return auth.response;
-  const companyId=await companyIdForStore(context.env.DB,auth.storeId);if(!companyId)return json({ok:false,code:'COMPANY_NOT_FOUND'},404);
+  const company=await companyForStore(context.env.DB,auth.storeId);if(!company?.id)return json({ok:false,code:'COMPANY_NOT_FOUND'},404);
+  if(!isBusiness(company.plan_code))return json({ok:false,code:'BUSINESS_PLAN_REQUIRED',message:'Meta Ads (Beta) está disponível somente no plano Business.'},403);
+  const companyId=String(company.id);
   const integration=await context.env.DB.prepare(`SELECT status,metadata_json FROM platform_integrations WHERE company_id=?1 AND provider='meta' LIMIT 1`).bind(companyId).first().catch(()=>null);
   let metadata={};try{metadata=integration?.metadata_json?JSON.parse(integration.metadata_json):{}}catch{}
   if(integration?.status!=='connected'||metadata.connection_source!=='tenant')return json({ok:false,code:'META_NOT_CONNECTED',message:'Conecte a conta Meta desta empresa antes de selecionar uma conta de anúncios.'},409);
