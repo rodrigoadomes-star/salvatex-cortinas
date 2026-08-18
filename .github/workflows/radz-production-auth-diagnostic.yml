@@ -1,0 +1,60 @@
+name: RADZ production auth diagnostic
+
+on:
+  push:
+    branches: [radz-unified-production]
+
+permissions:
+  contents: read
+
+jobs:
+  production-auth-diagnostic:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Wait for Cloudflare production deployment
+        shell: bash
+        run: |
+          set -euo pipefail
+          expected='turnstile.getResponse'
+          for i in $(seq 1 30); do
+            body="$(curl -fsS --max-time 15 'https://radzhub.com.br/platform/platform.js?v=20260818-authdiag' || true)"
+            if printf '%s' "$body" | grep -Fq "$expected"; then
+              echo 'Production auth JavaScript is reachable.'
+              exit 0
+            fi
+            echo "Waiting for production deployment ($i/30)..."
+            sleep 10
+          done
+          echo 'Production did not become reachable in time.' >&2
+          exit 1
+
+      - name: Check production auth pages and Turnstile config
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl -fsS --max-time 15 'https://radzhub.com.br/platform/login' | grep -Fq 'login-form'
+          curl -fsS --max-time 15 'https://radzhub.com.br/platform/cadastro' | grep -Fq 'register-form'
+          cfg="$(curl -fsS --max-time 15 'https://radzhub.com.br/api/turnstile-config')"
+          echo "$cfg"
+          printf '%s' "$cfg" | grep -Fq '"enabled":true'
+
+      - name: Validate Turnstile server configuration remotely
+        shell: bash
+        run: |
+          set -euo pipefail
+          health="$(curl -fsS --max-time 20 'https://radzhub.com.br/api/turnstile-health')"
+          echo "$health"
+          printf '%s' "$health" | grep -Fq '"ok":true'
+          printf '%s' "$health" | grep -Fq '"secretAccepted":true'
+
+      - name: Verify auth API rejects missing Turnstile token safely
+        shell: bash
+        run: |
+          set -euo pipefail
+          code="$(curl -sS -o /tmp/login.json -w '%{http_code}' --max-time 20 \
+            -H 'content-type: application/json' \
+            --data '{"email":"remote-smoke@example.invalid","password":"RemoteSmoke123"}' \
+            'https://radzhub.com.br/platform/api/login')"
+          cat /tmp/login.json
+          test "$code" = '400' -o "$code" = '503'
+          grep -Eq 'TURNSTILE_TOKEN_MISSING|TURNSTILE_SECRET_' /tmp/login.json
