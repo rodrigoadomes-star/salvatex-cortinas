@@ -39,9 +39,16 @@ const NO_ANALYTICS_PREFIXES=['/admin','/radz-admin','/platform-admin','/platform
 function shouldTrack(pathname){return !NO_ANALYTICS_PREFIXES.some(prefix=>pathname.startsWith(prefix));}
 
 class HeadBootstrap{
-  constructor(track){this.track=track;}
+  constructor(track,homeCleanup){this.track=track;this.homeCleanup=homeCleanup;}
   element(element){
     element.prepend(PAGE_BOOTSTRAP,{html:true});
+    if(this.homeCleanup){
+      element.append(`<style id="salvatex-home-cleanup">
+        .home-configurator-intro,#configurador{display:none!important}
+        .home-collections{padding-bottom:48px}
+        .home-benefits-strip{margin-bottom:0}
+      </style>`,{html:true});
+    }
     if(this.track)element.append(ANALYTICS_SCRIPT,{html:true});
   }
 }
@@ -51,6 +58,8 @@ class ProductionConfiguratorScripts{element(element){element.append('<script src
 export async function onRequest(context){
   const url=new URL(context.request.url);
   const pathname=url.pathname;
+  const host=url.hostname.toLowerCase();
+  const isSalvatexHome=host==='salvatex.radzhub.com.br'&&(pathname==='/'||pathname==='/index.html');
   const response=await context.next();
   const headers=new Headers(response.headers);
   headers.set("content-security-policy",CSP);
@@ -66,7 +75,7 @@ export async function onRequest(context){
   if(response.status===200&&contentType.includes("text/html")&&typeof HTMLRewriter!=="undefined"){
     headers.delete("content-length");
     const secured=new Response(response.body,{status:response.status,statusText:response.statusText,headers});
-    let rewriter=new HTMLRewriter().on("head",new HeadBootstrap(shouldTrack(pathname)));
+    let rewriter=new HTMLRewriter().on("head",new HeadBootstrap(shouldTrack(pathname),isSalvatexHome));
     if(pathname==="/configurador"||pathname==="/configurador.html"){
       rewriter=rewriter.on("html",new ConfiguratorHtml()).on("body",new ProductionConfiguratorScripts());
     }
