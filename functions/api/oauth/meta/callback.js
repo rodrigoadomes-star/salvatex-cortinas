@@ -1,8 +1,12 @@
 import { verifyMetaState } from "./_state.js";
 import { encryptSecret } from "./_vault.js";
 
-function redirect(context,status,detail=""){
-  const base=new URL("/radz-admin/",new URL(context.request.url).origin);
+function safeReturnTo(value){
+  const path=String(value||'/radz-admin/');
+  return path.startsWith('/')&&!path.startsWith('//')?path:'/radz-admin/';
+}
+function redirect(context,status,detail="",returnTo='/radz-admin/'){
+  const base=new URL(safeReturnTo(returnTo),new URL(context.request.url).origin);
   base.searchParams.set("meta",status);
   if(detail)base.searchParams.set("detail",detail.slice(0,120));
   return Response.redirect(base.toString(),302);
@@ -15,8 +19,6 @@ export async function onRequestGet(context){
   const oauthError=requestUrl.searchParams.get("error")||"";
   const oauthErrorDescription=requestUrl.searchParams.get("error_description")||"";
 
-  if(oauthError)return redirect(context,"cancelled",oauthErrorDescription||oauthError);
-
   const appId=String(context.env.META_APP_ID||"").trim();
   const appSecret=String(context.env.META_APP_SECRET||"").trim();
   const sessionSecret=String(context.env.RADZ_ADMIN_SESSION_SECRET||"").trim();
@@ -24,17 +26,20 @@ export async function onRequestGet(context){
   const version=String(context.env.META_GRAPH_VERSION||"v24.0").trim();
   const redirectUri=String(context.env.META_OAUTH_REDIRECT_URI||`${requestUrl.origin}/api/oauth/meta/callback`).trim();
 
-  if(!appId||!appSecret||!sessionSecret||!vaultSecret)return redirect(context,"config_error","Meta OAuth/cofre não configurado no Cloudflare");
-  if(!context.env.DB)return redirect(context,"config_error","Binding D1 DB não configurado");
+  const validState=sessionSecret?await verifyMetaState(sessionSecret,state):null;
+  const returnTo=safeReturnTo(validState?.returnTo||'/radz-admin/');
+  const source=validState?.source==='tenant'?'tenant':'superadmin';
 
-  const validState=await verifyMetaState(sessionSecret,state);
-  if(!validState)return redirect(context,"state_error","State inválido ou expirado");
-  if(!validState.companyId)return redirect(context,"company_error","Empresa ausente no state OAuth");
-  if(!code)return redirect(context,"code_missing","Código OAuth não recebido");
+  if(oauthError)return redirect(context,"cancelled",oauthErrorDescription||oauthError,returnTo);
+  if(!appId||!appSecret||!sessionSecret||!vaultSecret)return redirect(context,"config_error","Meta OAuth/cofre não configurado no Cloudflare",returnTo);
+  if(!context.env.DB)return redirect(context,"config_error","Binding D1 DB não configurado",returnTo);
+  if(!validState)return redirect(context,"state_error","State inválido ou expirado",returnTo);
+  if(!validState.companyId)return redirect(context,"company_error","Empresa ausente no state OAuth",returnTo);
+  if(!code)return redirect(context,"code_missing","Código OAuth não recebido",returnTo);
 
   const companyId=String(validState.companyId);
   const company=await context.env.DB.prepare("SELECT id FROM platform_companies WHERE id=?1 AND status NOT IN ('cancelled') LIMIT 1").bind(companyId).first();
-  if(!company)return redirect(context,"company_error","Empresa não encontrada");
+  if(!company)return redirect(context,"company_error","Empresa não encontrada",returnTo);
 
   try{
     const tokenUrl=new URL(`https://graph.facebook.com/${encodeURIComponent(version)}/oauth/access_token`);
@@ -47,7 +52,7 @@ export async function onRequestGet(context){
     const tokenData=await tokenRes.json().catch(()=>({}));
     if(!tokenRes.ok||!tokenData.access_token){
       console.error(JSON.stringify({event:"meta_oauth_token_exchange_failed",status:tokenRes.status}));
-      return redirect(context,"token_error","Falha ao validar autorização com a Meta");
+      return redirect(context,"token_error","Falha ao validar autorização com a Meta",returnTo);
     }
 
     const accessToken=String(tokenData.access_token);
@@ -56,7 +61,7 @@ export async function onRequestGet(context){
     profileUrl.searchParams.set("access_token",accessToken);
     const profileRes=await fetch(profileUrl.toString(),{headers:{accept:"application/json"}});
     const profile=await profileRes.json().catch(()=>({}));
-    if(!profileRes.ok||!profile.id)return redirect(context,"profile_error","Autorização recebida, mas a conta não pôde ser validada");
+    if(!profileRes.ok||!profile.id)return redirect(context,"profile_error","Autorização recebida, mas a conta não pôde ser validada",returnTo);
 
     const accountsUrl=new URL(`https://graph.facebook.com/${encodeURIComponent(version)}/me/adaccounts`);
     accountsUrl.searchParams.set("fields","id,account_id,name,currency,timezone_name,account_status");
@@ -70,6 +75,7 @@ export async function onRequestGet(context){
     const now=new Date().toISOString();
     const integrationId=`meta-${companyId}`;
     const expiresAt=Number(tokenData.expires_in)>0?new Date(Date.now()+Number(tokenData.expires_in)*1000).toISOString():null;
+    const metadata={meta_user_id:String(profile.id),meta_user_name:String(profile.name||""),ad_accounts_found:accounts.length,connection_source:source};
 
     await context.env.DB.prepare(`
       INSERT INTO platform_integrations (
@@ -88,10 +94,10 @@ export async function onRequestGet(context){
     `).bind(
       integrationId,companyId,String(profile.id),String(profile.name||""),encrypted.ciphertext,
       encrypted.iv,encrypted.version,JSON.stringify(["ads_read","ads_management","business_management"]),
-      JSON.stringify({meta_user_id:String(profile.id),meta_user_name:String(profile.name||""),ad_accounts_found:accounts.length}),
-      expiresAt,now
+      JSON.stringify(metadata),expiresAt,now
     ).run();
 
+    await context.env.DB.prepare(`UPDATE platform_meta_ad_accounts SET is_selected=0 WHERE company_id=?1`).bind(companyId).run().catch(()=>{});
     const statements=[];
     for(const account of accounts){
       const adId=String(account.account_id||account.id||"").replace(/^act_/,"");
@@ -114,12 +120,11 @@ export async function onRequestGet(context){
     if(statements.length)await context.env.DB.batch(statements);
 
     await context.env.DB.prepare(`INSERT INTO platform_audit_logs (actor_user_id,company_id,action,target_type,target_id,metadata_json,created_at) VALUES (NULL,?1,'meta.connected','integration',?2,?3,?4)`)
-      .bind(companyId,integrationId,JSON.stringify({meta_user_id:String(profile.id),ad_accounts_found:accounts.length}),now).run().catch(()=>{});
+      .bind(companyId,integrationId,JSON.stringify({meta_user_id:String(profile.id),ad_accounts_found:accounts.length,connection_source:source}),now).run().catch(()=>{});
 
-    console.log(JSON.stringify({event:"meta_oauth_persisted",companyId,metaUserId:String(profile.id),adAccounts:accounts.length,at:now}));
-    return redirect(context,"connected",accounts.length?`${accounts.length} conta(s) de anúncios encontrada(s)`:"Meta conectada; nenhuma conta de anúncios encontrada");
+    return redirect(context,"connected",accounts.length?`${accounts.length} conta(s) de anúncios encontrada(s)`:"Meta conectada; nenhuma conta de anúncios encontrada",returnTo);
   }catch(error){
     console.error(JSON.stringify({event:"meta_oauth_callback_error",message:String(error?.message||error)}));
-    return redirect(context,"error","Falha inesperada ao salvar integração Meta");
+    return redirect(context,"error","Falha inesperada ao salvar integração Meta",returnTo);
   }
 }
