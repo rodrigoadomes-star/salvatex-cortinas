@@ -2,4 +2,3 @@
 /radz /radz-admin/ 301
 /radz/ /radz-admin/ 301
 /admin /admin/ 301
-/admin/* /admin/:splat 200
