@@ -23,10 +23,15 @@ async function hmacKey(secret){
   );
 }
 
-export async function createMetaState(secret, companyId){
+export async function createMetaState(secret, companyId, options={}){
+  const returnTo=String(options.returnTo||'/radz-admin/');
+  const safeReturnTo=returnTo.startsWith('/')&&!returnTo.startsWith('//')?returnTo:'/radz-admin/';
+  const source=String(options.source||'superadmin')==='tenant'?'tenant':'superadmin';
   const payload={
     provider:"meta",
     companyId:String(companyId||""),
+    returnTo:safeReturnTo,
+    source,
     iat:Date.now(),
     exp:Date.now()+10*60*1000,
     nonce:crypto.randomUUID()
