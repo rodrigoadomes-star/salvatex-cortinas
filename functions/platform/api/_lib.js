@@ -58,21 +58,42 @@ export async function sha256(value) {
   return bytesToHex(digest);
 }
 
+// PBKDF2 via deriveKey + exportKey is supported consistently by the Cloudflare Workers
+// Web Crypto runtime. Keep the stored format (hex hash/salt + iterations) unchanged so
+// existing credentials remain compatible with verifyPassword.
 export async function hashPassword(password, saltHex = randomToken(16), iterations = 210000) {
-  const material = await crypto.subtle.importKey("raw", new TextEncoder().encode(password), "PBKDF2", false, ["deriveBits"]);
-  const bits = await crypto.subtle.deriveBits(
-    { name: "PBKDF2", hash: "SHA-256", salt: hexToBytes(saltHex), iterations }, material, 256
+  const material = await crypto.subtle.importKey(
+    "raw",
+    new TextEncoder().encode(password),
+    { name: "PBKDF2" },
+    false,
+    ["deriveKey"]
   );
-  return { hash: bytesToHex(bits), salt: saltHex, iterations };
+  const key = await crypto.subtle.deriveKey(
+    { name: "PBKDF2", hash: "SHA-256", salt: hexToBytes(saltHex), iterations },
+    material,
+    { name: "HMAC", hash: "SHA-256", length: 256 },
+    true,
+    ["sign"]
+  );
+  const raw = await crypto.subtle.exportKey("raw", key);
+  return { hash: bytesToHex(raw), salt: saltHex, iterations };
 }
 
 export async function verifyPassword(password, expectedHash, salt, iterations) {
   const actual = await hashPassword(password, salt, iterations);
+  // Compare fixed-length SHA-256 digests without relying on timingSafeEqual, which is
+  // not part of the standard SubtleCrypto API in every Workers compatibility mode.
   const [a, b] = await Promise.all([
     crypto.subtle.digest("SHA-256", new TextEncoder().encode(actual.hash)),
-    crypto.subtle.digest("SHA-256", new TextEncoder().encode(expectedHash))
+    crypto.subtle.digest("SHA-256", new TextEncoder().encode(String(expectedHash || "")))
   ]);
-  return crypto.subtle.timingSafeEqual(a, b);
+  const av = new Uint8Array(a);
+  const bv = new Uint8Array(b);
+  if (av.length !== bv.length) return false;
+  let diff = 0;
+  for (let i = 0; i < av.length; i += 1) diff |= av[i] ^ bv[i];
+  return diff === 0;
 }
 
 export function sessionCookie(token, maxAge = 28800) {
@@ -99,8 +120,6 @@ export async function verifyTurnstileDetailed(env, request, token) {
   form.set("secret", env.TURNSTILE_SECRET_KEY);
   form.set("response", String(token).trim());
 
-  // remoteip is optional in Cloudflare Siteverify. Omitting it avoids false negatives
-  // when requests cross proxies or IPv4/IPv6 translation between widget and Worker.
   let response;
   try {
     response = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
