@@ -37,6 +37,7 @@ const PAGE_BOOTSTRAP=`
 const PUBLIC_TRACKING_SCRIPTS='<script src="/js/radz-analytics.js" defer></script><script src="/js/radz-marketing.js" defer></script>';
 const NO_ANALYTICS_PREFIXES=['/admin','/radz-admin','/platform-admin','/platform','/login','/cadastro','/api/','/radz/api/'];
 function shouldTrack(pathname){return !NO_ANALYTICS_PREFIXES.some(prefix=>pathname.startsWith(prefix));}
+function isAdminPath(pathname){return pathname.startsWith('/admin')||pathname.startsWith('/radz-admin')||pathname.startsWith('/platform-admin')||pathname.startsWith('/radz/api/')||pathname.startsWith('/admin/api/');}
 
 class HeadBootstrap{
   constructor(track,homeCleanup){this.track=track;this.homeCleanup=homeCleanup;}
@@ -60,6 +61,7 @@ export async function onRequest(context){
   const pathname=url.pathname;
   const host=url.hostname.toLowerCase();
   const isSalvatexHome=host==='salvatex.radzhub.com.br'&&(pathname==='/'||pathname==='/index.html');
+  const adminPath=isAdminPath(pathname);
   const response=await context.next();
   const headers=new Headers(response.headers);
   headers.set("content-security-policy",CSP);
@@ -69,12 +71,13 @@ export async function onRequest(context){
   headers.set("permissions-policy","camera=(), microphone=(), geolocation=(), payment=()");
   headers.set("cross-origin-opener-policy","same-origin-allow-popups");
   headers.set("strict-transport-security","max-age=31536000; includeSubDomains");
-  if(pathname.startsWith("/admin")||pathname.startsWith('/radz-admin')||pathname.startsWith('/platform-admin'))headers.set("cache-control","no-store");
+  if(adminPath)headers.set("cache-control","no-store");
 
   const contentType=headers.get("content-type")||"";
   if(response.status===200&&contentType.includes("text/html")&&typeof HTMLRewriter!=="undefined"){
     headers.delete("content-length");
     const secured=new Response(response.body,{status:response.status,statusText:response.statusText,headers});
+    if(adminPath)return secured;
     let rewriter=new HTMLRewriter().on("head",new HeadBootstrap(shouldTrack(pathname),isSalvatexHome));
     if(pathname==="/configurador"||pathname==="/configurador.html"){
       rewriter=rewriter.on("html",new ConfiguratorHtml()).on("body",new ProductionConfiguratorScripts());
