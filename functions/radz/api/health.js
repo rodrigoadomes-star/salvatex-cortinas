@@ -26,22 +26,24 @@ export async function onRequestGet(context){
       DB:Boolean(env.DB),
       MEDIA:Boolean(env.MEDIA)
     },
-    radz:{
+    core:{
       RADZ_ADMIN_TOKEN:present(env.RADZ_ADMIN_TOKEN),
       RADZ_ADMIN_SESSION_SECRET:present(env.RADZ_ADMIN_SESSION_SECRET),
+      ADMIN_TOKEN:present(env.ADMIN_TOKEN),
+      ADMIN_SESSION_SECRET:present(env.ADMIN_SESSION_SECRET),
+      CUSTOMER_SESSION_SECRET:present(env.CUSTOMER_SESSION_SECRET),
+      TURNSTILE_ENFORCE:present(env.TURNSTILE_ENFORCE),
+      TURNSTILE_SECRET_KEY:present(env.TURNSTILE_SECRET_KEY),
+      TURNSTILE_SITE_KEY:present(env.TURNSTILE_SITE_KEY)
+    },
+    optional_meta_ads:{
       META_APP_ID:present(env.META_APP_ID),
       META_APP_SECRET:present(env.META_APP_SECRET),
       META_GRAPH_VERSION:present(env.META_GRAPH_VERSION),
       META_OAUTH_REDIRECT_URI:present(env.META_OAUTH_REDIRECT_URI),
       META_CREDENTIALS_KEY:present(env.META_CREDENTIALS_KEY)
     },
-    salvatex_legacy_runtime:{
-      ADMIN_TOKEN:present(env.ADMIN_TOKEN),
-      ADMIN_SESSION_SECRET:present(env.ADMIN_SESSION_SECRET),
-      CUSTOMER_SESSION_SECRET:present(env.CUSTOMER_SESSION_SECRET),
-      TURNSTILE_ENFORCE:present(env.TURNSTILE_ENFORCE),
-      TURNSTILE_SECRET_KEY:present(env.TURNSTILE_SECRET_KEY),
-      TURNSTILE_SITE_KEY:present(env.TURNSTILE_SITE_KEY),
+    optional_google_ads:{
       GOOGLE_OAUTH_CLIENT_ID:present(env.GOOGLE_OAUTH_CLIENT_ID),
       GOOGLE_OAUTH_CLIENT_SECRET:present(env.GOOGLE_OAUTH_CLIENT_SECRET),
       GOOGLE_ADS_OAUTH_REDIRECT_URI:present(env.GOOGLE_ADS_OAUTH_REDIRECT_URI)
@@ -67,9 +69,15 @@ export async function onRequestGet(context){
     for(const name of ["platform_companies","platform_analytics_events","platform_analytics_daily","platform_integrations","platform_meta_ad_accounts"]){checks.d1[name]=false;schema.radzTables[name]=false;}
   }
 
+  const requiredGroups=["bindings","core","d1"];
   const missing=[];
-  for(const [group,items] of Object.entries(checks)){
-    for(const [name,ok] of Object.entries(items))if(!ok)missing.push(`${group}.${name}`);
+  for(const group of requiredGroups){
+    for(const [name,ok] of Object.entries(checks[group]||{}))if(!ok)missing.push(`${group}.${name}`);
+  }
+
+  const optionalMissing=[];
+  for(const group of ["optional_meta_ads","optional_google_ads"]){
+    for(const [name,ok] of Object.entries(checks[group]||{}))if(!ok)optionalMissing.push(`${group}.${name}`);
   }
 
   return json({
@@ -78,6 +86,7 @@ export async function onRequestGet(context){
     checks,
     schema,
     missing,
-    note:"Somente presença/ausência e compatibilidade de schema são retornadas. Nenhum secret é exposto."
+    optionalMissing,
+    note:"Somente presença/ausência e compatibilidade de schema são retornadas. Integrações opcionais não tornam o runtime principal indisponível. Nenhum secret é exposto."
   });
 }
