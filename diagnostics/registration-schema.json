@@ -1,0 +1,151 @@
+{
+  "ok": true,
+  "code": "REGISTER_SCHEMA_READY",
+  "tables": {
+    "platform_companies": {
+      "exists": true,
+      "missing": [],
+      "columns": [
+        "id",
+        "slug",
+        "legal_name",
+        "trade_name",
+        "document_type",
+        "document_number",
+        "email",
+        "phone",
+        "segment",
+        "status",
+        "plan_code",
+        "platform_fee_basis_points",
+        "created_at",
+        "updated_at"
+      ]
+    },
+    "platform_users": {
+      "exists": true,
+      "missing": [],
+      "columns": [
+        "id",
+        "company_id",
+        "name",
+        "email",
+        "password_hash",
+        "password_salt",
+        "password_iterations",
+        "role",
+        "email_verified_at",
+        "active",
+        "created_at",
+        "updated_at"
+      ]
+    },
+    "stores": {
+      "exists": true,
+      "missing": [],
+      "columns": [
+        "id",
+        "slug",
+        "name",
+        "active",
+        "platform_fee_percent",
+        "platform_fee_minimum_cents",
+        "created_at",
+        "updated_at"
+      ]
+    },
+    "platform_company_stores": {
+      "exists": true,
+      "missing": [],
+      "columns": [
+        "company_id",
+        "store_id",
+        "created_at"
+      ]
+    },
+    "platform_domains": {
+      "exists": true,
+      "missing": [],
+      "columns": [
+        "id",
+        "company_id",
+        "hostname",
+        "domain_type",
+        "status",
+        "verification_token",
+        "verification_method",
+        "verification_error",
+        "verified_at",
+        "created_at",
+        "updated_at"
+      ]
+    },
+    "store_configs": {
+      "exists": true,
+      "missing": [],
+      "columns": [
+        "store_id",
+        "config_key",
+        "value_json",
+        "updated_at"
+      ]
+    },
+    "platform_sessions": {
+      "exists": true,
+      "missing": [],
+      "columns": [
+        "id",
+        "user_id",
+        "company_id",
+        "token_hash",
+        "expires_at",
+        "rotated_at",
+        "created_at",
+        "last_seen_at"
+      ]
+    },
+    "platform_legal_acceptances": {
+      "exists": true,
+      "missing": [],
+      "columns": [
+        "id",
+        "company_id",
+        "user_id",
+        "terms_version",
+        "privacy_version",
+        "accepted_at",
+        "ip_hash",
+        "user_agent",
+        "source"
+      ]
+    },
+    "platform_features": {
+      "exists": true,
+      "missing": [],
+      "columns": [
+        "company_id",
+        "feature_key",
+        "enabled",
+        "settings_json",
+        "updated_at"
+      ]
+    },
+    "platform_audit_logs": {
+      "exists": true,
+      "missing": [],
+      "columns": [
+        "id",
+        "actor_user_id",
+        "company_id",
+        "action",
+        "target_type",
+        "target_id",
+        "ip_hash",
+        "metadata_json",
+        "created_at"
+      ]
+    }
+  },
+  "_captured_at": "2026-08-18T23:02:27.540635+00:00",
+  "_commit": "b215f90a7b546608824aa386172eeaf9f97f8762"
+}
