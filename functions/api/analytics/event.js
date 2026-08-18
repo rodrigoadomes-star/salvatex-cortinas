@@ -1,38 +1,13 @@
-const ALLOWED = new Set(['page_view','product_view','add_to_cart','checkout_started','order_completed']);
+const ALLOWED=new Set(['page_view','product_view','add_to_cart','checkout_started','order_completed']);
 const clean=(v,max=300)=>String(v??'').trim().replace(/[\u0000-\u001F\u007F]/g,'').slice(0,max);
 function json(data,status=200){return new Response(JSON.stringify(data),{status,headers:{'content-type':'application/json; charset=utf-8','cache-control':'no-store','x-content-type-options':'nosniff'}})}
 function hostnameOnly(value){try{return value?new URL(value).hostname.slice(0,255):null}catch{return null}}
 function dateUtc(){return new Date().toISOString().slice(0,10)}
-async function resolveTenant(db,request){
-  const host=new URL(request.url).hostname.toLowerCase();
-  const row=await db.prepare(`SELECT d.company_id, pcs.store_id FROM platform_domains d LEFT JOIN platform_company_stores pcs ON pcs.company_id=d.company_id WHERE lower(d.hostname)=?1 AND d.status='active' LIMIT 1`).bind(host).first();
-  if(row?.company_id)return row;
-  if(host.endsWith('.pages.dev')){
-    const fallback=await db.prepare(`SELECT company_id, store_id FROM platform_company_stores WHERE company_id='company-salvatex' LIMIT 1`).first();
-    if(fallback?.company_id)return fallback;
-  }
-  return null;
-}
+async function resolveTenant(db,request){const host=new URL(request.url).hostname.toLowerCase();let row=await db.prepare(`SELECT d.company_id,pcs.store_id FROM platform_domains d LEFT JOIN platform_company_stores pcs ON pcs.company_id=d.company_id WHERE lower(d.hostname)=?1 AND d.status='active' LIMIT 1`).bind(host).first();if(row?.company_id)return row;if(host.endsWith('.radzhub.com.br')){const slug=host.slice(0,-'.radzhub.com.br'.length).split('.')[0]||'';if(slug){row=await db.prepare(`SELECT pcs.company_id,pcs.store_id FROM stores s JOIN platform_company_stores pcs ON pcs.store_id=s.id WHERE s.slug=?1 AND s.active=1 LIMIT 1`).bind(slug).first();if(row?.company_id)return row}}return null}
 export async function onRequestPost(context){
-  if(!context.env.DB)return json({ok:false,code:'DB_NOT_CONFIGURED'},503);
-  const origin=context.request.headers.get('origin');
-  if(origin&&new URL(origin).origin!==new URL(context.request.url).origin)return json({ok:false,code:'BAD_ORIGIN'},403);
-  const tenant=await resolveTenant(context.env.DB,context.request);
-  if(!tenant)return json({ok:false,code:'TENANT_NOT_FOUND'},404);
-  const body=await context.request.json().catch(()=>null);
-  if(!body||!ALLOWED.has(body.eventType))return json({ok:false,code:'INVALID_EVENT'},400);
-  const visitorId=clean(body.visitorId,80),sessionId=clean(body.sessionId,80),eventId=clean(body.eventId,80);
-  if(!visitorId||!sessionId||!eventId)return json({ok:false,code:'MISSING_IDS'},400);
-  const path=clean(body.path||'/',500); if(!path.startsWith('/'))return json({ok:false,code:'INVALID_PATH'},400);
-  const now=new Date().toISOString(),eventDate=dateUtc();
-  const valueCents=Math.max(0,Math.min(1000000000,Number(body.valueCents)||0));
-  const fields={page_view:['page_views',1],product_view:['product_views',1],add_to_cart:['add_to_cart',1],checkout_started:['checkout_started',1],order_completed:['orders',1]}[body.eventType];
-  try{
-    const result=await context.env.DB.prepare(`INSERT OR IGNORE INTO platform_analytics_events (id,company_id,store_id,event_type,visitor_id,session_id,path,page_title,referrer_host,product_id,value_cents,currency,utm_source,utm_medium,utm_campaign,utm_content,utm_term,device_type,event_date,created_at) VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11,?12,?13,?14,?15,?16,?17,?18,?19,?20)`).bind(eventId,tenant.company_id,tenant.store_id||null,body.eventType,visitorId,sessionId,path,clean(body.pageTitle,200)||null,hostnameOnly(body.referrer),clean(body.productId,120)||null,Math.round(valueCents),clean(body.currency||'BRL',8)||'BRL',clean(body.utmSource,120)||null,clean(body.utmMedium,120)||null,clean(body.utmCampaign,180)||null,clean(body.utmContent,180)||null,clean(body.utmTerm,180)||null,clean(body.deviceType,20)||null,eventDate,now).run();
-    if((result.meta?.changes||0)>0){
-      const revenue=body.eventType==='order_completed'?Math.round(valueCents):0;
-      await context.env.DB.prepare(`INSERT INTO platform_analytics_daily (company_id,event_date,page_views,product_views,add_to_cart,checkout_started,orders,revenue_cents,updated_at) VALUES (?1,?2,0,0,0,0,0,0,?3) ON CONFLICT(company_id,event_date) DO UPDATE SET ${fields[0]}=${fields[0]}+1,revenue_cents=revenue_cents+?4,updated_at=?3`).bind(tenant.company_id,eventDate,now,revenue).run();
-    }
-    return json({ok:true});
-  }catch(e){console.error(JSON.stringify({event:'analytics_write_failed',message:String(e?.message||e)}));return json({ok:false,code:'ANALYTICS_UNAVAILABLE'},503)}
+  if(!context.env.DB)return json({ok:false,code:'DB_NOT_CONFIGURED'},503);const origin=context.request.headers.get('origin');if(origin&&new URL(origin).origin!==new URL(context.request.url).origin)return json({ok:false,code:'BAD_ORIGIN'},403);
+  const tenant=await resolveTenant(context.env.DB,context.request);if(!tenant)return json({ok:false,code:'TENANT_NOT_FOUND'},404);const body=await context.request.json().catch(()=>null);if(!body||!ALLOWED.has(body.eventType))return json({ok:false,code:'INVALID_EVENT'},400);
+  const visitorId=clean(body.visitorId,80),sessionId=clean(body.sessionId,80),eventId=clean(body.eventId,80);if(!visitorId||!sessionId||!eventId)return json({ok:false,code:'MISSING_IDS'},400);const path=clean(body.path||'/',500);if(!path.startsWith('/'))return json({ok:false,code:'INVALID_PATH'},400);
+  const now=new Date().toISOString(),eventDate=dateUtc(),valueCents=Math.max(0,Math.min(1000000000,Number(body.valueCents)||0)),fields={page_view:['page_views',1],product_view:['product_views',1],add_to_cart:['add_to_cart',1],checkout_started:['checkout_started',1],order_completed:['orders',1]}[body.eventType];
+  try{const result=await context.env.DB.prepare(`INSERT OR IGNORE INTO platform_analytics_events(id,company_id,store_id,event_type,visitor_id,session_id,path,page_title,referrer_host,product_id,value_cents,currency,utm_source,utm_medium,utm_campaign,utm_content,utm_term,device_type,event_date,created_at) VALUES(?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11,?12,?13,?14,?15,?16,?17,?18,?19,?20)`).bind(eventId,tenant.company_id,tenant.store_id||null,body.eventType,visitorId,sessionId,path,clean(body.pageTitle,200)||null,hostnameOnly(body.referrer),clean(body.productId,120)||null,Math.round(valueCents),clean(body.currency||'BRL',8)||'BRL',clean(body.utmSource,120)||null,clean(body.utmMedium,120)||null,clean(body.utmCampaign,180)||null,clean(body.utmContent,180)||null,clean(body.utmTerm,180)||null,clean(body.deviceType,20)||null,eventDate,now).run();if((result.meta?.changes||0)>0){const revenue=body.eventType==='order_completed'?Math.round(valueCents):0;await context.env.DB.prepare(`INSERT INTO platform_analytics_daily(company_id,event_date,page_views,product_views,add_to_cart,checkout_started,orders,revenue_cents,updated_at) VALUES(?1,?2,0,0,0,0,0,0,?3) ON CONFLICT(company_id,event_date) DO UPDATE SET ${fields[0]}=${fields[0]}+1,revenue_cents=revenue_cents+?4,updated_at=?3`).bind(tenant.company_id,eventDate,now,revenue).run()}return json({ok:true})}catch(e){console.error(JSON.stringify({event:'analytics_write_failed',message:String(e?.message||e)}));return json({ok:false,code:'ANALYTICS_UNAVAILABLE'},503)}
 }
