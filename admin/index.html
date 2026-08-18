@@ -5,19 +5,25 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="robots" content="noindex,nofollow">
   <title>Painel administrativo — RADZ HUB</title>
-  <link rel="stylesheet" href="../css/admin.css?v=final-20260814-1">
+  <link rel="stylesheet" href="../css/admin.css?v=final-20260818-2">
   <link rel="stylesheet" href="../css/admin-messages.css?v=20260815-7">
-  <style>#admin-nav .analytics-nav-link{display:flex;align-items:center;gap:11px;width:100%;box-sizing:border-box;padding:11px 14px;border-radius:9px;color:inherit;text-decoration:none;font:inherit}#admin-nav .analytics-nav-link:hover{background:rgba(255,255,255,.08)}</style>
+  <style>
+    #admin-nav .analytics-nav-link{display:flex;align-items:center;gap:11px;width:100%;box-sizing:border-box;padding:11px 14px;border-radius:9px;color:inherit;text-decoration:none;font:inherit}#admin-nav .analytics-nav-link:hover{background:rgba(255,255,255,.08)}
+    .login-help{display:flex;justify-content:flex-end;margin-top:-4px}.login-help button{border:0;background:none;color:#315b7d;cursor:pointer;font:inherit;font-size:13px;padding:4px 0}.login-help button:hover{text-decoration:underline}.login-notice{font-size:13px;line-height:1.45;margin-top:10px;color:#52606d}.login-notice.success{color:#1b7f46}.login-notice.error{color:#b42318}
+  </style>
 </head>
 <body>
 <div id="admin-login" class="admin-login">
   <form id="login-form" class="login-card">
     <div class="login-brand">RADZ<small>HUB</small></div>
     <h1>Painel administrativo</h1>
-    <p>Informe a chave administrativa da sua empresa.</p>
-    <label>Chave de acesso<input id="admin-token-input" type="password" autocomplete="current-password" required></label>
+    <p>Entre com o e-mail e a senha cadastrados para sua empresa.</p>
+    <label>E-mail<input id="admin-token-input" type="email" autocomplete="username" required></label>
+    <label>Senha<input id="admin-password-input" type="password" autocomplete="current-password" required></label>
+    <div class="login-help"><button type="button" id="forgot-password">Esqueci minha senha</button></div>
     <button type="submit">Entrar no painel</button>
     <div id="login-error" class="login-error"></div>
+    <div id="login-notice" class="login-notice"></div>
   </form>
 </div>
 
@@ -62,6 +68,7 @@
 <div id="admin-modal" class="modal" hidden><div class="modal-backdrop" data-close-modal></div><div class="modal-card"><button class="modal-close" data-close-modal>×</button><div id="modal-content"></div></div></div>
 <div id="admin-toast" class="admin-toast"></div>
 <script src="../js/admin.js?v=media-stable-20260817-1"></script>
+<script src="../js/admin-auth.js?v=20260818-1"></script>
 <script src="../js/admin-configurator-media-dedupe.js?v=media-stable-20260817-1"></script>
 <script src="../js/admin-configurator-combination-stock.js?v=media-stable-20260817-1"></script>
 <script src="../js/admin-configurator-media-controls.js?v=media-stable-20260817-1"></script>
