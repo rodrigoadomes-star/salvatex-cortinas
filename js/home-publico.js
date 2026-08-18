@@ -1,16 +1,26 @@
 (function(){
 
-  const esc=s=>String(s??"").replace(/[&<>'"]/g,c=>({
-    "&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"
+  const esc=s=>String(s??"").replace(/[&<>'\"]/g,c=>({
+    "&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'\"':"&quot;"
   }[c]));
 
   function url(p){
     const type=String(p?.pageType||'');
-    if(type==='configurador_wave')return 'configurador.html?id=wave';
-    if(type==='configurador_prega_macho')return 'configurador.html?id=prega-macho';
-    if(type==='configurador_ilhos')return 'configurador.html?id=cortina-varao';
-    if(type==='configurador_persiana')return 'configurador-persiana.html?id=persiana';
-    return 'pagina.html?slug='+encodeURIComponent(p.slug);
+    if(type==='configurador_wave')return '/configurador?id=wave';
+    if(type==='configurador_prega_macho')return '/configurador?id=prega-macho';
+    if(type==='configurador_ilhos')return '/configurador?id=cortina-varao';
+    if(type==='configurador_persiana')return '/configurador-persiana?id=persiana';
+    return '/pagina?slug='+encodeURIComponent(p.slug);
+  }
+
+  function removeLegacyHomeConfigurator(){
+    // A home antiga ainda continha uma cópia estática do configurador Wave.
+    // O configurador oficial é /configurador?id=wave e recebe as regras,
+    // mídias e disponibilidade atuais do backend. Mantemos apenas uma fonte.
+    const legacy=document.getElementById('configurador');
+    const intro=document.querySelector('.home-configurator-intro');
+    if(legacy)legacy.remove();
+    if(intro)intro.remove();
   }
 
   function homeCard(p){
@@ -66,6 +76,9 @@
           Nenhuma opção publicada no momento.
         </div>`;
   }
+
+  removeLegacyHomeConfigurator();
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',removeLegacyHomeConfigurator,{once:true});
 
   window.addEventListener("salvatex:navigation-ready",e=>{
     render(e.detail?.pages||[],{error:Boolean(e.detail?.error)});
