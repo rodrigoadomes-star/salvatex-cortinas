@@ -12,12 +12,17 @@ class HeadHandler {
   }
 }
 
+function isRadzHost(host) {
+  const h = String(host || '').toLowerCase();
+  return h === 'radzhub.com.br' ||
+    h === 'www.radzhub.com.br' ||
+    h === 'radz-hub.pages.dev' ||
+    h.endsWith('.radz-hub.pages.dev');
+}
+
 export async function onRequest(context) {
   const url = new URL(context.request.url);
-  const host = url.hostname.toLowerCase();
-  const isRadzDomain = host === 'radzhub.com.br' || host === 'www.radzhub.com.br';
-
-  if (!isRadzDomain) return context.env.ASSETS.fetch(context.request);
+  if (!isRadzHost(url.hostname)) return context.env.ASSETS.fetch(context.request);
 
   const assetUrl = new URL('/platform/cadastro.html', url.origin);
   const response = await context.env.ASSETS.fetch(new Request(assetUrl.toString(), context.request));
