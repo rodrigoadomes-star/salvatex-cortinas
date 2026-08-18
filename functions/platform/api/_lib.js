@@ -1,3 +1,5 @@
+import { pbkdf2Sync, timingSafeEqual } from "node:crypto";
+
 export function json(data, status = 200, headers = {}) {
   return Response.json(data, { status, headers: { "cache-control": "no-store", ...headers } });
 }
@@ -43,10 +45,6 @@ function bytesToHex(buffer) {
   return [...new Uint8Array(buffer)].map((b) => b.toString(16).padStart(2, "0")).join("");
 }
 
-function hexToBytes(value) {
-  return new Uint8Array((value.match(/.{1,2}/g) || []).map((byte) => Number.parseInt(byte, 16)));
-}
-
 export function randomToken(size = 32) {
   const bytes = new Uint8Array(size);
   crypto.getRandomValues(bytes);
@@ -58,33 +56,20 @@ export async function sha256(value) {
   return bytesToHex(digest);
 }
 
-// PBKDF2 is performed directly with deriveBits. This avoids deriveKey/exportKey
-// interoperability differences while preserving the existing D1 credential format.
+// Password hashing uses Node crypto because Pages Functions in this project return
+// NotSupportedError for PBKDF2 through Web Crypto. nodejs_compat is enabled in Production.
+// Stored format remains unchanged: 32-byte SHA-256 PBKDF2 hash as hex, salt hex, iterations.
 export async function hashPassword(password, saltHex = randomToken(16), iterations = 210000) {
-  const material = await crypto.subtle.importKey(
-    "raw",
-    new TextEncoder().encode(String(password)),
-    "PBKDF2",
-    false,
-    ["deriveBits"]
-  );
-  const bits = await crypto.subtle.deriveBits(
-    { name: "PBKDF2", hash: "SHA-256", salt: hexToBytes(saltHex), iterations: Number(iterations) },
-    material,
-    256
-  );
-  return { hash: bytesToHex(bits), salt: saltHex, iterations: Number(iterations) };
+  const count = Number(iterations);
+  const derived = pbkdf2Sync(String(password), Buffer.from(saltHex, "hex"), count, 32, "sha256");
+  return { hash: derived.toString("hex"), salt: saltHex, iterations: count };
 }
 
 export async function verifyPassword(password, expectedHash, salt, iterations) {
   const actual = await hashPassword(password, salt, iterations);
   const expected = String(expectedHash || "").toLowerCase();
-  if (actual.hash.length !== expected.length) return false;
-  let diff = 0;
-  for (let i = 0; i < actual.hash.length; i += 1) {
-    diff |= actual.hash.charCodeAt(i) ^ expected.charCodeAt(i);
-  }
-  return diff === 0;
+  if (!/^[0-9a-f]{64}$/.test(actual.hash) || !/^[0-9a-f]{64}$/.test(expected)) return false;
+  return timingSafeEqual(Buffer.from(actual.hash, "hex"), Buffer.from(expected, "hex"));
 }
 
 export function sessionCookie(token, maxAge = 28800) {
