@@ -1,62 +1,17 @@
-import { json } from "../../_lib.js";
-import { requireCustomer } from "../../_customer-auth.js";
-
-function parseObject(value) {
-  try {
-    const parsed = JSON.parse(value || "{}");
-    return parsed && typeof parsed === "object" && !Array.isArray(parsed) ? parsed : {};
-  } catch { return {}; }
+import {json} from "../../_lib.js";
+import {requireCustomer} from "../../_customer-auth.js";
+import {requirePublicStore} from "../../_tenant.js";
+function parseObject(value){try{const parsed=JSON.parse(value||"{}");return parsed&&typeof parsed==="object"&&!Array.isArray(parsed)?parsed:{}}catch{return{}}}
+function publicDelivery(value){const d=parseObject(value);return{endereco:d.endereco||d.rua||"",numero:d.numero||"",complemento:d.complemento||"",bairro:d.bairro||"",cidade:d.cidade||"",estado:d.estado||"",cep:d.cep||""}}
+function publicFreight(value){const f=parseObject(value);return{gratis:Boolean(f.gratis),texto:f.texto||"",status:f.status||"",carrier:f.carrier||"",trackingCode:f.trackingCode||"",trackingUrl:f.trackingUrl||""}}
+function publicPayment(value){const p=parseObject(value);return{forma:p.forma||p.method||"",status:p.status||""}}
+function safeStore(s){return String(s||'tenant').toLowerCase().replace(/[^a-z0-9_-]+/g,'-').replace(/^-+|-+$/g,'').slice(0,80)||'tenant'}
+export async function onRequestGet(context){
+ const auth=await requireCustomer(context);if(!auth.ok)return auth.response;const tenant=await requirePublicStore(context,json);if(!tenant.ok)return tenant.response;const storeId=tenant.storeId,id=context.params.id;
+ const order=await context.env.DB.prepare(`SELECT id,order_number,status,stage,currency,customer_account_id,customer_email,delivery_json,freight_json,payment_json,subtotal_cents,freight_cents,discount_cents,total_cents,created_at,updated_at FROM orders WHERE id=?1 AND store_id=?2 AND (customer_account_id=?3 OR (?4=1 AND lower(customer_email)=lower(?5)))`).bind(id,storeId,auth.user.userId,auth.user.emailVerified?1:0,auth.user.email).first();if(!order)return json({ok:false,message:"Pedido não encontrado."},404);
+ const [itemsResult,eventsResult]=await Promise.all([context.env.DB.prepare(`SELECT id,product_id,category,category_name,sale_type,configurator,sku,name,image,quantity,unit_price_cents,total_cents,details_json,data_json,snapshot_json FROM order_items WHERE order_id=?1 AND EXISTS(SELECT 1 FROM orders WHERE id=?1 AND store_id=?2) ORDER BY created_at,id`).bind(id,storeId).all(),context.env.DB.prepare(`SELECT event_type,from_status,to_status,payload_json,created_at FROM order_events WHERE order_id=?1 AND EXISTS(SELECT 1 FROM orders WHERE id=?1 AND store_id=?2) ORDER BY created_at,id`).bind(id,storeId).all()]);
+ const items=(itemsResult.results||[]).map(item=>({id:item.id,product_id:item.product_id,category:item.category,category_name:item.category_name,sale_type:item.sale_type,configurator:item.configurator,sku:item.sku,name:item.name,image:item.image,quantity:Number(item.quantity||1),unit_price_cents:Number(item.unit_price_cents||0),total_cents:Number(item.total_cents||0),details:parseObject(item.details_json),data:parseObject(item.data_json),snapshot:parseObject(item.snapshot_json)}));
+ const tenantPrefix=`private/orders/${safeStore(storeId)}/${id}/`,legacyPrefix=`private/orders/${id}/`;const invoices=(eventsResult.results||[]).filter(e=>e.event_type==='invoice_attached').map(e=>{const p=parseObject(e.payload_json);return{key:p.key||'',name:p.name||'Documento',type:p.type||'',createdAt:e.created_at}}).filter(d=>d.key.startsWith(tenantPrefix)||(storeId==='salvatex'&&d.key.startsWith(legacyPrefix)));
+ const allowed=new Set(['aguardando_pagamento','pago','em_producao','pronto','enviado','entregue','cancelado','reembolsado']),timeline=(eventsResult.results||[]).filter(e=>['order_created','payment_approved','admin_status_changed','shipping_updated'].includes(e.event_type)).map(e=>({type:e.event_type,fromStatus:allowed.has(e.from_status)?e.from_status:null,toStatus:allowed.has(e.to_status)?e.to_status:null,createdAt:e.created_at}));
+ return json({ok:true,order:{id:order.id,order_number:order.order_number,status:order.status,stage:order.stage,currency:order.currency,subtotal_cents:order.subtotal_cents,freight_cents:order.freight_cents,discount_cents:order.discount_cents,total_cents:order.total_cents,created_at:order.created_at,updated_at:order.updated_at,delivery:publicDelivery(order.delivery_json),freight:publicFreight(order.freight_json),payment:publicPayment(order.payment_json)},items,invoices,timeline});
 }
-
-function publicDelivery(value) {
-  const d = parseObject(value);
-  return { endereco:d.endereco||d.rua||"", numero:d.numero||"", complemento:d.complemento||"", bairro:d.bairro||"", cidade:d.cidade||"", estado:d.estado||"", cep:d.cep||"" };
-}
-
-function publicFreight(value) {
-  const f = parseObject(value);
-  return { gratis:Boolean(f.gratis), texto:f.texto||"", status:f.status||"", carrier:f.carrier||"", trackingCode:f.trackingCode||"", trackingUrl:f.trackingUrl||"" };
-}
-
-function publicPayment(value) {
-  const p = parseObject(value);
-  return { forma:p.forma||p.method||"", status:p.status||"" };
-}
-
-export async function onRequestGet(context) {
-  const auth = await requireCustomer(context);
-  if (!auth.ok) return auth.response;
-  const id = context.params.id;
-  const order = await context.env.DB.prepare(`SELECT id,order_number,status,stage,currency,customer_account_id,customer_email,delivery_json,freight_json,payment_json,subtotal_cents,freight_cents,discount_cents,total_cents,created_at,updated_at FROM orders WHERE id=?1 AND store_id='salvatex' AND (customer_account_id=?2 OR (?3=1 AND lower(customer_email)=lower(?4)))`).bind(id,auth.user.userId,auth.user.emailVerified?1:0,auth.user.email).first();
-  if (!order) return json({ok:false,message:"Pedido não encontrado."},404);
-
-  const [itemsResult,eventsResult] = await Promise.all([
-    context.env.DB.prepare(`SELECT id,product_id,category,category_name,sale_type,configurator,sku,name,image,quantity,unit_price_cents,total_cents,details_json,data_json,snapshot_json FROM order_items WHERE order_id=?1 ORDER BY created_at,id`).bind(id).all(),
-    context.env.DB.prepare(`SELECT event_type,from_status,to_status,payload_json,created_at FROM order_events WHERE order_id=?1 ORDER BY created_at,id`).bind(id).all(),
-  ]);
-  const items = (itemsResult.results||[]).map(item=>({
-    id:item.id, product_id:item.product_id, category:item.category, category_name:item.category_name,
-    sale_type:item.sale_type, configurator:item.configurator, sku:item.sku, name:item.name, image:item.image,
-    quantity:Number(item.quantity||1), unit_price_cents:Number(item.unit_price_cents||0), total_cents:Number(item.total_cents||0),
-    details:parseObject(item.details_json), data:parseObject(item.data_json), snapshot:parseObject(item.snapshot_json),
-  }));
-  const invoices = (eventsResult.results||[]).filter(event=>event.event_type==="invoice_attached").map(event=>{
-    const payload=parseObject(event.payload_json);
-    return {key:payload.key||"",name:payload.name||"Documento",type:payload.type||"",createdAt:event.created_at};
-  }).filter(document=>document.key.startsWith(`private/orders/${id}/`));
-  const allowedStatuses=new Set(["aguardando_pagamento","pago","em_producao","pronto","enviado","entregue","cancelado","reembolsado"]);
-  const timeline=(eventsResult.results||[]).filter(event=>["order_created","payment_approved","admin_status_changed","shipping_updated"].includes(event.event_type)).map(event=>({
-    type:event.event_type,
-    fromStatus:allowedStatuses.has(event.from_status)?event.from_status:null,
-    toStatus:allowedStatuses.has(event.to_status)?event.to_status:null,
-    createdAt:event.created_at,
-  }));
-
-  return json({ok:true,order:{
-    id:order.id, order_number:order.order_number, status:order.status, stage:order.stage, currency:order.currency,
-    subtotal_cents:order.subtotal_cents, freight_cents:order.freight_cents, discount_cents:order.discount_cents,
-    total_cents:order.total_cents, created_at:order.created_at, updated_at:order.updated_at,
-    delivery:publicDelivery(order.delivery_json), freight:publicFreight(order.freight_json), payment:publicPayment(order.payment_json),
-  },items,invoices,timeline});
-}
-
