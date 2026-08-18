@@ -22,15 +22,48 @@ export async function onRequestGet(context) {
 
   try {
     const response = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", { method: "POST", body: form });
+    const rawBody = await response.text();
+    let parsed = null;
+    try { parsed = rawBody ? JSON.parse(rawBody) : null; } catch {}
+
     if (!response.ok) {
-      return Response.json({ ok: false, enforced: true, sitekeyConfigured, secretConfigured: true, secretAccepted: null, code: "TURNSTILE_SITEVERIFY_HTTP" }, {
+      const errorCodes = Array.isArray(parsed?.["error-codes"]) ? parsed["error-codes"].map(String) : [];
+      return Response.json({
+        ok: false,
+        enforced: true,
+        sitekeyConfigured,
+        secretConfigured: true,
+        secretAccepted: null,
+        code: "TURNSTILE_SITEVERIFY_HTTP",
+        siteverifyHttpStatus: response.status,
+        siteverifyStatusText: response.statusText || null,
+        siteverifyContentType: response.headers.get("content-type") || null,
+        siteverifyErrorCodes: errorCodes,
+        siteverifyBodyType: parsed ? "json" : (rawBody ? "text" : "empty")
+      }, {
         status: 503,
         headers: { "cache-control": "no-store" }
       });
     }
 
-    const result = await response.json();
-    const errors = Array.isArray(result["error-codes"]) ? result["error-codes"].map(String) : [];
+    if (!parsed || typeof parsed !== "object") {
+      return Response.json({
+        ok: false,
+        enforced: true,
+        sitekeyConfigured,
+        secretConfigured: true,
+        secretAccepted: null,
+        code: "TURNSTILE_SITEVERIFY_INVALID_RESPONSE",
+        siteverifyHttpStatus: response.status,
+        siteverifyContentType: response.headers.get("content-type") || null,
+        siteverifyBodyType: rawBody ? "text" : "empty"
+      }, {
+        status: 503,
+        headers: { "cache-control": "no-store" }
+      });
+    }
+
+    const errors = Array.isArray(parsed["error-codes"]) ? parsed["error-codes"].map(String) : [];
     const secretRejected = errors.includes("invalid-input-secret") || errors.includes("missing-input-secret");
 
     return Response.json({
@@ -39,13 +72,23 @@ export async function onRequestGet(context) {
       sitekeyConfigured,
       secretConfigured: true,
       secretAccepted: !secretRejected,
-      code: secretRejected ? "TURNSTILE_SECRET_INVALID" : (sitekeyConfigured ? "TURNSTILE_SERVER_READY" : "TURNSTILE_SITEKEY_MISSING")
+      code: secretRejected ? "TURNSTILE_SECRET_INVALID" : (sitekeyConfigured ? "TURNSTILE_SERVER_READY" : "TURNSTILE_SITEKEY_MISSING"),
+      siteverifyHttpStatus: response.status,
+      siteverifyErrorCodes: errors
     }, {
       status: !secretRejected && sitekeyConfigured ? 200 : 503,
       headers: { "cache-control": "no-store" }
     });
-  } catch {
-    return Response.json({ ok: false, enforced: true, sitekeyConfigured, secretConfigured: true, secretAccepted: null, code: "TURNSTILE_SITEVERIFY_UNAVAILABLE" }, {
+  } catch (error) {
+    return Response.json({
+      ok: false,
+      enforced: true,
+      sitekeyConfigured,
+      secretConfigured: true,
+      secretAccepted: null,
+      code: "TURNSTILE_SITEVERIFY_UNAVAILABLE",
+      fetchErrorName: error?.name || null
+    }, {
       status: 503,
       headers: { "cache-control": "no-store" }
     });
