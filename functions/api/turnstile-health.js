@@ -1,4 +1,4 @@
-// RADZ production diagnostic deploy marker: 2026-08-18-radzhub-1
+// RADZ production diagnostic deploy marker: 2026-08-18-nodejs-compat
 export async function onRequestGet(context) {
   const enforced = String(context.env.TURNSTILE_ENFORCE || "false").toLowerCase() === "true";
   const sitekeyConfigured = Boolean(String(context.env.TURNSTILE_SITE_KEY || "").trim());
