@@ -1,15 +1,27 @@
-import { audit, clean, digits, hashPassword, json, normalizeEmail, randomToken, sessionCookie, sha256, slugify, validCnpj, validEmail, verifyTurnstile } from "./_lib.js";
+import { audit, clean, digits, hashPassword, json, normalizeEmail, randomToken, sessionCookie, sha256, slugify, validCnpj, validEmail, verifyTurnstileDetailed } from "./_lib.js";
 
 const TERMS_VERSION = "2026-08-16-v1";
 const PRIVACY_VERSION = "2026-08-16-v1";
+
+function turnstileFailure(result) {
+  const configError = ["TURNSTILE_SECRET_MISSING", "TURNSTILE_SECRET_INVALID", "TURNSTILE_SITEVERIFY_UNAVAILABLE", "TURNSTILE_SITEVERIFY_HTTP", "TURNSTILE_SITEVERIFY_INVALID_RESPONSE"].includes(result.code);
+  return json({
+    ok: false,
+    code: result.code,
+    message: configError
+      ? "A verificação de segurança está temporariamente indisponível. Tente novamente em instantes."
+      : "Confirme que você não é um robô."
+  }, configError ? 503 : 400);
+}
 
 export async function onRequestPost(context) {
   if (!context.env.DB) return json({ ok: false, code: "DB_NOT_CONFIGURED" }, 503);
   let body;
   try { body = await context.request.json(); } catch { return json({ ok: false, message: "Dados inválidos." }, 400); }
-  if (!await verifyTurnstile(context.env, context.request, body.turnstileToken)) {
-    return json({ ok: false, message: "Confirme que você não é um robô." }, 400);
-  }
+
+  const turnstile = await verifyTurnstileDetailed(context.env, context.request, body.turnstileToken);
+  if (!turnstile.ok) return turnstileFailure(turnstile);
+
   if (!(body.terms === true || body.terms === "on" || body.terms === "true")) {
     return json({ ok: false, message: "Para criar a conta, leia e aceite os Termos de Uso e a Política de Privacidade." }, 422);
   }
