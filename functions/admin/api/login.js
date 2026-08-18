@@ -1,2 +1,15 @@
 import {adminCookie,createAdminSession,json,secureEqual} from "./_auth.js";
-export async function onRequestPost(context){const origin=context.request.headers.get("origin");if(origin&&origin!==new URL(context.request.url).origin)return json({ok:false,message:"Origem não autorizada."},403);if(Number(context.request.headers.get("content-length")||0)>4096)return json({ok:false,message:"Requisição muito grande."},413);if(!context.env.ADMIN_TOKEN||!context.env.ADMIN_SESSION_SECRET)return json({ok:false,message:"Admin não configurado."},503);let body={};try{body=await context.request.json()}catch{return json({ok:false,message:"JSON inválido."},400)}if(!await secureEqual(String(body.token||""),String(context.env.ADMIN_TOKEN)))return json({ok:false,message:"Credencial inválida."},401);const session=await createAdminSession(String(context.env.ADMIN_SESSION_SECRET));return json({ok:true,csrfToken:session.csrf,expiresIn:28800},200,{"set-cookie":adminCookie(session.token)})}
+import {resolveStore} from './_tenant.js';
+
+export async function onRequestPost(context){
+  const origin=context.request.headers.get("origin");
+  if(origin&&origin!==new URL(context.request.url).origin)return json({ok:false,message:"Origem não autorizada."},403);
+  if(Number(context.request.headers.get("content-length")||0)>4096)return json({ok:false,message:"Requisição muito grande."},413);
+  if(!context.env.ADMIN_TOKEN||!context.env.ADMIN_SESSION_SECRET)return json({ok:false,message:"Admin não configurado."},503);
+  const store=await resolveStore(context);
+  if(!store)return json({ok:false,message:"Empresa não identificada para este domínio."},404);
+  let body={};try{body=await context.request.json()}catch{return json({ok:false,message:"JSON inválido."},400)}
+  if(!await secureEqual(String(body.token||""),String(context.env.ADMIN_TOKEN)))return json({ok:false,message:"Credencial inválida."},401);
+  const session=await createAdminSession(String(context.env.ADMIN_SESSION_SECRET),store);
+  return json({ok:true,csrfToken:session.csrf,expiresIn:28800,store:{id:store.id,slug:store.slug,name:store.name}},200,{"set-cookie":adminCookie(session.token)});
+}
