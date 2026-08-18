@@ -7,11 +7,21 @@
   window.turnstileToken = "";
 
   const jsonFetch = async (url, payload) => {
-    const response = await fetch(url, { method:"POST", credentials:"same-origin", headers:{"content-type":"application/json","accept":"application/json"}, body:JSON.stringify(payload) });
+    const response = await fetch(url, {
+      method: "POST",
+      credentials: "same-origin",
+      cache: "no-store",
+      headers: { "content-type": "application/json", "accept": "application/json" },
+      body: JSON.stringify(payload)
+    });
     const type = response.headers.get("content-type") || "";
     if (!type.includes("application/json")) throw new Error("A publicação do servidor ainda não está configurada.");
     const data = await response.json();
-    if (!response.ok) throw new Error(data.message || data.code || "Não foi possível concluir.");
+    if (!response.ok) {
+      const error = new Error(data.message || data.code || "Não foi possível concluir.");
+      error.code = data.code || "REQUEST_FAILED";
+      throw error;
+    }
     return data;
   };
 
@@ -20,8 +30,8 @@
     const existing = document.querySelector('script[data-radz-turnstile]');
     if (existing) {
       if (existing.dataset.loaded === '1') return resolve();
-      existing.addEventListener('load', resolve, { once:true });
-      existing.addEventListener('error', reject, { once:true });
+      existing.addEventListener('load', resolve, { once: true });
+      existing.addEventListener('error', reject, { once: true });
       return;
     }
     const script = document.createElement('script');
@@ -51,7 +61,7 @@
 
     if (window.turnstile && turnstileWidgetId !== null) {
       try {
-        const token = window.turnstile.getResponse(turnstileWidgetId);
+        const token = String(window.turnstile.getResponse(turnstileWidgetId) || '').trim();
         if (token) {
           window.turnstileToken = token;
           return token;
@@ -59,14 +69,22 @@
       } catch {}
     }
 
-    return window.turnstileToken || "";
+    return String(window.turnstileToken || '').trim();
+  };
+
+  const requireTurnstileToken = () => {
+    if (!turnstileEnabled) return "";
+    const token = getTurnstileToken();
+    if (token) return token;
+    show('Aguarde a verificação de segurança ser concluída.');
+    return null;
   };
 
   const initTurnstile = async () => {
     const slot = document.querySelector('#turnstile-slot');
     if (!slot) return;
     try {
-      const response = await fetch('/api/turnstile-config', { cache:'no-store', credentials:'same-origin' });
+      const response = await fetch('/api/turnstile-config', { cache: 'no-store', credentials: 'same-origin' });
       if (!response.ok) throw new Error('TURNSTILE_CONFIG_FAILED');
       const config = await response.json();
       turnstileEnabled = Boolean(config && config.enabled);
@@ -81,24 +99,17 @@
         'response-field': true,
         'response-field-name': 'cf-turnstile-response',
         callback(token) {
-          window.turnstileToken = token || '';
-          if (token && message && /robô|verificação de segurança|Aguarde a verificação/i.test(message.textContent || '')) show('');
+          window.turnstileToken = String(token || '').trim();
+          if (window.turnstileToken && message && /robô|verificação de segurança|Aguarde a verificação/i.test(message.textContent || '')) show('');
         },
         'expired-callback'() { window.turnstileToken = ''; },
         'timeout-callback'() { window.turnstileToken = ''; },
         'error-callback'() { window.turnstileToken = ''; }
       });
-    } catch (error) {
+    } catch {
       window.turnstileToken = '';
       show('Não foi possível carregar a verificação de segurança. Atualize a página e tente novamente.');
     }
-  };
-
-  const ensureTurnstile = () => {
-    if (!turnstileEnabled) return true;
-    if (getTurnstileToken()) return true;
-    show('Aguarde a verificação de segurança ser concluída.');
-    return false;
   };
 
   const resetTurnstile = () => {
@@ -108,36 +119,42 @@
     }
   };
 
+  const handleAuthError = (error) => {
+    console.warn('[RADZ auth]', error.code || 'REQUEST_FAILED');
+    show(error.message);
+    resetTurnstile();
+  };
+
   const register = document.querySelector("#register-form");
   if (register) register.addEventListener("submit", async (event) => {
     event.preventDefault();
-    if (!ensureTurnstile()) return;
+    const turnstileToken = requireTurnstileToken();
+    if (turnstileToken === null) return;
     show("Criando sua loja...", true);
     const form = new FormData(register);
     const data = Object.fromEntries(form.entries());
-    data.turnstileToken = getTurnstileToken();
+    data.turnstileToken = turnstileToken;
     try {
       const result = await jsonFetch("/platform/api/register", data);
       window.location.assign(result.redirect || "/platform-admin/");
     } catch (error) {
-      show(error.message);
-      resetTurnstile();
+      handleAuthError(error);
     }
   });
 
   const login = document.querySelector("#login-form");
   if (login) login.addEventListener("submit", async (event) => {
     event.preventDefault();
-    if (!ensureTurnstile()) return;
+    const turnstileToken = requireTurnstileToken();
+    if (turnstileToken === null) return;
     show("Entrando...", true);
     const data = Object.fromEntries(new FormData(login).entries());
-    data.turnstileToken = getTurnstileToken();
+    data.turnstileToken = turnstileToken;
     try {
       const result = await jsonFetch("/platform/api/login", data);
       window.location.assign(result.redirect || "/platform-admin/");
     } catch (error) {
-      show(error.message);
-      resetTurnstile();
+      handleAuthError(error);
     }
   });
 
