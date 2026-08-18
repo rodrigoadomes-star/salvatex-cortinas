@@ -19,6 +19,7 @@
     if (window.turnstile) return resolve();
     const existing = document.querySelector('script[data-radz-turnstile]');
     if (existing) {
+      if (existing.dataset.loaded === '1') return resolve();
       existing.addEventListener('load', resolve, { once:true });
       existing.addEventListener('error', reject, { once:true });
       return;
@@ -28,16 +29,31 @@
     script.async = true;
     script.defer = true;
     script.dataset.radzTurnstile = '1';
-    script.onload = resolve;
+    script.onload = () => { script.dataset.loaded = '1'; resolve(); };
     script.onerror = reject;
     document.head.appendChild(script);
   });
+
+  const getTurnstileToken = () => {
+    if (!turnstileEnabled) return "";
+    if (window.turnstile && turnstileWidgetId !== null) {
+      try {
+        const token = window.turnstile.getResponse(turnstileWidgetId);
+        if (token) {
+          window.turnstileToken = token;
+          return token;
+        }
+      } catch {}
+    }
+    return window.turnstileToken || "";
+  };
 
   const initTurnstile = async () => {
     const slot = document.querySelector('#turnstile-slot');
     if (!slot) return;
     try {
       const response = await fetch('/api/turnstile-config', { cache:'no-store', credentials:'same-origin' });
+      if (!response.ok) throw new Error('TURNSTILE_CONFIG_FAILED');
       const config = await response.json();
       turnstileEnabled = Boolean(config && config.enabled);
       if (!turnstileEnabled) {
@@ -48,8 +64,12 @@
       turnstileWidgetId = window.turnstile.render(slot, {
         sitekey: config.sitekey,
         theme: 'dark',
-        callback(token) { window.turnstileToken = token || ''; },
+        callback(token) {
+          window.turnstileToken = token || '';
+          if (token && message && /robô|verificação de segurança|Aguarde a verificação/i.test(message.textContent || '')) show('');
+        },
         'expired-callback'() { window.turnstileToken = ''; },
+        'timeout-callback'() { window.turnstileToken = ''; },
         'error-callback'() { window.turnstileToken = ''; }
       });
     } catch (error) {
@@ -60,7 +80,7 @@
 
   const ensureTurnstile = () => {
     if (!turnstileEnabled) return true;
-    if (window.turnstileToken) return true;
+    if (getTurnstileToken()) return true;
     show('Aguarde a verificação de segurança ser concluída.');
     return false;
   };
@@ -77,10 +97,16 @@
     event.preventDefault();
     if (!ensureTurnstile()) return;
     show("Criando sua loja...", true);
-    const form = new FormData(register); const data = Object.fromEntries(form.entries());
-    data.turnstileToken = window.turnstileToken || "";
-    try { const result = await jsonFetch("/platform/api/register", data); window.location.assign(result.redirect || "/platform-admin/"); }
-    catch (error) { show(error.message); resetTurnstile(); }
+    const form = new FormData(register);
+    const data = Object.fromEntries(form.entries());
+    data.turnstileToken = getTurnstileToken();
+    try {
+      const result = await jsonFetch("/platform/api/register", data);
+      window.location.assign(result.redirect || "/platform-admin/");
+    } catch (error) {
+      show(error.message);
+      resetTurnstile();
+    }
   });
 
   const login = document.querySelector("#login-form");
@@ -88,9 +114,15 @@
     event.preventDefault();
     if (!ensureTurnstile()) return;
     show("Entrando...", true);
-    const data = Object.fromEntries(new FormData(login).entries()); data.turnstileToken = window.turnstileToken || "";
-    try { const result = await jsonFetch("/platform/api/login", data); window.location.assign(result.redirect || "/platform-admin/"); }
-    catch (error) { show(error.message); resetTurnstile(); }
+    const data = Object.fromEntries(new FormData(login).entries());
+    data.turnstileToken = getTurnstileToken();
+    try {
+      const result = await jsonFetch("/platform/api/login", data);
+      window.location.assign(result.redirect || "/platform-admin/");
+    } catch (error) {
+      show(error.message);
+      resetTurnstile();
+    }
   });
 
   initTurnstile();
