@@ -58,41 +58,32 @@ export async function sha256(value) {
   return bytesToHex(digest);
 }
 
-// PBKDF2 via deriveKey + exportKey is supported consistently by the Cloudflare Workers
-// Web Crypto runtime. Keep the stored format (hex hash/salt + iterations) unchanged so
-// existing credentials remain compatible with verifyPassword.
+// PBKDF2 is performed directly with deriveBits. This avoids deriveKey/exportKey
+// interoperability differences while preserving the existing D1 credential format.
 export async function hashPassword(password, saltHex = randomToken(16), iterations = 210000) {
   const material = await crypto.subtle.importKey(
     "raw",
-    new TextEncoder().encode(password),
-    { name: "PBKDF2" },
+    new TextEncoder().encode(String(password)),
+    "PBKDF2",
     false,
-    ["deriveKey"]
+    ["deriveBits"]
   );
-  const key = await crypto.subtle.deriveKey(
-    { name: "PBKDF2", hash: "SHA-256", salt: hexToBytes(saltHex), iterations },
+  const bits = await crypto.subtle.deriveBits(
+    { name: "PBKDF2", hash: "SHA-256", salt: hexToBytes(saltHex), iterations: Number(iterations) },
     material,
-    { name: "HMAC", hash: "SHA-256", length: 256 },
-    true,
-    ["sign"]
+    256
   );
-  const raw = await crypto.subtle.exportKey("raw", key);
-  return { hash: bytesToHex(raw), salt: saltHex, iterations };
+  return { hash: bytesToHex(bits), salt: saltHex, iterations: Number(iterations) };
 }
 
 export async function verifyPassword(password, expectedHash, salt, iterations) {
   const actual = await hashPassword(password, salt, iterations);
-  // Compare fixed-length SHA-256 digests without relying on timingSafeEqual, which is
-  // not part of the standard SubtleCrypto API in every Workers compatibility mode.
-  const [a, b] = await Promise.all([
-    crypto.subtle.digest("SHA-256", new TextEncoder().encode(actual.hash)),
-    crypto.subtle.digest("SHA-256", new TextEncoder().encode(String(expectedHash || "")))
-  ]);
-  const av = new Uint8Array(a);
-  const bv = new Uint8Array(b);
-  if (av.length !== bv.length) return false;
+  const expected = String(expectedHash || "").toLowerCase();
+  if (actual.hash.length !== expected.length) return false;
   let diff = 0;
-  for (let i = 0; i < av.length; i += 1) diff |= av[i] ^ bv[i];
+  for (let i = 0; i < actual.hash.length; i += 1) {
+    diff |= actual.hash.charCodeAt(i) ^ expected.charCodeAt(i);
+  }
   return diff === 0;
 }
 
