@@ -3,8 +3,11 @@ import { json, requireRadzAdmin } from "./_auth.js";
 export async function onRequestGet(context) {
   const auth = await requireRadzAdmin(context);
   if (!auth.ok) return auth.response;
-  const result = await context.env.DB.prepare(`SELECT c.id,c.slug,c.legal_name,c.trade_name,c.document_type,c.document_number,
-      c.email,c.phone,c.segment,c.status,c.plan_code,c.platform_fee_basis_points,c.created_at,
+  const result = await context.env.DB.prepare(`SELECT c.id,c.slug,c.legal_name,c.trade_name,
+      CASE WHEN s.id='salvatex' AND (c.document_type IS NULL OR trim(c.document_type)='' OR upper(c.document_type)='PENDENTE_CONFIGURACAO') THEN 'CNPJ' ELSE c.document_type END document_type,
+      CASE WHEN s.id='salvatex' AND (c.document_number IS NULL OR trim(c.document_number)='' OR upper(c.document_number)='PENDENTE_CONFIGURACAO') THEN '49787177000179' ELSE c.document_number END document_number,
+      CASE WHEN s.id='salvatex' AND (c.email IS NULL OR trim(c.email)='' OR upper(c.email)='PENDENTE_CONFIGURACAO') THEN 'rodrigo.adurante@gmail.com' ELSE c.email END email,
+      c.phone,c.segment,c.status,c.plan_code,c.platform_fee_basis_points,c.created_at,
       s.id store_id,s.active store_active,
       COALESCE(
         (SELECT d.hostname FROM platform_domains d WHERE d.company_id=c.id AND d.domain_type='platform_subdomain' AND d.status IN ('active','pending','verifying') ORDER BY CASE WHEN d.status='active' THEN 0 WHEN d.status='verifying' THEN 1 ELSE 2 END,d.created_at LIMIT 1),
