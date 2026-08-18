@@ -12,10 +12,16 @@
   function normalize(name,data){const d={...(data||{})};if(d.value!=null)d.value=Number(d.value)||0;if(!d.currency&&d.value!=null)d.currency='BRL';return d}
   function dispatch(name,data={}){if(!S.loaded||!enabledEvent(name))return;const d=normalize(name,data);if(name==='Purchase'){const key=String(d.order_id||d.transaction_id||'');if(key){if(S.purchaseKeys.has(key)||sessionStorage.getItem('radz_purchase_'+key))return;S.purchaseKeys.add(key);sessionStorage.setItem('radz_purchase_'+key,'1')}}
     if(S.cfg.meta?.enabled&&S.cfg.meta.pixelId&&window.fbq){const map={PageView:'PageView',ViewContent:'ViewContent',AddToCart:'AddToCart',InitiateCheckout:'InitiateCheckout',Purchase:'Purchase'};fbq('track',map[name]||name,d)}
-    const g=S.cfg.google||{};if(g.enabled&&window.gtag){const map={PageView:'page_view',ViewContent:'view_item',AddToCart:'add_to_cart',InitiateCheckout:'begin_checkout',Purchase:'purchase'};const payload={...d};if(name==='Purchase'&&g.adsId&&g.adsConversionLabel)payload.send_to=String(g.adsId).replace(/^AW-/,'AW-')+'/'+g.adsConversionLabel;gtag('event',map[name]||name,payload)}
+    const g=S.cfg.google||{};if(g.enabled&&window.gtag){const map={PageView:'page_view',ViewContent:'view_item',AddToCart:'add_to_cart',InitiateCheckout:'begin_checkout',Purchase:'purchase'};const payload={...d};if(name==='Purchase'&&g.adsId&&g.adsConversionLabel)payload.send_to=(String(g.adsId).startsWith('AW-')?g.adsId:'AW-'+g.adsId)+'/'+g.adsConversionLabel;gtag('event',map[name]||name,payload)}
     if(window.dataLayer)window.dataLayer.push({event:'radz_'+name.toLowerCase(),...d})
   }
-  function activate(){if(S.loaded||!S.cfg)return;S.loaded=true;const g=S.cfg.google||{};if(g.enabled){loadGtag(g.ga4Id||g.adsId);if(g.adsId&&window.gtag)gtag('config',String(g.adsId).startsWith('AW-')?g.adsId:'AW-'+g.adsId,{send_page_view:false});if(g.gtmId)loadGtm(g.gtmId)}if(S.cfg.meta?.enabled)loadMeta(S.cfg.meta.pixelId);setTimeout(()=>{S.queue.splice(0).forEach(x=>dispatch(x[0],x[1]));dispatch('PageView',{page_location:location.href,page_title:document.title})},120)}
+  function autoEvents(){
+    const p=location.pathname.toLowerCase();
+    if(p.includes('produto')||p.includes('configurador'))track('ViewContent',{content_name:document.title,page_location:location.href});
+    if(p.includes('checkout'))track('InitiateCheckout',{page_location:location.href});
+    document.addEventListener('click',e=>{const el=e.target&&e.target.closest?e.target.closest('button,a'):null;if(!el)return;const text=((el.id||'')+' '+(el.className||'')+' '+(el.textContent||'')).toLowerCase();if((text.includes('adicionar')&&text.includes('carrinho'))||text.includes('add-to-cart')||text.includes('adicionar-carrinho'))track('AddToCart',{content_name:(document.querySelector('h1')?.textContent||document.title).trim()})},{passive:true});
+  }
+  function activate(){if(S.loaded||!S.cfg)return;S.loaded=true;const g=S.cfg.google||{};if(g.enabled){loadGtag(g.ga4Id||g.adsId);if(g.adsId&&window.gtag)gtag('config',String(g.adsId).startsWith('AW-')?g.adsId:'AW-'+g.adsId,{send_page_view:false});if(g.gtmId)loadGtm(g.gtmId)}if(S.cfg.meta?.enabled)loadMeta(S.cfg.meta.pixelId);setTimeout(()=>{S.queue.splice(0).forEach(x=>dispatch(x[0],x[1]));dispatch('PageView',{page_location:location.href,page_title:document.title});autoEvents()},120)}
   function setConsent(value){localStorage.setItem(CONSENT_KEY,value);if(value==='granted')activate()}
   function track(name,data){if(!S.ready){S.queue.push([name,data]);return}if(S.loaded)dispatch(name,data);else S.queue.push([name,data])}
   window.RADZMarketing={track,setConsent,getConsent:consent};
