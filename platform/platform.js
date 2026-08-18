@@ -11,7 +11,7 @@
     const type = response.headers.get("content-type") || "";
     if (!type.includes("application/json")) throw new Error("A publicação do servidor ainda não está configurada.");
     const data = await response.json();
-    if (!response.ok) throw new Error(data.message || "Não foi possível concluir.");
+    if (!response.ok) throw new Error(data.message || data.code || "Não foi possível concluir.");
     return data;
   };
 
@@ -34,8 +34,21 @@
     document.head.appendChild(script);
   });
 
+  const hiddenTurnstileToken = () => {
+    const slot = document.querySelector('#turnstile-slot');
+    const field = slot?.querySelector('input[name="cf-turnstile-response"]') || document.querySelector('input[name="cf-turnstile-response"]');
+    return String(field?.value || '').trim();
+  };
+
   const getTurnstileToken = () => {
     if (!turnstileEnabled) return "";
+
+    const hidden = hiddenTurnstileToken();
+    if (hidden) {
+      window.turnstileToken = hidden;
+      return hidden;
+    }
+
     if (window.turnstile && turnstileWidgetId !== null) {
       try {
         const token = window.turnstile.getResponse(turnstileWidgetId);
@@ -45,6 +58,7 @@
         }
       } catch {}
     }
+
     return window.turnstileToken || "";
   };
 
@@ -64,6 +78,8 @@
       turnstileWidgetId = window.turnstile.render(slot, {
         sitekey: config.sitekey,
         theme: 'dark',
+        'response-field': true,
+        'response-field-name': 'cf-turnstile-response',
         callback(token) {
           window.turnstileToken = token || '';
           if (token && message && /robô|verificação de segurança|Aguarde a verificação/i.test(message.textContent || '')) show('');
