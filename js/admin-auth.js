@@ -5,6 +5,18 @@
   const notice=document.getElementById('login-notice');
   const forgot=document.getElementById('forgot-password');
 
+  function ensureMarketingNav(){
+    const nav=document.getElementById('admin-nav');if(!nav)return;
+    const oldMeta=[...nav.querySelectorAll('a')].find(a=>/Meta Ads/i.test(a.textContent||''));
+    if(oldMeta){oldMeta.textContent='◌ Meta Ads (Beta)';oldMeta.title='Gerenciamento avançado de campanhas — Beta'}
+    if(!nav.querySelector('a[href="/admin/marketing.html"]')){
+      const a=document.createElement('a');a.className='analytics-nav-link';a.href='/admin/marketing.html';a.innerHTML='<span>◎</span>Marketing e Analytics';
+      const analytics=[...nav.querySelectorAll('a')].find(x=>/Visitas e conversão/i.test(x.textContent||''));
+      if(analytics)analytics.insertAdjacentElement('afterend',a);else nav.appendChild(a);
+    }
+  }
+  ensureMarketingNav();
+
   function applyStoreBrand(store){
     if(!store||!store.name)return;
     const name=String(store.name).trim();
