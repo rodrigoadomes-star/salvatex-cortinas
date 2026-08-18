@@ -34,7 +34,7 @@ const PAGE_BOOTSTRAP=`
 })();
 </script>`;
 
-const ANALYTICS_SCRIPT='<script src="/js/radz-analytics.js" defer></script>';
+const PUBLIC_TRACKING_SCRIPTS='<script src="/js/radz-analytics.js" defer></script><script src="/js/radz-marketing.js" defer></script>';
 const NO_ANALYTICS_PREFIXES=['/admin','/radz-admin','/platform-admin','/platform','/login','/cadastro','/api/','/radz/api/'];
 function shouldTrack(pathname){return !NO_ANALYTICS_PREFIXES.some(prefix=>pathname.startsWith(prefix));}
 
@@ -49,7 +49,7 @@ class HeadBootstrap{
         .home-benefits-strip{margin-bottom:0}
       </style>`,{html:true});
     }
-    if(this.track)element.append(ANALYTICS_SCRIPT,{html:true});
+    if(this.track)element.append(PUBLIC_TRACKING_SCRIPTS,{html:true});
   }
 }
 class ConfiguratorHtml{element(element){element.setAttribute('class',((element.getAttribute('class')||'')+' configurator-booting').trim());}}
