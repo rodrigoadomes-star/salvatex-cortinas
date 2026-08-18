@@ -1,10 +1,13 @@
 import { requireRadzAdmin, json } from "../../../radz/api/_auth.js";
+import { requireAdmin } from "../../../admin/api/_auth.js";
 import { createMetaState } from "./_state.js";
 
-export async function onRequestGet(context){
-  const auth=await requireRadzAdmin(context);
-  if(!auth.ok)return auth.response;
+async function companyIdForStore(db,storeId){
+  const row=await db.prepare(`SELECT company_id FROM platform_company_stores WHERE store_id=?1 LIMIT 1`).bind(storeId).first();
+  return row?.company_id?String(row.company_id):'';
+}
 
+export async function onRequestGet(context){
   const appId=String(context.env.META_APP_ID||"").trim();
   const appSecret=String(context.env.META_APP_SECRET||"").trim();
   const sessionSecret=String(context.env.RADZ_ADMIN_SESSION_SECRET||"").trim();
@@ -22,22 +25,29 @@ export async function onRequestGet(context){
     return json({ok:false,code:"DB_NOT_CONFIGURED",message:"Binding D1 DB não configurado."},503);
   }
 
-  let companyId=String(requestUrl.searchParams.get("company_id")||"").trim();
-  if(companyId){
-    const company=await context.env.DB.prepare("SELECT id FROM platform_companies WHERE id=?1 AND status NOT IN ('cancelled') LIMIT 1").bind(companyId).first();
-    if(!company)return json({ok:false,code:"COMPANY_NOT_FOUND",message:"Empresa não encontrada para a integração Meta."},404);
+  let companyId='';
+  let source='superadmin';
+  let returnTo='/radz-admin/';
+
+  const tenantAuth=await requireAdmin(context);
+  if(tenantAuth.ok){
+    companyId=await companyIdForStore(context.env.DB,tenantAuth.storeId);
+    if(!companyId)return json({ok:false,code:'COMPANY_NOT_FOUND',message:'Empresa não vinculada à plataforma.'},404);
+    source='tenant';
+    returnTo='/admin/meta.html';
   }else{
-    const preferred=await context.env.DB.prepare("SELECT id FROM platform_companies WHERE id='company-salvatex' AND status NOT IN ('cancelled') LIMIT 1").first();
-    if(preferred)companyId=preferred.id;
-    else{
-      const only=await context.env.DB.prepare("SELECT id FROM platform_companies WHERE status NOT IN ('cancelled') ORDER BY created_at LIMIT 2").all();
-      const rows=only.results||[];
-      if(rows.length!==1)return json({ok:false,code:"COMPANY_REQUIRED",message:"Selecione a empresa antes de conectar a Meta."},400);
-      companyId=rows[0].id;
+    const auth=await requireRadzAdmin(context);
+    if(!auth.ok)return auth.response;
+    companyId=String(requestUrl.searchParams.get("company_id")||"").trim();
+    if(companyId){
+      const company=await context.env.DB.prepare("SELECT id FROM platform_companies WHERE id=?1 AND status NOT IN ('cancelled') LIMIT 1").bind(companyId).first();
+      if(!company)return json({ok:false,code:"COMPANY_NOT_FOUND",message:"Empresa não encontrada para a integração Meta."},404);
+    }else{
+      return json({ok:false,code:"COMPANY_REQUIRED",message:"Selecione a empresa antes de conectar a Meta."},400);
     }
   }
 
-  const state=await createMetaState(sessionSecret,companyId);
+  const state=await createMetaState(sessionSecret,companyId,{source,returnTo});
   const url=new URL(`https://www.facebook.com/${encodeURIComponent(version)}/dialog/oauth`);
   url.searchParams.set("client_id",appId);
   url.searchParams.set("redirect_uri",redirect);
