@@ -23,18 +23,6 @@ class HeadHandler {
   }
 }
 
-class SalvatexHeadHandler {
-  element(element) {
-    element.append('<link rel="canonical" href="https://salvatex.radzhub.com.br/">', { html: true });
-  }
-}
-
-class RemoveHandler {
-  element(element) {
-    element.remove();
-  }
-}
-
 class BodyHandler {
   element(element) {
     element.append(`
@@ -66,46 +54,16 @@ class BodyHandler {
 }
 
 function isRadzHost(host) {
-  const h = String(host || '').toLowerCase();
-  return h === 'radzhub.com.br' ||
-    h === 'www.radzhub.com.br' ||
-    h === 'radz-hub.pages.dev' ||
+  const h=String(host||'').toLowerCase();
+  return h==='radzhub.com.br' ||
+    h==='www.radzhub.com.br' ||
+    h==='radz-hub.pages.dev' ||
     h.endsWith('.radz-hub.pages.dev');
-}
-
-function isSalvatexHost(host) {
-  return String(host || '').toLowerCase() === 'salvatex.radzhub.com.br';
-}
-
-async function storefrontResponse(context, url) {
-  const assetUrl = new URL('/index.html', url.origin);
-  const response = await context.env.ASSETS.fetch(new Request(assetUrl.toString(), context.request));
-  const headers = new Headers(response.headers);
-  headers.set('Cache-Control', 'no-store, no-cache, must-revalidate');
-  headers.delete('content-length');
-  const htmlResponse = new Response(response.body, {
-    status: response.status,
-    statusText: response.statusText,
-    headers,
-  });
-
-  return new HTMLRewriter()
-    .on('head', new SalvatexHeadHandler())
-    .on('.home-configurator-intro', new RemoveHandler())
-    .on('#configurador', new RemoveHandler())
-    .on('script[src="js/config.js"]', new RemoveHandler())
-    .on('script[src="js/calculo.js"]', new RemoveHandler())
-    .on('script[src^="js/app.js"]', new RemoveHandler())
-    .transform(htmlResponse);
 }
 
 export async function onRequest(context) {
   const url = new URL(context.request.url);
   const host = url.hostname.toLowerCase();
-
-  if (isSalvatexHost(host)) {
-    return storefrontResponse(context, url);
-  }
 
   if (!isRadzHost(host)) {
     return context.env.ASSETS.fetch(context.request);
