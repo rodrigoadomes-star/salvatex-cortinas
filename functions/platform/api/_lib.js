@@ -56,11 +56,12 @@ export async function sha256(value) {
   return bytesToHex(digest);
 }
 
-// Password hashing uses Node crypto because Pages Functions in this project return
-// NotSupportedError for PBKDF2 through Web Crypto. nodejs_compat is enabled in Production.
-// Stored format remains unchanged: 32-byte SHA-256 PBKDF2 hash as hex, salt hex, iterations.
-export async function hashPassword(password, saltHex = randomToken(16), iterations = 210000) {
-  const count = Number(iterations);
+// Cloudflare's current Node-compatible PBKDF2 runtime rejects iteration counts above 100000.
+// New credentials therefore use the maximum supported count while preserving the existing
+// D1 credential format (hash hex + salt hex + stored per-user iteration count).
+export async function hashPassword(password, saltHex = randomToken(16), iterations = 100000) {
+  const requested = Number(iterations);
+  const count = Number.isFinite(requested) && requested > 0 ? Math.min(Math.trunc(requested), 100000) : 100000;
   const derived = pbkdf2Sync(String(password), Buffer.from(saltHex, "hex"), count, 32, "sha256");
   return { hash: derived.toString("hex"), salt: saltHex, iterations: count };
 }
