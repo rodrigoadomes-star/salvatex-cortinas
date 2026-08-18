@@ -3,58 +3,120 @@ name: RADZ production auth diagnostic
 on:
   push:
     branches: [radz-unified-production]
+    paths-ignore:
+      - diagnostics/production-auth-smoke.json
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
-  production-auth-diagnostic:
+  production-auth-smoke:
     runs-on: ubuntu-latest
     steps:
-      - name: Wait for Cloudflare production deployment
+      - uses: actions/checkout@v4
+        with:
+          ref: radz-unified-production
+
+      - name: Run remote production auth smoke test
+        id: smoke
         shell: bash
         run: |
-          set -euo pipefail
-          expected='turnstile.getResponse'
+          set +e
+          mkdir -p diagnostics
+          version='20260818-turnstile-3'
+          base='https://radzhub.com.br'
+          deployed=false
+          login_page=false
+          cadastro_page=false
+          version_login=false
+          version_cadastro=false
+          js_ok=false
+          config_ok=false
+          health_ok=false
+          api_ok=false
+          config_body=''
+          health_body=''
+          api_body=''
+          api_code='000'
+
           for i in $(seq 1 30); do
-            body="$(curl -fsS --max-time 15 'https://radzhub.com.br/platform/platform.js?v=20260818-authdiag' || true)"
-            if printf '%s' "$body" | grep -Fq "$expected"; then
-              echo 'Production auth JavaScript is reachable.'
-              exit 0
+            js="$(curl -fsS --max-time 15 "$base/platform/platform.js?v=$version" 2>/dev/null || true)"
+            login="$(curl -fsS --max-time 15 "$base/platform/login" 2>/dev/null || true)"
+            cadastro="$(curl -fsS --max-time 15 "$base/platform/cadastro" 2>/dev/null || true)"
+            if printf '%s' "$js" | grep -Fq 'turnstile.getResponse' && \
+               printf '%s' "$login" | grep -Fq "$version" && \
+               printf '%s' "$cadastro" | grep -Fq "$version"; then
+              deployed=true
+              break
             fi
-            echo "Waiting for production deployment ($i/30)..."
             sleep 10
           done
-          echo 'Production did not become reachable in time.' >&2
-          exit 1
 
-      - name: Check production auth pages and Turnstile config
-        shell: bash
-        run: |
-          set -euo pipefail
-          curl -fsS --max-time 15 'https://radzhub.com.br/platform/login' | grep -Fq 'login-form'
-          curl -fsS --max-time 15 'https://radzhub.com.br/platform/cadastro' | grep -Fq 'register-form'
-          cfg="$(curl -fsS --max-time 15 'https://radzhub.com.br/api/turnstile-config')"
-          echo "$cfg"
-          printf '%s' "$cfg" | grep -Fq '"enabled":true'
+          printf '%s' "$login" | grep -Fq 'login-form' && login_page=true
+          printf '%s' "$cadastro" | grep -Fq 'register-form' && cadastro_page=true
+          printf '%s' "$login" | grep -Fq "$version" && version_login=true
+          printf '%s' "$cadastro" | grep -Fq "$version" && version_cadastro=true
+          printf '%s' "$js" | grep -Fq 'turnstile.getResponse' && \
+            printf '%s' "$js" | grep -Fq 'cf-turnstile-response' && js_ok=true
 
-      - name: Validate Turnstile server configuration remotely
-        shell: bash
-        run: |
-          set -euo pipefail
-          health="$(curl -fsS --max-time 20 'https://radzhub.com.br/api/turnstile-health')"
-          echo "$health"
-          printf '%s' "$health" | grep -Fq '"ok":true'
-          printf '%s' "$health" | grep -Fq '"secretAccepted":true'
+          config_body="$(curl -sS --max-time 20 "$base/api/turnstile-config" 2>/dev/null || true)"
+          printf '%s' "$config_body" | grep -Fq '"enabled":true' && \
+            printf '%s' "$config_body" | grep -Fq '"sitekey"' && config_ok=true
 
-      - name: Verify auth API rejects missing Turnstile token safely
-        shell: bash
-        run: |
-          set -euo pipefail
-          code="$(curl -sS -o /tmp/login.json -w '%{http_code}' --max-time 20 \
+          health_body="$(curl -sS --max-time 20 "$base/api/turnstile-health" 2>/dev/null || true)"
+          printf '%s' "$health_body" | grep -Fq '"ok":true' && \
+            printf '%s' "$health_body" | grep -Fq '"secretAccepted":true' && health_ok=true
+
+          api_code="$(curl -sS -o /tmp/login.json -w '%{http_code}' --max-time 20 \
             -H 'content-type: application/json' \
             --data '{"email":"remote-smoke@example.invalid","password":"RemoteSmoke123"}' \
-            'https://radzhub.com.br/platform/api/login')"
-          cat /tmp/login.json
-          test "$code" = '400' -o "$code" = '503'
-          grep -Eq 'TURNSTILE_TOKEN_MISSING|TURNSTILE_SECRET_' /tmp/login.json
+            "$base/platform/api/login" 2>/dev/null || echo 000)"
+          api_body="$(cat /tmp/login.json 2>/dev/null || true)"
+          if { [ "$api_code" = '400' ] || [ "$api_code" = '503' ]; } && \
+             printf '%s' "$api_body" | grep -Eq 'TURNSTILE_TOKEN_MISSING|TURNSTILE_SECRET_|Confirme que você não é um robô'; then
+            api_ok=true
+          fi
+
+          overall=false
+          if $deployed && $login_page && $cadastro_page && $version_login && $version_cadastro && $js_ok && $config_ok && $health_ok && $api_ok; then
+            overall=true
+          fi
+
+          python3 - <<PY
+          import json, os, datetime
+          data = {
+            'checked_at': datetime.datetime.now(datetime.timezone.utc).isoformat(),
+            'commit': os.environ.get('GITHUB_SHA',''),
+            'version': '$version',
+            'overall_ok': $overall,
+            'deployed': $deployed,
+            'login_page_ok': $login_page,
+            'cadastro_page_ok': $cadastro_page,
+            'version_login_ok': $version_login,
+            'version_cadastro_ok': $version_cadastro,
+            'platform_js_ok': $js_ok,
+            'turnstile_config_ok': $config_ok,
+            'turnstile_health_ok': $health_ok,
+            'auth_api_safe_rejection_ok': $api_ok,
+            'auth_api_http_code': '$api_code',
+            'turnstile_config': '''$config_body''',
+            'turnstile_health': '''$health_body''',
+            'auth_api_body': '''$api_body'''
+          }
+          with open('diagnostics/production-auth-smoke.json','w') as f:
+            json.dump(data,f,ensure_ascii=False,indent=2)
+          print(json.dumps(data,ensure_ascii=False,indent=2))
+          PY
+
+          $overall
+
+      - name: Persist smoke result
+        if: always()
+        shell: bash
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add diagnostics/production-auth-smoke.json
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m 'chore: update production auth smoke result [skip ci]'
+          git push origin HEAD:radz-unified-production
