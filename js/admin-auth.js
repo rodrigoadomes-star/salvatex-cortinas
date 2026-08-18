@@ -5,6 +5,23 @@
   const notice=document.getElementById('login-notice');
   const forgot=document.getElementById('forgot-password');
 
+  function applyStoreBrand(store){
+    if(!store||!store.name)return;
+    const name=String(store.name).trim();
+    document.title='Painel administrativo — '+name;
+    const loginBrand=document.querySelector('.login-brand');
+    if(loginBrand){loginBrand.textContent=name;const small=document.createElement('small');small.textContent='PAINEL ADMIN';loginBrand.appendChild(small)}
+    const sidebarBrand=document.querySelector('.sidebar .brand');
+    if(sidebarBrand){sidebarBrand.textContent=name;const small=document.createElement('small');small.textContent='PAINEL ADMIN';sidebarBrand.appendChild(small)}
+    const userLabel=document.querySelector('.sidebar-user small');
+    if(userLabel)userLabel.textContent=name;
+  }
+
+  fetch('/admin/api/identity',{credentials:'same-origin'})
+    .then(r=>r.ok?r.json():null)
+    .then(d=>{if(d?.store)applyStoreBrand(d.store)})
+    .catch(()=>{});
+
   window.login=login=async function(){
     const email=(emailInput?.value||'').trim().toLowerCase();
     const password=passwordInput?.value||'';
@@ -17,6 +34,7 @@
       if(!r.ok)throw new Error(d.message||'Não foi possível entrar.');
       ADMIN.csrf=d.csrfToken||'';
       sessionStorage.setItem('salvatexAdminCsrf',ADMIN.csrf);
+      if(d.store)applyStoreBrand(d.store);
       if(passwordInput)passwordInput.value='';
       document.getElementById('admin-login').style.display='none';
       document.getElementById('admin-app').hidden=false;
