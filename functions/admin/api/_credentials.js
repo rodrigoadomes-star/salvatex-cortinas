@@ -6,13 +6,13 @@ export function normalizeEmail(value){return String(value||'').trim().toLowerCas
 export function validEmail(value){return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value||''))}
 export function randomToken(size=32){const bytes=new Uint8Array(size);crypto.getRandomValues(bytes);return bytesToHex(bytes)}
 export async function sha256(value){return bytesToHex(new Uint8Array(await crypto.subtle.digest('SHA-256',encoder.encode(String(value||'')))))}
-export async function hashPassword(password,salt=randomToken(16),iterations=210000){
+export async function hashPassword(password,salt=randomToken(16),iterations=100000){
   const material=await crypto.subtle.importKey('raw',encoder.encode(String(password)),{name:'PBKDF2'},false,['deriveBits']);
-  const bits=await crypto.subtle.deriveBits({name:'PBKDF2',hash:'SHA-256',salt:hexToBytes(salt),iterations},material,256);
-  return{hash:bytesToHex(new Uint8Array(bits)),salt,iterations};
+  const bits=await crypto.subtle.deriveBits({name:'PBKDF2',hash:'SHA-256',salt:hexToBytes(salt),iterations:Number(iterations)||100000},material,256);
+  return{hash:bytesToHex(new Uint8Array(bits)),salt,iterations:Number(iterations)||100000};
 }
 export async function verifyPassword(password,expectedHash,salt,iterations){
-  const actual=await hashPassword(password,salt,Number(iterations)||210000);
+  const actual=await hashPassword(password,salt,Number(iterations)||100000);
   const a=encoder.encode(actual.hash),b=encoder.encode(String(expectedHash||''));
   if(a.length!==b.length)return false;let diff=0;for(let i=0;i<a.length;i++)diff|=a[i]^b[i];return diff===0;
 }
