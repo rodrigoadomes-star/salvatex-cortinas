@@ -1,17 +1,16 @@
 import { json, requireAdmin } from "./_auth.js";
 
+const MEMBERSHIP_TABLE='customer_store_memberships_v2';
+
 async function ensureMembershipSchema(db){
- await db.prepare(`CREATE TABLE IF NOT EXISTS customer_store_memberships (
+ await db.prepare(`CREATE TABLE IF NOT EXISTS ${MEMBERSHIP_TABLE} (
    store_id TEXT NOT NULL,
    customer_account_id TEXT NOT NULL,
    created_at TEXT NOT NULL,
    last_login_at TEXT,
    PRIMARY KEY(store_id,customer_account_id)
  )`).run();
- const info=await db.prepare('PRAGMA table_info(customer_store_memberships)').all();
- const columns=new Set((info.results||[]).map(row=>String(row.name||'')));
- if(!columns.has('last_login_at'))await db.prepare('ALTER TABLE customer_store_memberships ADD COLUMN last_login_at TEXT').run();
- await db.prepare('CREATE INDEX IF NOT EXISTS idx_customer_store_memberships_account ON customer_store_memberships(customer_account_id,store_id)').run();
+ await db.prepare(`CREATE INDEX IF NOT EXISTS idx_customer_store_memberships_v2_account ON ${MEMBERSHIP_TABLE}(customer_account_id,store_id)`).run();
 }
 
 export async function onRequestGet(context){
@@ -23,7 +22,7 @@ export async function onRequestGet(context){
    FROM orders WHERE store_id=?1 AND customer_email IS NOT NULL AND customer_email<>'' GROUP BY lower(customer_email)
  ), members AS (
    SELECT lower(a.email) email,a.id account_id,a.name,a.phone,a.created_at registered_at
-   FROM customer_store_memberships m JOIN customer_accounts a ON a.id=m.customer_account_id
+   FROM ${MEMBERSHIP_TABLE} m JOIN customer_accounts a ON a.id=m.customer_account_id
    WHERE m.store_id=?1
  ), emails AS (
    SELECT email FROM order_stats UNION SELECT email FROM members
