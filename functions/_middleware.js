@@ -19,6 +19,12 @@ export async function onRequest(context){
  else if(tenantHost&&!isSalvatex&&['/pagina.html','/pagina'].includes(pathname))response=await asset(context,'/tenant/page.html');
  else if(tenantHost&&!isSalvatex&&['/produto.html','/produto'].includes(pathname))response=await asset(context,'/tenant/product.html');
  else if(tenantHost&&!isSalvatex&&['/carrinho.html','/carrinho'].includes(pathname))response=await asset(context,'/tenant/cart.html',false);
+ else if(tenantHost&&!isSalvatex&&['/checkout.html','/checkout'].includes(pathname))response=await asset(context,'/tenant/checkout.html',false);
+ else if(tenantHost&&!isSalvatex&&['/minha-conta.html','/minha-conta'].includes(pathname))response=await asset(context,'/tenant/account.html');
+ else if(tenantHost&&!isSalvatex&&['/criar-conta.html','/criar-conta'].includes(pathname))response=await asset(context,'/tenant/register.html');
+ else if(tenantHost&&!isSalvatex&&['/esqueci-senha.html','/esqueci-senha'].includes(pathname))response=await asset(context,'/tenant/forgot.html');
+ else if(tenantHost&&!isSalvatex&&['/redefinir-senha.html','/redefinir-senha'].includes(pathname))response=await asset(context,'/tenant/reset.html');
+ else if(tenantHost&&!isSalvatex&&['/pagamento.html','/pagamento'].includes(pathname))return Response.redirect(`https://${host}/checkout.html`,302);
  else response=await context.next();
  const headers=new Headers(response.headers);headers.set('content-security-policy',CSP);headers.set('x-content-type-options','nosniff');headers.set('x-frame-options','DENY');headers.set('referrer-policy','strict-origin-when-cross-origin');headers.set('permissions-policy','camera=(), microphone=(), geolocation=(), payment=()');headers.set('cross-origin-opener-policy','same-origin-allow-popups');headers.set('strict-transport-security','max-age=31536000; includeSubDomains');if(adminPath)headers.set('cache-control','no-store');
  const contentType=headers.get('content-type')||'';if(response.status===200&&contentType.includes('text/html')&&typeof HTMLRewriter!=='undefined'){headers.delete('content-length');const secured=new Response(response.body,{status:response.status,statusText:response.statusText,headers});if(adminPath)return secured;let rewriter=new HTMLRewriter().on('head',new HeadBootstrap(shouldTrack(pathname),isSalvatexHome));if(pathname==='/configurador'||pathname==='/configurador.html')rewriter=rewriter.on('html',new ConfiguratorHtml()).on('body',new ProductionConfiguratorScripts());return rewriter.transform(secured)}
