@@ -15,6 +15,16 @@ export async function requirePlatformSession(context, roles = []) {
   if (!row || !row.active || Date.parse(row.expires_at) <= Date.now()) {
     return { ok: false, response: json({ ok: false, code: "SESSION_EXPIRED" }, 401) };
   }
+
+  const host = new URL(context.request.url).hostname.toLowerCase();
+  const tenantHost = host.endsWith(".radzhub.com.br") && host !== "radzhub.com.br" && host !== "www.radzhub.com.br";
+  if (tenantHost) {
+    const expectedHost = row.slug ? `${row.slug}.radzhub.com.br` : "";
+    if (!expectedHost || host !== expectedHost) {
+      return { ok: false, response: json({ ok: false, code: "TENANT_HOST_MISMATCH" }, 403) };
+    }
+  }
+
   if (roles.length && !roles.includes(row.role)) {
     return { ok: false, response: json({ ok: false, code: "FORBIDDEN" }, 403) };
   }
@@ -22,5 +32,3 @@ export async function requirePlatformSession(context, roles = []) {
     .bind(new Date().toISOString(), row.session_id).run();
   return { ok: true, session: row };
 }
-
-
