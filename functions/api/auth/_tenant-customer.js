@@ -7,6 +7,13 @@ export async function ensureCustomerMembershipTable(db){
     last_login_at TEXT,
     PRIMARY KEY(store_id, customer_account_id)
   )`).run();
+
+  const info=await db.prepare('PRAGMA table_info(customer_store_memberships)').all();
+  const columns=new Set((info.results||[]).map(row=>String(row.name||'')));
+  if(!columns.has('last_login_at')){
+    await db.prepare('ALTER TABLE customer_store_memberships ADD COLUMN last_login_at TEXT').run();
+  }
+
   await db.prepare(`CREATE INDEX IF NOT EXISTS idx_customer_membership_account ON customer_store_memberships(customer_account_id, store_id)`).run();
 }
 
