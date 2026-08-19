@@ -52,23 +52,14 @@
 
   const getTurnstileToken = () => {
     if (!turnstileEnabled) return "";
-
     const hidden = hiddenTurnstileToken();
-    if (hidden) {
-      window.turnstileToken = hidden;
-      return hidden;
-    }
-
+    if (hidden) { window.turnstileToken = hidden; return hidden; }
     if (window.turnstile && turnstileWidgetId !== null) {
       try {
         const token = String(window.turnstile.getResponse(turnstileWidgetId) || '').trim();
-        if (token) {
-          window.turnstileToken = token;
-          return token;
-        }
+        if (token) { window.turnstileToken = token; return token; }
       } catch {}
     }
-
     return String(window.turnstileToken || '').trim();
   };
 
@@ -88,10 +79,7 @@
       if (!response.ok) throw new Error('TURNSTILE_CONFIG_FAILED');
       const config = await response.json();
       turnstileEnabled = Boolean(config && config.enabled);
-      if (!turnstileEnabled) {
-        slot.hidden = true;
-        return;
-      }
+      if (!turnstileEnabled) { slot.hidden = true; return; }
       await loadTurnstileScript();
       turnstileWidgetId = window.turnstile.render(slot, {
         sitekey: config.sitekey,
@@ -137,9 +125,7 @@
     try {
       const result = await jsonFetch("/platform/api/register", data);
       window.location.assign(result.redirect || "/platform-admin/");
-    } catch (error) {
-      handleAuthError(error);
-    }
+    } catch (error) { handleAuthError(error); }
   });
 
   const login = document.querySelector("#login-form");
@@ -153,8 +139,25 @@
     try {
       const result = await jsonFetch("/platform/api/login", data);
       window.location.assign(result.redirect || "/platform-admin/");
+    } catch (error) { handleAuthError(error); }
+  });
+
+  const forgot = document.querySelector('#forgot-password');
+  if (forgot && login) forgot.addEventListener('click', async () => {
+    const email = String(login.elements.email?.value || '').trim().toLowerCase();
+    if (!email) { show('Informe seu e-mail para recuperar a senha.'); login.elements.email?.focus(); return; }
+    const turnstileToken = requireTurnstileToken();
+    if (turnstileToken === null) return;
+    forgot.disabled = true;
+    show('Enviando instruções...', true);
+    try {
+      const result = await jsonFetch('/platform/api/forgot-password', { email, turnstileToken });
+      show(result.message || 'Se o e-mail estiver cadastrado, enviaremos um link de redefinição.', true);
     } catch (error) {
       handleAuthError(error);
+    } finally {
+      forgot.disabled = false;
+      resetTurnstile();
     }
   });
 
