@@ -73,12 +73,21 @@ export async function verifyPassword(password, expectedHash, salt, iterations) {
   return timingSafeEqual(Buffer.from(actual.hash, "hex"), Buffer.from(expected, "hex"));
 }
 
-export function sessionCookie(token, maxAge = 28800) {
-  return `radzhub_session=${token}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=${maxAge}`;
+function productionCookieDomain(request) {
+  try {
+    const host = new URL(request?.url || "").hostname.toLowerCase();
+    return host === "radzhub.com.br" || host.endsWith(".radzhub.com.br") ? "; Domain=radzhub.com.br" : "";
+  } catch {
+    return "";
+  }
 }
 
-export function clearSessionCookie() {
-  return "radzhub_session=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0";
+export function sessionCookie(token, maxAge = 28800, request = null) {
+  return `radzhub_session=${token}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=${maxAge}${productionCookieDomain(request)}`;
+}
+
+export function clearSessionCookie(request = null) {
+  return `radzhub_session=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0${productionCookieDomain(request)}`;
 }
 
 export function cookie(request, name) {
