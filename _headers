@@ -21,6 +21,12 @@
   Expires: 0
   X-Robots-Tag: noindex, nofollow, noarchive
 
+/platform-admin/*
+  Cache-Control: no-store, no-cache, must-revalidate, max-age=0
+  Pragma: no-cache
+  Expires: 0
+  X-Robots-Tag: noindex, nofollow, noarchive
+
 /login
   Cache-Control: no-store, no-cache, must-revalidate, max-age=0
   Pragma: no-cache
