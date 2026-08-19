@@ -81,6 +81,11 @@ export async function onRequest(context){
     assetUrl.pathname='/tenant/index.html';
     assetUrl.search='';
     response=await context.env.ASSETS.fetch(assetUrl);
+  }else if(tenantHost&&!isSalvatex&&(pathname==='/pagina.html'||pathname==='/pagina')){
+    if(!context.env.ASSETS)return new Response('Assets indisponíveis',{status:503});
+    const assetUrl=new URL(context.request.url);
+    assetUrl.pathname='/tenant/page.html';
+    response=await context.env.ASSETS.fetch(assetUrl);
   }else{
     response=await context.next();
   }
