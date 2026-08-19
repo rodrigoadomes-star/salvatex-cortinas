@@ -1,39 +1,31 @@
 (()=>{
   const $=s=>document.querySelector(s),esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const money=cents=>new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(Number(cents||0)/100);
-  async function j(url){const r=await fetch(url,{cache:'no-store',credentials:'same-origin'});const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.message||'Falha ao carregar');return d}
+  async function j(url,options){const r=await fetch(url,{cache:'no-store',credentials:'same-origin',...(options||{})});const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.message||'Falha ao carregar');return d}
   function actionData(value,fallbackLabel,fallbackHref){if(value&&typeof value==='object')return{label:value.label||value.text||fallbackLabel,href:value.href||value.url||fallbackHref};return{label:fallbackLabel,href:fallbackHref}}
-  function cartCount(){let total=0;for(const key of['salvatexCarrinho','radzCart']){try{const items=JSON.parse(localStorage.getItem(key)||'[]');if(Array.isArray(items))total=Math.max(total,items.reduce((s,i)=>s+Number(i.quantidade||i.quantity||1),0))}catch{}}const el=$('#cart-count');if(el){el.textContent=String(total);el.hidden=total<=0}}
+  let catalog={categories:[],products:[]},turnstileId=null;
+  function cartCount(){let total=0;try{const api=window.SalvatexCarrinho;if(api)total=api.obterQuantidade()}catch{}if(!total){try{const items=JSON.parse(localStorage.getItem('salvatexCarrinho')||'[]');if(Array.isArray(items))total=items.reduce((s,i)=>s+Number(i.quantidade||1),0)}catch{}}const el=$('#cart-count');if(el){el.textContent=String(total);el.hidden=total<=0}}
   function applyIdentity(config,layout){
-    const name=String(config.storeName||config.name||location.hostname.split('.')[0]||'Loja').trim();
-    document.title=`${name} — Loja online`;
-    $('#brand').textContent=name.toUpperCase();$('#footer-brand').textContent=name.toUpperCase();
-    const hero=layout.hero||config.hero||{};
-    $('#eyebrow').textContent=hero.eyebrow||config.segment||'NOSSA LOJA';
-    $('#hero-title').textContent=hero.title||`Bem-vindo à ${name}`;
-    $('#hero-subtitle').textContent=hero.subtitle||`Conheça os produtos, novidades e opções disponíveis na ${name}.`;
-    const p=actionData(hero.primaryAction,'Ver produtos','#produtos'),s=actionData(hero.secondaryAction,'Explorar categorias','#categorias');
-    $('#primary-action').textContent=p.label;$('#primary-action').href=p.href;$('#secondary-action').textContent=s.label;$('#secondary-action').href=s.href;
+    const name=String(config.storeName||config.name||location.hostname.split('.')[0]||'Loja').trim();document.title=`${name} — Loja online`;$('#brand').textContent=name.toUpperCase();$('#footer-brand').textContent=name.toUpperCase();
+    const hero=layout.hero||config.hero||{};$('#eyebrow').textContent=hero.eyebrow||config.segment||'NOSSA LOJA';$('#hero-title').textContent=hero.title||`Bem-vindo à ${name}`;$('#hero-subtitle').textContent=hero.subtitle||`Conheça os produtos, novidades e opções disponíveis na ${name}.`;
+    const p=actionData(hero.primaryAction,'Ver produtos','#produtos'),s=actionData(hero.secondaryAction,'Explorar categorias','#categorias');$('#primary-action').textContent=p.label;$('#primary-action').href=p.href;$('#secondary-action').textContent=s.label;$('#secondary-action').href=s.href;
     const image=hero.image||layout.branding?.heroImage||config.heroImage||'';if(image)$('#hero-media').style.backgroundImage=`url("${String(image).replace(/"/g,'%22')}")`;
-    const primary=layout.branding?.colors?.primary||layout.colors?.primary||config.primaryColor;if(primary)document.documentElement.style.setProperty('--brand',primary);
-    const accent=layout.branding?.colors?.accent||layout.colors?.accent||config.accentColor;if(accent)document.documentElement.style.setProperty('--accent',accent);
-    $('#footer-text').textContent=layout.footer?.text||config.footerText||`${name} · Loja online.`;
-    const contact=layout.contact||config.contact||{};const contactText=contact.text||contact.whatsapp||contact.phone||contact.email||'';if(contactText)$('#contact-copy').textContent=contactText;
+    const primary=layout.branding?.colors?.primary||layout.colors?.primary||config.primaryColor;if(primary)document.documentElement.style.setProperty('--brand',primary);const accent=layout.branding?.colors?.accent||layout.colors?.accent||config.accentColor;if(accent)document.documentElement.style.setProperty('--accent',accent);
+    $('#footer-text').textContent=layout.footer?.text||config.footerText||`${name} · Loja online.`;const contact=layout.contact||config.contact||{};const contactText=contact.text||contact.whatsapp||contact.phone||contact.email||'';if(contactText)$('#contact-copy').textContent=contactText;
+    const nav=layout.navigation||config.navigation||{};if(nav.contactLabel)$('#contact-link').textContent=nav.contactLabel;if(nav.accountLabel)$('#account-link').textContent=nav.accountLabel;if(nav.cartLabel)$('#cart-label').textContent=nav.cartLabel;
+    if(layout.sections?.categoriesTitle)$('#categories-title').textContent=layout.sections.categoriesTitle;if(layout.sections?.productsTitle)$('#products-title').textContent=layout.sections.productsTitle;
   }
+  function pageHref(p){if(p.pageType==='link'&&p.externalUrl)return p.externalUrl;return `/pagina.html?slug=${encodeURIComponent(p.slug)}`}
   function renderPages(data){
-    const pages=(data.pages||[]).filter(p=>p.navGroup!=='oculto').sort((a,b)=>(a.navOrder||100)-(b.navOrder||100));
-    const host=$('#dynamic-pages');if(!host)return;host.innerHTML=pages.map(p=>`<a class="page-nav-link" href="/pagina.html?slug=${encodeURIComponent(p.slug)}">${esc(p.title)}</a>`).join('');
+    const pages=data.pages||[],main=pages.filter(p=>['principal','cortinas_sob_medida','persianas_sob_medida','pronta_entrega'].includes(p.navGroup)).sort((a,b)=>(a.navOrder||100)-(b.navOrder||100)),foot=pages.filter(p=>p.navGroup==='rodape').sort((a,b)=>(a.navOrder||100)-(b.navOrder||100));
+    const host=$('#dynamic-pages');if(host)host.innerHTML=main.map(p=>`<a class="page-nav-link" href="${esc(pageHref(p))}">${esc(p.menuLabel||p.title)}</a>`).join('');const fallback=$('#default-commerce-nav');if(fallback)fallback.hidden=main.length>0;
+    const footer=$('#footer-pages');if(footer)footer.innerHTML=foot.map(p=>`<a href="${esc(pageHref(p))}">${esc(p.menuLabel||p.title)}</a>`).join('');
   }
-  function renderCatalog(data){
-    const cats=data.categories||[],products=data.products||[];
-    $('#categories').innerHTML=cats.length?cats.map(c=>`<a class="card category" href="#produtos" data-category="${esc(c.slug)}"><strong>${esc(c.name)}</strong><p>${esc(c.description||`${c.productCount||0} produto(s)`)}</p></a>`).join(''):'<div class="empty">Nenhuma categoria publicada no momento.</div>';
-    $('#products').innerHTML=products.length?products.slice(0,12).map(p=>`<article class="card"><a href="/produto.html?slug=${encodeURIComponent(p.slug)}"><div class="product-img" ${p.imageUrl?`style="background-image:url('${esc(p.imageUrl)}')"`:''}></div></a><div class="product-body"><h3><a href="/produto.html?slug=${encodeURIComponent(p.slug)}">${esc(p.name)}</a></h3><p>${esc(p.description||'')}</p><div class="price">${money(p.basePriceCents)}</div></div></article>`).join(''):'<div class="empty">Nenhum produto publicado no momento.</div>';
-  }
-  async function boot(){
-    try{
-      const [sc,ly,cat,pages]=await Promise.all([j('/api/store-config'),j('/api/layout'),j('/api/catalog'),j('/api/pages')]);
-      applyIdentity(sc.config||{},ly.layout||{});renderCatalog(cat);renderPages(pages);cartCount();
-    }catch(e){console.error('[RADZ storefront]',e);$('#products').innerHTML='<div class="empty">A loja está sendo configurada. Tente novamente em instantes.</div>'}
-  }
+  function productCards(products){return products.length?products.map(p=>`<article class="card" data-category="${esc(p.categorySlug||'')}"><a href="/produto.html?slug=${encodeURIComponent(p.slug)}"><div class="product-img" ${p.imageUrl?`style="background-image:url('${esc(p.imageUrl)}')"`:''}></div></a><div class="product-body"><h3><a href="/produto.html?slug=${encodeURIComponent(p.slug)}">${esc(p.name)}</a></h3><p>${esc(p.description||'')}</p><div class="price">${money(p.basePriceCents)}</div></div></article>`).join(''):'<div class="empty">Nenhum produto publicado no momento.</div>'}
+  function filterCategory(slug,name){const list=slug?catalog.products.filter(p=>p.categorySlug===slug):catalog.products;$('#products').innerHTML=productCards(list);$('#products-title').textContent=slug?(name||'Produtos'):'Produtos em destaque';$('#clear-category').hidden=!slug;document.querySelectorAll('.category').forEach(x=>x.classList.toggle('active',x.dataset.category===slug));location.hash='produtos'}
+  function renderCatalog(data){catalog=data;const cats=data.categories||[];$('#categories').innerHTML=cats.length?cats.map(c=>`<button type="button" class="card category" data-category="${esc(c.slug)}" data-name="${esc(c.name)}" style="text-align:left;color:inherit;font:inherit"><strong>${esc(c.name)}</strong><p>${esc(c.description||`${c.productCount||0} produto(s)`)}</p></button>`).join(''):'<div class="empty">Nenhuma categoria publicada no momento.</div>';$('#products').innerHTML=productCards(data.products||[]);document.querySelectorAll('.category').forEach(b=>b.onclick=()=>filterCategory(b.dataset.category,b.dataset.name));$('#clear-category').onclick=()=>filterCategory('','')}
+  async function setupTurnstile(){try{const cfg=await j('/api/turnstile-config');if(!cfg.enabled)return;for(let i=0;i<40&&!window.turnstile;i++)await new Promise(r=>setTimeout(r,100));if(window.turnstile&&$('#contact-turnstile'))turnstileId=window.turnstile.render('#contact-turnstile',{sitekey:cfg.sitekey,theme:'light'})}catch{}}
+  function setupContact(){const f=$('#contact-form');if(!f)return;f.onsubmit=async e=>{e.preventDefault();const fd=new FormData(f),out=$('#contact-feedback'),button=f.querySelector('button');button.disabled=true;out.textContent='Enviando…';try{const token=turnstileId!==null&&window.turnstile?turnstile.getResponse(turnstileId):'';const d=await j('/api/contact',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({name:fd.get('name'),email:fd.get('email'),phone:fd.get('phone'),message:fd.get('message'),turnstileToken:token})});out.style.color='#08752b';out.textContent=d.message||'Mensagem enviada.';f.reset();if(turnstileId!==null&&window.turnstile)turnstile.reset(turnstileId)}catch(error){out.style.color='#b42318';out.textContent=error.message||'Não foi possível enviar.';if(turnstileId!==null&&window.turnstile)turnstile.reset(turnstileId)}finally{button.disabled=false}}}
+  async function boot(){try{const [sc,ly,cat,pages]=await Promise.all([j('/api/store-config'),j('/api/layout'),j('/api/catalog'),j('/api/pages')]);applyIdentity(sc.config||{},ly.layout||{});renderCatalog(cat);renderPages(pages);cartCount();setupContact();setupTurnstile()}catch(e){console.error('[RADZ storefront]',e);$('#products').innerHTML='<div class="empty">A loja está sendo configurada. Tente novamente em instantes.</div>'}}
   window.addEventListener('storage',cartCount);boot();
 })();
