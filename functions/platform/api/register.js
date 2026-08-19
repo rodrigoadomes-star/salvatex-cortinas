@@ -89,5 +89,5 @@ export async function onRequestPost(context) {
   try { await context.env.DB.batch(statements); }
   catch (error) { const code = dbErrorCode(error); console.error("[RADZ register batch]", requestId, code, String(error?.message || error)); return json({ ok: false, code, message: code === "REGISTER_CONFLICT" ? "Algum dado deste cadastro acabou de ser utilizado por outra conta. Revise e tente novamente." : `Não foi possível gravar o cadastro no banco de dados. Referência: ${requestId}.` }, code === "REGISTER_CONFLICT" ? 409 : 503); }
   try { await audit(context.env, context.request, "company.registered", companyId, userId, { plan: "free", termsVersion: TERMS_VERSION, privacyVersion: PRIVACY_VERSION, requestId }); } catch (error) { console.error("[RADZ register audit]", requestId, String(error?.message || error)); }
-  return json({ ok: true, company: { id: companyId, name: tradeName, slug, hostname, status }, redirect: "/platform-admin/" }, 201, { "set-cookie": sessionCookie(sessionToken) });
+  return json({ ok: true, company: { id: companyId, name: tradeName, slug, hostname, status }, redirect: `https://${hostname}/admin/` }, 201, { "set-cookie": sessionCookie(sessionToken, 28800, context.request) });
 }
