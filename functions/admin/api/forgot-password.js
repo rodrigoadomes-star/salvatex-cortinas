@@ -1,6 +1,6 @@
 import { json } from './_auth.js';
 import { resolveStore } from './_tenant.js';
-import { ensureAdminAuthSchema, ensureLegacySalvatexAdmin, normalizeEmail, validEmail, randomToken, sha256, sendResetEmail } from './_credentials.js';
+import { ensureAdminAuthSchema, ensureLegacySalvatexAdmin, ensurePlatformCompanyAdmin, normalizeEmail, validEmail, randomToken, sha256, sendResetEmail } from './_credentials.js';
 
 const GENERIC='Se o e-mail estiver cadastrado, enviaremos um link de redefinição.';
 
@@ -15,6 +15,7 @@ export async function onRequestPost(context){
   let body={};try{body=await context.request.json()}catch{return json({ok:false,message:'JSON inválido.'},400)}
   const email=normalizeEmail(body.email);
   if(!validEmail(email))return json({ok:true,message:GENERIC});
+  await ensurePlatformCompanyAdmin(context.env.DB,store,email);
   const user=await context.env.DB.prepare(`SELECT id,email,active FROM admin_users WHERE store_id=?1 AND email=?2 LIMIT 1`).bind(String(store.id),email).first();
   if(!user||Number(user.active)===0)return json({ok:true,message:GENERIC});
 
