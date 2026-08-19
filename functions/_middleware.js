@@ -62,18 +62,25 @@ export async function onRequest(context){
   const pathname=url.pathname;
   const host=url.hostname.toLowerCase();
   const tenantHost=isTenantHost(host);
-  const isSalvatexHome=host==='salvatex.radzhub.com.br'&&(pathname==='/'||pathname==='/index.html');
+  const isSalvatex=host==='salvatex.radzhub.com.br';
+  const isSalvatexHome=isSalvatex&&(pathname==='/'||pathname==='/index.html');
   const adminPath=isAdminPath(pathname);
 
   let response;
   if(tenantHost&&(pathname==='/admin'||pathname==='/admin/')){
     if(!context.env.ASSETS)return new Response('Assets indisponíveis',{status:503});
     const assetUrl=new URL(context.request.url);
-    assetUrl.pathname='/platform-admin/index.html';
+    assetUrl.pathname='/admin/index.html';
     assetUrl.search='';
     response=await context.env.ASSETS.fetch(assetUrl);
   }else if(tenantHost&&(pathname==='/platform-admin'||pathname==='/platform-admin/')){
     return Response.redirect(`https://${host}/admin/`,308);
+  }else if(tenantHost&&!isSalvatex&&(pathname==='/'||pathname==='/index.html')){
+    if(!context.env.ASSETS)return new Response('Assets indisponíveis',{status:503});
+    const assetUrl=new URL(context.request.url);
+    assetUrl.pathname='/tenant/index.html';
+    assetUrl.search='';
+    response=await context.env.ASSETS.fetch(assetUrl);
   }else{
     response=await context.next();
   }
