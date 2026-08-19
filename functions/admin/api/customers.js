@@ -1,13 +1,23 @@
 import { json, requireAdmin } from "./_auth.js";
-export async function onRequestGet(context){
- const auth=await requireAdmin(context); if(!auth.ok)return auth.response;
- const storeId=auth.storeId;
- await context.env.DB.prepare(`CREATE TABLE IF NOT EXISTS customer_store_memberships (
+
+async function ensureMembershipSchema(db){
+ await db.prepare(`CREATE TABLE IF NOT EXISTS customer_store_memberships (
    store_id TEXT NOT NULL,
    customer_account_id TEXT NOT NULL,
    created_at TEXT NOT NULL,
+   last_login_at TEXT,
    PRIMARY KEY(store_id,customer_account_id)
  )`).run();
+ const info=await db.prepare('PRAGMA table_info(customer_store_memberships)').all();
+ const columns=new Set((info.results||[]).map(row=>String(row.name||'')));
+ if(!columns.has('last_login_at'))await db.prepare('ALTER TABLE customer_store_memberships ADD COLUMN last_login_at TEXT').run();
+ await db.prepare('CREATE INDEX IF NOT EXISTS idx_customer_store_memberships_account ON customer_store_memberships(customer_account_id,store_id)').run();
+}
+
+export async function onRequestGet(context){
+ const auth=await requireAdmin(context); if(!auth.ok)return auth.response;
+ const storeId=auth.storeId;
+ await ensureMembershipSchema(context.env.DB);
  const rows=await context.env.DB.prepare(`WITH order_stats AS (
    SELECT lower(customer_email) email,MAX(customer_name) order_name,MAX(customer_phone) order_phone,COUNT(*) orders,SUM(total_cents) spent,MAX(created_at) last_order
    FROM orders WHERE store_id=?1 AND customer_email IS NOT NULL AND customer_email<>'' GROUP BY lower(customer_email)
