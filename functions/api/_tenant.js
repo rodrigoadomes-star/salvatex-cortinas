@@ -1,9 +1,11 @@
+function normalizeHost(host){return String(host||'').trim().toLowerCase().replace(/\.+$/,'')}
+
 export function requestHost(request){
-  try{return new URL(request.url).hostname.toLowerCase()}catch{return ''}
+  try{return normalizeHost(new URL(request.url).hostname)}catch{return ''}
 }
 
 export function tenantSlugFromHost(host){
-  const h=String(host||'').toLowerCase();
+  const h=normalizeHost(host);
   if(!h.endsWith('.radzhub.com.br'))return '';
   const slug=h.slice(0,-'.radzhub.com.br'.length).split('.').filter(Boolean)[0]||'';
   if(!slug||['www','admin','app','api','radz'].includes(slug))return '';
