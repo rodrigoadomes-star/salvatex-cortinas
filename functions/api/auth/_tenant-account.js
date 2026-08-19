@@ -10,15 +10,23 @@ export async function ensureMembershipSchema(db){
     PRIMARY KEY(store_id,customer_account_id)
   )`).run();
 
-  // CREATE TABLE IF NOT EXISTS does not migrate tables created by older code.
-  // Ensure the production table has every column required by tenant auth.
-  const info=await db.prepare('PRAGMA table_info(customer_store_memberships)').all();
-  const columns=new Set((info.results||[]).map(row=>String(row.name||'')));
-  if(!columns.has('last_login_at')){
-    await db.prepare('ALTER TABLE customer_store_memberships ADD COLUMN last_login_at TEXT').run();
+  // Older production databases may not have last_login_at yet.
+  // Keep migration best-effort so login never fails only because of this optional field.
+  try{
+    const info=await db.prepare('PRAGMA table_info(customer_store_memberships)').all();
+    const columns=new Set((info.results||[]).map(row=>String(row.name||'')));
+    if(!columns.has('last_login_at')){
+      await db.prepare('ALTER TABLE customer_store_memberships ADD COLUMN last_login_at TEXT').run();
+    }
+  }catch(error){
+    console.warn('membership_optional_migration_failed',error?.message||String(error));
   }
 
-  await db.prepare('CREATE INDEX IF NOT EXISTS idx_customer_store_memberships_account ON customer_store_memberships(customer_account_id,store_id)').run();
+  try{
+    await db.prepare('CREATE INDEX IF NOT EXISTS idx_customer_store_memberships_account ON customer_store_memberships(customer_account_id,store_id)').run();
+  }catch(error){
+    console.warn('membership_optional_index_failed',error?.message||String(error));
+  }
 }
 
 export async function customerTenant(context,json){
@@ -31,12 +39,26 @@ export async function customerTenant(context,json){
 export async function ensureMembership(db,storeId,accountId,{touchLogin=true}={}){
   await ensureMembershipSchema(db);
   const now=new Date().toISOString();
-  await db.prepare(`INSERT OR IGNORE INTO customer_store_memberships(store_id,customer_account_id,created_at,last_login_at) VALUES(?1,?2,?3,?4)`).bind(storeId,accountId,now,touchLogin?now:null).run();
-  if(touchLogin)await db.prepare('UPDATE customer_store_memberships SET last_login_at=?3 WHERE store_id=?1 AND customer_account_id=?2').bind(storeId,accountId,now).run();
+
+  // Use only the three original mandatory columns for maximum compatibility
+  // with databases created before last_login_at existed.
+  await db.prepare(`INSERT OR IGNORE INTO customer_store_memberships(store_id,customer_account_id,created_at) VALUES(?1,?2,?3)`)
+    .bind(String(storeId),String(accountId),now).run();
+
+  // last_login_at is useful metadata, but must never block authentication.
+  if(touchLogin){
+    try{
+      await db.prepare('UPDATE customer_store_memberships SET last_login_at=?3 WHERE store_id=?1 AND customer_account_id=?2')
+        .bind(String(storeId),String(accountId),now).run();
+    }catch(error){
+      console.warn('membership_last_login_touch_failed',error?.message||String(error));
+    }
+  }
 }
 
 export async function hasMembership(db,storeId,accountId){
   await ensureMembershipSchema(db);
-  const row=await db.prepare('SELECT 1 ok FROM customer_store_memberships WHERE store_id=?1 AND customer_account_id=?2 LIMIT 1').bind(storeId,accountId).first();
+  const row=await db.prepare('SELECT 1 ok FROM customer_store_memberships WHERE store_id=?1 AND customer_account_id=?2 LIMIT 1')
+    .bind(String(storeId),String(accountId)).first();
   return Boolean(row?.ok);
 }
