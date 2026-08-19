@@ -11,7 +11,5 @@ export async function onRequestGet(context) {
 export async function onRequestDelete(context) {
   const raw = cookie(context.request, "radzhub_session");
   if (raw && context.env.DB) await context.env.DB.prepare("DELETE FROM platform_sessions WHERE token_hash=?1").bind(await sha256(raw)).run();
-  return json({ ok: true }, 200, { "set-cookie": clearSessionCookie() });
+  return json({ ok: true }, 200, { "set-cookie": clearSessionCookie(context.request) });
 }
-
-
