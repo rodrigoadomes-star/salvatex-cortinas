@@ -38,6 +38,7 @@ const PUBLIC_TRACKING_SCRIPTS='<script src="/js/radz-analytics.js" defer></scrip
 const NO_ANALYTICS_PREFIXES=['/admin','/radz-admin','/platform-admin','/platform','/login','/cadastro','/api/','/radz/api/'];
 function shouldTrack(pathname){return !NO_ANALYTICS_PREFIXES.some(prefix=>pathname.startsWith(prefix));}
 function isAdminPath(pathname){return pathname.startsWith('/admin')||pathname.startsWith('/radz-admin')||pathname.startsWith('/platform-admin')||pathname.startsWith('/radz/api/')||pathname.startsWith('/admin/api/');}
+function isTenantHost(host){return host.endsWith('.radzhub.com.br')&&host!=='radzhub.com.br'&&host!=='www.radzhub.com.br';}
 
 class HeadBootstrap{
   constructor(track,homeCleanup){this.track=track;this.homeCleanup=homeCleanup;}
@@ -60,9 +61,23 @@ export async function onRequest(context){
   const url=new URL(context.request.url);
   const pathname=url.pathname;
   const host=url.hostname.toLowerCase();
+  const tenantHost=isTenantHost(host);
   const isSalvatexHome=host==='salvatex.radzhub.com.br'&&(pathname==='/'||pathname==='/index.html');
   const adminPath=isAdminPath(pathname);
-  const response=await context.next();
+
+  let response;
+  if(tenantHost&&(pathname==='/admin'||pathname==='/admin/')){
+    if(!context.env.ASSETS)return new Response('Assets indisponíveis',{status:503});
+    const assetUrl=new URL(context.request.url);
+    assetUrl.pathname='/platform-admin/index.html';
+    assetUrl.search='';
+    response=await context.env.ASSETS.fetch(assetUrl);
+  }else if(tenantHost&&(pathname==='/platform-admin'||pathname==='/platform-admin/')){
+    return Response.redirect(`https://${host}/admin/`,308);
+  }else{
+    response=await context.next();
+  }
+
   const headers=new Headers(response.headers);
   headers.set("content-security-policy",CSP);
   headers.set("x-content-type-options","nosniff");
