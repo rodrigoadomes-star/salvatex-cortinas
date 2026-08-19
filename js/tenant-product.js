@@ -1,0 +1,17 @@
+(()=>{
+const $=s=>document.querySelector(s),esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const money=c=>new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(Number(c||0)/100);
+async function j(url){const r=await fetch(url,{cache:'no-store',credentials:'same-origin'}),d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.message||'Falha ao carregar');return d}
+function identity(cfg,layout){const name=String(cfg.storeName||cfg.name||location.hostname.split('.')[0]||'Loja').trim();$('#brand').textContent=name.toUpperCase();$('#footer-brand').textContent=name.toUpperCase();const primary=layout?.branding?.colors?.primary||layout?.colors?.primary||cfg.primaryColor;if(primary)document.documentElement.style.setProperty('--brand',primary);const accent=layout?.branding?.colors?.accent||layout?.colors?.accent||cfg.accentColor;if(accent)document.documentElement.style.setProperty('--accent',accent);return name}
+async function boot(){
+ const slug=new URL(location.href).searchParams.get('slug')||'';const view=$('#product-view');
+ if(!slug){view.innerHTML='<div class="empty">Produto não informado.</div>';return}
+ try{
+  const [cfg,layout,data]=await Promise.all([j('/api/store-config'),j('/api/layout'),j('/api/catalog/'+encodeURIComponent(slug))]);const storeName=identity(cfg.config||{},layout.layout||{}),p=data.product;document.title=`${p.name} — ${storeName}`;
+  const unavailable=p.trackStock&&Number(p.stock||0)<=0;const old=p.comparePriceCents&&p.comparePriceCents>p.basePriceCents?`<span class="old">${money(p.comparePriceCents)}</span>`:'';
+  view.innerHTML=`<div class="product"><div class="media">${p.imageUrl?`<img src="${esc(p.imageUrl)}" alt="${esc(p.name)}">`:''}</div><div class="info"><a class="back" href="/">← Voltar para a loja</a><div class="category">${esc(p.categoryName||'PRODUTO')}</div><h1>${esc(p.name)}</h1><div class="desc">${esc(p.description||'')}</div><div class="price">${money(p.basePriceCents)}${old}</div><p class="stock">${p.trackStock?(unavailable?'Produto indisponível':`${Number(p.stock||0)} unidade(s) disponível(is)`):'Disponível para compra'}</p><div class="actions"><input class="qty" id="qty" type="number" min="1" ${p.trackStock?`max="${Math.max(1,Number(p.stock||1))}"`:''} value="1"><button class="btn" id="add" ${unavailable?'disabled':''}>Adicionar ao carrinho</button><a class="btn secondary" href="/carrinho.html">Ver carrinho</a></div><div class="notice" id="notice"></div></div></div>`;
+  $('#add').onclick=()=>{const qty=Math.max(1,Math.floor(Number($('#qty').value||1)));if(p.trackStock&&qty>Number(p.stock||0)){ $('#notice').textContent='Quantidade acima do estoque disponível.';return }const item=window.SalvatexCarrinho?.criarItem({id:`${p.id}-${Date.now()}`,categoria:p.categorySlug||p.categoryName||'produto',tipoVenda:p.saleType||'pronta_entrega',configurador:p.configurator||'',sku:p.sku||'',nome:p.name,imagem:p.imageUrl||'',quantidade:qty,valorUnitario:Number(p.basePriceCents||0)/100,total:Number(p.basePriceCents||0)/100*qty,detalhes:[],dados:{productId:p.id,slug:p.slug}});if(!item||!window.SalvatexCarrinho?.adicionarItem){$('#notice').textContent='Não foi possível adicionar este produto.';return}window.SalvatexCarrinho.adicionarItem(item);$('#notice').textContent='Produto adicionado ao carrinho.';setTimeout(()=>location.href='/carrinho.html',450)};
+ }catch(e){console.error(e);view.innerHTML=`<div class="empty">${esc(e.message||'Não foi possível carregar o produto.')}</div>`}
+}
+boot();
+})();
