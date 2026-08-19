@@ -44,6 +44,31 @@ export async function ensureAdminAuthSchema(db){
   await db.prepare(`CREATE INDEX IF NOT EXISTS idx_admin_resets_user ON admin_password_resets(user_id,created_at)`).run();
 }
 
+export async function ensurePlatformCompanyAdmin(db,store,email){
+  if(!store||!email)return null;
+  const normalized=normalizeEmail(email);
+  const existing=await db.prepare(`SELECT id,email,password_hash,active FROM admin_users WHERE store_id=?1 AND email=?2 LIMIT 1`)
+    .bind(String(store.id),normalized).first();
+  if(existing)return existing;
+
+  const platformUser=await db.prepare(`SELECT u.id,u.email,u.password_hash,u.password_salt,u.password_iterations,u.active
+    FROM platform_company_stores pcs
+    JOIN platform_users u ON u.company_id=pcs.company_id
+    WHERE pcs.store_id=?1 AND lower(u.email)=?2 AND u.active=1
+    ORDER BY CASE WHEN u.role='owner' THEN 0 ELSE 1 END, u.created_at ASC
+    LIMIT 1`)
+    .bind(String(store.id),normalized).first();
+  if(!platformUser)return null;
+
+  const now=new Date().toISOString();
+  const id=`admin-platform-${String(platformUser.id)}`;
+  await db.prepare(`INSERT OR IGNORE INTO admin_users(id,store_id,email,password_hash,password_salt,password_iterations,active,session_version,created_at,updated_at)
+    VALUES(?1,?2,?3,?4,?5,?6,1,1,?7,?7)`)
+    .bind(id,String(store.id),normalized,platformUser.password_hash||null,platformUser.password_salt||null,platformUser.password_iterations||null,now).run();
+  return db.prepare(`SELECT id,email,password_hash,active FROM admin_users WHERE store_id=?1 AND email=?2 LIMIT 1`)
+    .bind(String(store.id),normalized).first();
+}
+
 export async function ensureLegacySalvatexAdmin(db,store){
   if(!store||String(store.slug)!=='salvatex')return;
   const email='rodrigo.adurante@gmail.com';
@@ -58,7 +83,7 @@ export async function sendResetEmail(env,{to,storeName,resetUrl}){
   const subject=`Redefinição de senha — ${storeName||'RADZ HUB'}`;
   const html=`<!doctype html><html><body style="font-family:Arial,sans-serif;background:#f6f7f9;padding:32px;color:#101828"><div style="max-width:560px;margin:auto;background:#fff;border-radius:16px;padding:32px"><h2 style="margin-top:0">Redefinir senha</h2><p>Recebemos uma solicitação para redefinir a senha do painel administrativo de <strong>${escapeHtml(storeName||'sua empresa')}</strong>.</p><p style="margin:28px 0"><a href="${escapeHtml(resetUrl)}" style="background:#071b2e;color:#fff;text-decoration:none;padding:14px 20px;border-radius:10px;display:inline-block">Criar nova senha</a></p><p>Este link é de uso único e expira em 20 minutos.</p><p style="font-size:13px;color:#667085">Se você não solicitou esta alteração, ignore este e-mail.</p></div></body></html>`;
   const response=await fetch('https://api.resend.com/emails',{method:'POST',headers:{authorization:`Bearer ${env.RESEND_API_KEY}`,'content-type':'application/json'},body:JSON.stringify({from:env.EMAIL_FROM,to:[to],subject,html})});
-  if(!response.ok)throw new Error(`Falha ao enviar e-mail (${response.status}).`);
+  if(!response.ok){const detail=await response.text().catch(()=>'');throw new Error(`Falha ao enviar e-mail (${response.status})${detail?`: ${detail.slice(0,300)}`:''}.`)}
   return response.json().catch(()=>({}));
 }
 function escapeHtml(value){return String(value||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
