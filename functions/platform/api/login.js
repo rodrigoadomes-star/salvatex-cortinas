@@ -20,15 +20,24 @@ export async function onRequestPost(context) {
   if (!turnstile.ok) return turnstileFailure(turnstile);
 
   const email = normalizeEmail(body.email);
-  const row = await context.env.DB.prepare(`SELECT id,company_id,name,email,password_hash,password_salt,password_iterations,role,active
-    FROM platform_users WHERE email=?1 LIMIT 1`).bind(email).first();
+  const row = await context.env.DB.prepare(`SELECT
+      u.id,u.company_id,u.name,u.email,u.password_hash,u.password_salt,u.password_iterations,u.role,u.active,
+      c.slug company_slug
+    FROM platform_users u
+    LEFT JOIN platform_companies c ON c.id = u.company_id
+    WHERE u.email=?1 LIMIT 1`).bind(email).first();
   const valid = row && row.active && await verifyPassword(String(body.password || ""), row.password_hash, row.password_salt, row.password_iterations);
   if (!valid) return json({ ok: false, message: "E-mail ou senha inválidos." }, 401);
+  if (!row.company_slug) return json({ ok: false, code: "COMPANY_NOT_CONFIGURED", message: "Empresa vinculada ao usuário não encontrada." }, 409);
+
   const raw = randomToken(32);
   const now = new Date().toISOString();
   await context.env.DB.prepare(`INSERT INTO platform_sessions
     (id,user_id,company_id,token_hash,expires_at,created_at,last_seen_at)
     VALUES (?1,?2,?3,?4,?5,?6,?6)`)
     .bind(`session-${crypto.randomUUID()}`, row.id, row.company_id, await sha256(raw), new Date(Date.now()+28800000).toISOString(), now).run();
-  return json({ ok: true, redirect: "/platform-admin/" }, 200, { "set-cookie": sessionCookie(raw) });
+
+  return json({ ok: true, redirect: `https://${row.company_slug}.radzhub.com.br/admin/` }, 200, {
+    "set-cookie": sessionCookie(raw, 28800, context.request)
+  });
 }
