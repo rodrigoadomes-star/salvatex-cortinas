@@ -1,11 +1,13 @@
 (()=>{
   const FEATURE_LABELS={catalog:'Catálogo',orders:'Pedidos',customers:'Clientes',site_builder:'Editor do site',platform_subdomain:'Subdomínio RADZ',configurator:'Configurador sob medida',ai_ads:'IA de anúncios',meta_ads:'Meta Ads',payments:'Pagamentos',shipping:'Fretes',reports:'Relatórios'};
+  let csrf='';
   const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-  async function getJson(url,opt={}){const r=await fetch(url,{credentials:'same-origin',cache:'no-store',...opt,headers:{accept:'application/json','content-type':'application/json',...(opt.headers||{})}});const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.message||'Falha ao carregar.');return d;}
+  async function getJson(url,opt={}){const method=String(opt.method||'GET').toUpperCase();const headers={accept:'application/json','content-type':'application/json',...(opt.headers||{})};if(!['GET','HEAD','OPTIONS'].includes(method)&&csrf)headers['x-csrf-token']=csrf;const r=await fetch(url,{credentials:'same-origin',cache:'no-store',...opt,headers});const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.message||'Falha ao carregar.');return d;}
   async function renderFeatureControls(){
     const content=document.querySelector('#section-content');if(!content)return;
     content.innerHTML='<div class="config-card"><h2>Carregando recursos…</h2></div>';
     try{
+      const session=await getJson('/radz/api/session');csrf=session.csrfToken||csrf;
       const [companiesData,overview]=await Promise.all([getJson('/radz/api/companies'),getJson('/radz/api/overview')]);
       const companies=companiesData.companies||[],rows=overview.features||[];
       const map=new Map();for(const r of rows)map.set(`${r.company_id}:${r.feature_key}`,Number(r.enabled)===1);
