@@ -13,7 +13,7 @@
   }
 
   function showPreviewError(frame,message){
-    const safe=String(message||'Não foi possível carregar o espelho da loja.').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot',"'":'&#39;'}[c]));
+    const safe=String(message||'Não foi possível carregar o espelho da loja.').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
     frame.removeAttribute('src');
     frame.srcdoc=`<!doctype html><html><head><meta charset="utf-8"><style>html,body{height:100%;margin:0;font-family:Inter,system-ui,sans-serif;background:#f8fafc;color:#344054}.x{height:100%;display:grid;place-items:center;text-align:center;padding:32px;box-sizing:border-box}</style></head><body><div class="x"><div><h2>Espelho indisponível</h2><p>${safe}</p></div></div></body></html>`;
   }
@@ -27,10 +27,7 @@
       doc.addEventListener('click',e=>{
         const el=e.target instanceof Element?e.target:null;
         if(!el) return;
-        const link=el.closest('a');
-        if(link) e.preventDefault();
-        const action=el.closest('button,input[type="submit"],input[type="button"]');
-        if(action) e.preventDefault();
+        if(el.closest('a,button,input[type="submit"],input[type="button"]')) e.preventDefault();
       },true);
     }catch(err){console.warn('[RADZ preview guard]',err)}
   }
@@ -83,14 +80,24 @@
   },true);
 
   const observer=new MutationObserver(mutations=>{
+    let shouldEnsure=false;
     let force=false;
     for(const mutation of mutations){
       if(mutation.type==='attributes'&&mutation.attributeName==='src'&&mutation.target?.id==='ve-frame'){
+        shouldEnsure=true;
         force=true;
         mutation.target.dataset.radzSrcdocReady='';
+        continue;
       }
-      if(mutation.type==='childList') force=true;
+      if(mutation.type==='childList'){
+        const added=[...mutation.addedNodes];
+        if(added.some(node=>node?.id==='ve-frame'||node?.querySelector?.('#ve-frame'))){
+          shouldEnsure=true;
+          force=true;
+        }
+      }
     }
+    if(!shouldEnsure) return;
     clearTimeout(retryTimer);
     retryTimer=setTimeout(()=>ensure(force),25);
   });
