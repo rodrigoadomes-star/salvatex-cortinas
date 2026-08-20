@@ -24,42 +24,17 @@ const CONFIG = {
       permitirCarrinho: false
     }
   },
-  barra: {
-    faixasSemAcrescimo: [],
-    acimaDe280: 20
-  },
+  barra: { faixasSemAcrescimo: [], acimaDe280: 20 },
   instalacao: {},
   cores: {},
   precos: {},
-  franzimentos: [
-    {valor:2,rotulo:"2x"},
-    {valor:2.5,rotulo:"2,5x"},
-    {valor:3,rotulo:"3x"}
-  ],
+  franzimentos: [{valor:2,rotulo:"2x"},{valor:2.5,rotulo:"2,5x"},{valor:3,rotulo:"3x"}],
   mediaConfigurador: [],
   estoqueCombinacoes: {},
   configuradorTecidos: {},
   configurador: { id:"wave", nome:"Configurador", ativo:false, modelo:"Wave", descricao:"" },
   labels: {
-    kicker:"CONFIGURADOR",
-    pageTitle:"Configure seu produto sob medida",
-    pageDescription:"Informe as medidas e escolha as opções disponíveis.",
-    formTitle:"Configure seu produto",
-    formSubtitle:"Escolha as características abaixo para calcular seu produto.",
-    step1:"Produto",
-    step2:"Material",
-    step3:"Opção",
-    step4:"Acabamento",
-    step5:"Resumo",
-    widthLabel:"Largura",
-    heightLabel:"Altura",
-    modelLabel:"Modelo",
-    fabricLabel:"Material",
-    liningLabel:"Opção",
-    colorLabel:"Cor",
-    trackLabel:"Acabamento",
-    summaryTitle:"Resumo",
-    addToCartLabel:"Adicionar ao carrinho"
+    kicker:"CONFIGURADOR",pageTitle:"Configure seu produto sob medida",pageDescription:"Informe as medidas e escolha as opções disponíveis.",formTitle:"Configure seu produto",formSubtitle:"Escolha as características abaixo para calcular seu produto.",step1:"Produto",step2:"Material",step3:"Opção",step4:"Acabamento",step5:"Resumo",widthLabel:"Largura",heightLabel:"Altura",modelLabel:"Modelo",fabricLabel:"Material",liningLabel:"Opção",colorLabel:"Cor",trackLabel:"Acabamento",summaryTitle:"Resumo",addToCartLabel:"Adicionar ao carrinho"
   }
 };
 
@@ -105,22 +80,12 @@ window.CONFIG_READY=(async()=>{
   const requestedId=String(params.get("id")||"wave").trim().toLowerCase();
   const curtainIds=new Set(["wave","prega-macho","cortina-varao"]);
   const configuratorId=curtainIds.has(requestedId)?requestedId:"wave";
-
   try{
     const configUrl=configuratorId==="wave"?"/api/configurators/wave":"/api/configurators/"+encodeURIComponent(configuratorId);
-    const [siteResp,cfgResp]=await Promise.all([
-      fetch("/api/store-config",{cache:"no-store"}),
-      fetch(configUrl,{cache:"no-store"})
-    ]);
-
-    if(siteResp.ok){
-      const d=await siteResp.json();
-      if(d?.ok&&d.config)mesclarConfig(CONFIG,d.config);
-    }
-
+    const [siteResp,cfgResp]=await Promise.all([fetch("/api/store-config",{cache:"no-store"}),fetch(configUrl,{cache:"no-store"})]);
+    if(siteResp.ok){const d=await siteResp.json();if(d?.ok&&d.config)mesclarConfig(CONFIG,d.config);}
     if(cfgResp.ok){
-      const d=await cfgResp.json();
-      const cfg=d?.wave||d?.configurator;
+      const d=await cfgResp.json(),cfg=d?.wave||d?.configurator;
       if(d?.ok&&cfg){
         aplicarConfigurador(cfg);
         CONFIG.configurador.id=cfg.id||configuratorId;
@@ -128,13 +93,15 @@ window.CONFIG_READY=(async()=>{
         CONFIG.configurador.descricao=cfg.descricao||"";
         console.info("Configurador carregado da loja:",configuratorId,d.source||"",d.updatedAt||"");
       }
-    }else{
-      console.warn("Configurador não disponível para esta loja:",cfgResp.status);
-    }
-  }catch(erro){
-    // Falha fechada: não mostramos preços/fotos de outra empresa.
-    console.warn("Configuração remota indisponível; mantendo fallback vazio.",erro);
-  }
-
+    }else console.warn("Configurador não disponível para esta loja:",cfgResp.status);
+  }catch(erro){console.warn("Configuração remota indisponível; mantendo fallback vazio.",erro);}
   return CONFIG;
 })();
+
+// Carrega apenas a camada visual de rótulos. Dados comerciais continuam vindo do D1 da loja.
+if(!document.querySelector('script[data-radz-configurator-labels]')){
+  const s=document.createElement('script');
+  s.src='/js/configurador-labels.js?v=20260820-1';
+  s.dataset.radzConfiguratorLabels='1';
+  document.head.appendChild(s);
+}
