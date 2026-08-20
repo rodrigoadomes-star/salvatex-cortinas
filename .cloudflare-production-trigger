@@ -1,3 +1,3 @@
 RADZ HUB production deployment trigger — 2026-08-20
 Production branch: radz-unified-production
-Visual editor preview rendered through srcdoc to avoid iframe blocking: 2026-08-20T11:57-03:00
+Visual editor preview srcdoc loader hardened against iframe reload race: 2026-08-20T14:04-03:00
