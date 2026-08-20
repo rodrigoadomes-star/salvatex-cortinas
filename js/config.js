@@ -1,16 +1,17 @@
 // ============================================================
-// CONFIGURAÇÃO LOCAL DE SEGURANÇA
+// CONFIGURAÇÃO LOCAL SEGURA / MULTI-TENANT
 //
-// O painel Admin é a fonte principal. Este arquivo permanece apenas
-// como fallback caso o banco/API esteja temporariamente indisponível.
+// O D1 da própria loja é a única fonte de preços, tecidos, fotos e opções.
+// Este fallback nunca contém dados comerciais da Salvatex para impedir que
+// uma empresa recém-liberada herde catálogo, valores ou mídia de outra loja.
 // ============================================================
 
 const CONFIG = {
-  whatsapp: "5544998793160",
+  whatsapp: "",
   parcelas: 10,
-  freteGratisMinimo: 500,
-  producao: "5 a 10 dias úteis",
-  entrega: "6 a 12 dias úteis após o envio",
+  freteGratisMinimo: 0,
+  producao: "",
+  entrega: "",
   altura: {
     alturaEntradaMaxima: 5,
     calculoMaximo: 3.20,
@@ -18,46 +19,48 @@ const CONFIG = {
     acrescimoApos280: 0.25,
     acimaMaximo: {
       modo: "consulta",
-      texto: "Alturas acima de 3,20 m precisam de orçamento personalizado.",
+      texto: "Medida fora do limite automático. Solicite orçamento personalizado.",
       textoBotao: "Solicitar orçamento",
       permitirCarrinho: false
     }
   },
   barra: {
-    faixasSemAcrescimo: [
-      {ate:2.60,tamanho:20},
-      {ate:2.70,tamanho:15},
-      {ate:2.75,tamanho:10},
-      {ate:2.80,tamanho:5}
-    ],
+    faixasSemAcrescimo: [],
     acimaDe280: 20
   },
-  instalacao: {
-    "Varão Wave Deslizante - Aço Escovado": {valorMetro:116,minimo:116},
-    "Varão Wave Deslizante - Branco": {valorMetro:116,minimo:116},
-    "Varão Wave Deslizante - Cromado": {valorMetro:95,minimo:95},
-    "Varão Wave Deslizante - Preto": {valorMetro:116,minimo:116},
-    "Trilho Suíço - Branco": {valorMetro:74,minimo:85},
-    "Varão Wave Deslizante Duplo - Cromado": {valorMetro:163,minimo:163},
-    "Trilho Suíço Duplo - Branco": {valorMetro:110,minimo:110}
-  },
-  cores: {
-    "Gaze de Linho":["Branco","Bege","Cinza","Off White","Natural"],
-    "Linho Damasco":["Natural","Branco","Bege","Off White","Grafite"]
-  },
-  precos: {
-    "Gaze de Linho":{"Sem forro":121,"Forro leve":142,"Forro Peletizado 50%":163,"Blackout 80%":173,"Blackout 100%":189},
-    "Linho Damasco":{"Sem forro":158,"Forro leve":179,"Forro Peletizado 50%":221,"Blackout 80%":226,"Blackout 100%":247}
-  },
+  instalacao: {},
+  cores: {},
+  precos: {},
   franzimentos: [
-    {valor:2,rotulo:"2x — Menos Volumosa"},
-    {valor:2.5,rotulo:"2,5x — Bem Franzido"},
-    {valor:3,rotulo:"3x — Mais Volumosa"}
+    {valor:2,rotulo:"2x"},
+    {valor:2.5,rotulo:"2,5x"},
+    {valor:3,rotulo:"3x"}
   ],
   mediaConfigurador: [],
   estoqueCombinacoes: {},
   configuradorTecidos: {},
-  configurador: { id:"wave", nome:"Cortina Wave", ativo:true }
+  configurador: { id:"wave", nome:"Configurador", ativo:false, modelo:"Wave", descricao:"" },
+  labels: {
+    kicker:"CONFIGURADOR",
+    pageTitle:"Configure seu produto sob medida",
+    pageDescription:"Informe as medidas e escolha as opções disponíveis.",
+    formTitle:"Configure seu produto",
+    formSubtitle:"Escolha as características abaixo para calcular seu produto.",
+    step1:"Produto",
+    step2:"Material",
+    step3:"Opção",
+    step4:"Acabamento",
+    step5:"Resumo",
+    widthLabel:"Largura",
+    heightLabel:"Altura",
+    modelLabel:"Modelo",
+    fabricLabel:"Material",
+    liningLabel:"Opção",
+    colorLabel:"Cor",
+    trackLabel:"Acabamento",
+    summaryTitle:"Resumo",
+    addToCartLabel:"Adicionar ao carrinho"
+  }
 };
 
 function mesclarConfig(alvo, fonte) {
@@ -72,18 +75,18 @@ function mesclarConfig(alvo, fonte) {
 function aplicarConfigurador(wave) {
   if(!wave||typeof wave!=="object")return;
   const medidas=wave.medidas||{};
-  CONFIG.configurador={id:wave.id||"wave",nome:wave.nome||"Cortina Wave",ativo:wave.ativo!==false};
+  CONFIG.configurador={id:wave.id||"wave",nome:wave.nome||"Configurador",ativo:wave.ativo===true,modelo:wave.modelo||"Wave",descricao:wave.descricao||""};
   if(medidas.alturaEntradaMaxima!=null)CONFIG.altura.alturaEntradaMaxima=Number(medidas.alturaEntradaMaxima);
   if(medidas.calculoMaximo!=null)CONFIG.altura.calculoMaximo=Number(medidas.calculoMaximo);
   if(medidas.inicioAcrescimo!=null)CONFIG.altura.inicioAcrescimo=Number(medidas.inicioAcrescimo);
   if(medidas.acrescimoPercentual!=null)CONFIG.altura.acrescimoApos280=Number(medidas.acrescimoPercentual)/100;
   CONFIG.altura.acimaMaximo=medidas.acimaMaximo||CONFIG.altura.acimaMaximo;
-  if(wave.barra?.faixas)CONFIG.barra.faixasSemAcrescimo=wave.barra.faixas;
+  CONFIG.barra.faixasSemAcrescimo=Array.isArray(wave.barra?.faixas)?wave.barra.faixas:[];
   if(wave.barra?.acimaInicio!=null)CONFIG.barra.acimaDe280=Number(wave.barra.acimaInicio);
-  if(Array.isArray(wave.franzimentos))CONFIG.franzimentos=wave.franzimentos;
-  if(wave.trilhos)CONFIG.instalacao=wave.trilhos;
-  if(wave.tecidos){
-    CONFIG.cores={};CONFIG.precos={};CONFIG.configuradorTecidos={};
+  CONFIG.franzimentos=Array.isArray(wave.franzimentos)?wave.franzimentos:[];
+  CONFIG.instalacao=wave.trilhos&&typeof wave.trilhos==="object"?wave.trilhos:{};
+  CONFIG.cores={};CONFIG.precos={};CONFIG.configuradorTecidos={};
+  if(wave.tecidos&&typeof wave.tecidos==="object"){
     Object.entries(wave.tecidos).forEach(([nome,t])=>{
       if(t?.ativo===false)return;
       CONFIG.configuradorTecidos[nome]=t&&typeof t==='object'?t:{};
@@ -92,137 +95,45 @@ function aplicarConfigurador(wave) {
     });
   }
   CONFIG.mediaConfigurador=Array.isArray(wave.midia)?wave.midia:[];
-  CONFIG.estoqueCombinacoes=wave.estoqueCombinacoes&&typeof wave.estoqueCombinacoes==="object"
-    ? {...wave.estoqueCombinacoes}
-    : {};
+  CONFIG.estoqueCombinacoes=wave.estoqueCombinacoes&&typeof wave.estoqueCombinacoes==="object"?{...wave.estoqueCombinacoes}:{};
+  if(wave.labels&&typeof wave.labels==='object')mesclarConfig(CONFIG.labels,wave.labels);
 }
 
 window.CONFIG=CONFIG;
 window.CONFIG_READY=(async()=>{
-  const params=
-    new URLSearchParams(
-      window.location.search
-    );
-
-  const requestedId=
-    String(
-      params.get("id") ||
-      "wave"
-    )
-      .trim()
-      .toLowerCase();
-
-  const curtainIds=
-    new Set([
-      "wave",
-      "prega-macho",
-      "cortina-varao"
-    ]);
-
-  const configuratorId=
-    curtainIds.has(requestedId)
-      ? requestedId
-      : "wave";
+  const params=new URLSearchParams(window.location.search);
+  const requestedId=String(params.get("id")||"wave").trim().toLowerCase();
+  const curtainIds=new Set(["wave","prega-macho","cortina-varao"]);
+  const configuratorId=curtainIds.has(requestedId)?requestedId:"wave";
 
   try{
-    const configUrl=
-      configuratorId==="wave"
-        ? "/api/configurators/wave"
-        : "/api/configurators/" +
-          encodeURIComponent(
-            configuratorId
-          );
-
-    const [siteResp,cfgResp]=
-      await Promise.all([
-        fetch(
-          "/api/store-config",
-          {
-            cache:"no-store"
-          }
-        ),
-        fetch(
-          configUrl,
-          {
-            cache:"no-store"
-          }
-        )
-      ]);
+    const configUrl=configuratorId==="wave"?"/api/configurators/wave":"/api/configurators/"+encodeURIComponent(configuratorId);
+    const [siteResp,cfgResp]=await Promise.all([
+      fetch("/api/store-config",{cache:"no-store"}),
+      fetch(configUrl,{cache:"no-store"})
+    ]);
 
     if(siteResp.ok){
-      const d=
-        await siteResp.json();
-
-      if(
-        d?.ok &&
-        d.config
-      ){
-        mesclarConfig(
-          CONFIG,
-          d.config
-        );
-      }
+      const d=await siteResp.json();
+      if(d?.ok&&d.config)mesclarConfig(CONFIG,d.config);
     }
 
     if(cfgResp.ok){
-      const d=
-        await cfgResp.json();
-
-      const cfg=
-        d?.wave ||
-        d?.configurator;
-
-      if(
-        d?.ok &&
-        cfg
-      ){
-        aplicarConfigurador(
-          cfg
-        );
-
-        CONFIG.configurador.id=
-          cfg.id ||
-          configuratorId;
-
-        CONFIG.configurador.modelo=
-          cfg.modelo ||
-          (
-            configuratorId==="prega-macho"
-              ? "Prega Macho"
-              : configuratorId==="cortina-varao"
-                ? "Ilhós"
-                : "Wave"
-          );
-
-        CONFIG.configurador.descricao=
-          cfg.descricao ||
-          "";
-
-        console.info(
-          "Configurador carregado do Admin:",
-          configuratorId,
-          d.source ||
-          "",
-          d.updatedAt ||
-          ""
-        );
-      }else{
-        console.warn(
-          "API respondeu sem configuração válida.",
-          d
-        );
+      const d=await cfgResp.json();
+      const cfg=d?.wave||d?.configurator;
+      if(d?.ok&&cfg){
+        aplicarConfigurador(cfg);
+        CONFIG.configurador.id=cfg.id||configuratorId;
+        CONFIG.configurador.modelo=cfg.modelo||(configuratorId==="prega-macho"?"Prega Macho":configuratorId==="cortina-varao"?"Ilhós":"Wave");
+        CONFIG.configurador.descricao=cfg.descricao||"";
+        console.info("Configurador carregado da loja:",configuratorId,d.source||"",d.updatedAt||"");
       }
     }else{
-      console.warn(
-        "Falha HTTP ao carregar configurador:",
-        cfgResp.status
-      );
+      console.warn("Configurador não disponível para esta loja:",cfgResp.status);
     }
   }catch(erro){
-    console.warn(
-      "Configuração remota indisponível; usando fallback local.",
-      erro
-    );
+    // Falha fechada: não mostramos preços/fotos de outra empresa.
+    console.warn("Configuração remota indisponível; mantendo fallback vazio.",erro);
   }
 
   return CONFIG;
