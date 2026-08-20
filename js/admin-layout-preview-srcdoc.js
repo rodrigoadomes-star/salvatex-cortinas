@@ -1,46 +1,74 @@
 (()=>{
-  if(window.__RADZ_LAYOUT_PREVIEW_SRCDOC__)return;
-  window.__RADZ_LAYOUT_PREVIEW_SRCDOC__=true;
+  if(window.__RADZ_SRCDOC_PREVIEW__) return;
+  window.__RADZ_SRCDOC_PREVIEW__ = true;
 
-  let busy=false,lastStamp=0;
+  let loading = false;
+  let lastFrame = null;
+  let retryTimer = 0;
 
-  async function hydrate(frame){
-    if(!frame||busy)return;
-    busy=true;
-    const stamp=Date.now();
-    lastStamp=stamp;
+  function withBase(html){
+    const base = `<base href="${location.origin}/">`;
+    if(/<head[^>]*>/i.test(html)) return html.replace(/<head([^>]*)>/i, `<head$1>${base}`);
+    return `<!doctype html><html><head>${base}</head><body>${html}</body></html>`;
+  }
+
+  function showPreviewError(frame,message){
+    const safe=String(message||'Não foi possível carregar o espelho da loja.').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    frame.removeAttribute('src');
+    frame.srcdoc=`<!doctype html><html><head><meta charset="utf-8"><style>html,body{height:100%;margin:0;font-family:Inter,system-ui,sans-serif;background:#f8fafc;color:#344054}.x{height:100%;display:grid;place-items:center;text-align:center;padding:32px;box-sizing:border-box}.c{max-width:520px}.c h2{margin:0 0 8px;color:#102a43}.c p{margin:0;line-height:1.5}</style></head><body><div class="x"><div class="c"><h2>Espelho indisponível</h2><p>${safe}</p></div></div></body></html>`;
+  }
+
+  async function loadPreview(frame,force=false){
+    if(!frame || loading) return;
+    if(!force && frame===lastFrame && frame.dataset.radzSrcdocReady==='1' && !frame.hasAttribute('src')) return;
+    loading=true;
+    lastFrame=frame;
+    frame.dataset.radzSrcdocLoading='1';
     try{
+      const url='/?radz-preview=1&_='+Date.now();
+      const response=await fetch(url,{credentials:'same-origin',cache:'no-store',headers:{accept:'text/html'}});
+      if(!response.ok) throw new Error(`Falha ao carregar a loja (${response.status}).`);
+      const html=withBase(await response.text());
       frame.removeAttribute('src');
-      const res=await fetch('/?radz-preview=1&editor='+stamp,{credentials:'same-origin',cache:'no-store',headers:{accept:'text/html'}});
-      if(!res.ok)throw new Error('Falha ao carregar a vitrine ('+res.status+').');
-      let html=await res.text();
-      if(!/<base\b/i.test(html))html=html.replace(/<head([^>]*)>/i,'<head$1><base href="/">');
       frame.srcdoc=html;
-      frame.dataset.radzSrcdoc='1';
-    }catch(err){
-      console.error('[RADZ preview srcdoc]',err);
-      frame.srcdoc='<!doctype html><html><body style="font-family:system-ui;padding:32px;color:#b42318"><strong>Não foi possível carregar o espelho da loja.</strong><p>'+String(err&&err.message||err)+'</p></body></html>';
-    }finally{busy=false}
-  }
-
-  function findAndHydrate(){
-    if(location.hash!=='#layout')return;
-    const frame=document.getElementById('ve-frame');
-    if(frame&&!frame.dataset.radzSrcdoc)hydrate(frame);
-  }
-
-  const observer=new MutationObserver(()=>findAndHydrate());
-  observer.observe(document.documentElement,{childList:true,subtree:true,attributes:true,attributeFilter:['src']});
-
-  document.addEventListener('click',e=>{
-    const reload=e.target.closest?.('#ve-reload');
-    if(reload){
-      e.preventDefault();e.stopImmediatePropagation();
-      const frame=document.getElementById('ve-frame');
-      if(frame){delete frame.dataset.radzSrcdoc;hydrate(frame)}
+      frame.dataset.radzSrcdocReady='1';
+    }catch(error){
+      frame.dataset.radzSrcdocReady='';
+      showPreviewError(frame,error?.message||'Não foi possível carregar o espelho da loja.');
+    }finally{
+      frame.dataset.radzSrcdocLoading='0';
+      loading=false;
     }
+  }
+
+  function ensure(force=false){
+    if(location.hash!=='#layout') return;
+    const frame=document.getElementById('ve-frame');
+    if(!frame) return;
+    if(force || frame!==lastFrame || frame.hasAttribute('src') || frame.dataset.radzSrcdocReady!=='1') loadPreview(frame,true);
+  }
+
+  document.addEventListener('click',event=>{
+    const reload=event.target.closest?.('#ve-reload');
+    if(!reload) return;
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    ensure(true);
   },true);
 
-  window.addEventListener('hashchange',()=>setTimeout(findAndHydrate,0));
-  setTimeout(findAndHydrate,0);
+  const observer=new MutationObserver(mutations=>{
+    let force=false;
+    for(const mutation of mutations){
+      if(mutation.type==='attributes' && mutation.attributeName==='src' && mutation.target?.id==='ve-frame'){
+        force=true;
+        mutation.target.dataset.radzSrcdocReady='';
+      }
+      if(mutation.type==='childList') force=true;
+    }
+    clearTimeout(retryTimer);
+    retryTimer=setTimeout(()=>ensure(force),25);
+  });
+  observer.observe(document.documentElement,{childList:true,subtree:true,attributes:true,attributeFilter:['src']});
+  window.addEventListener('hashchange',()=>setTimeout(()=>ensure(true),0));
+  setTimeout(()=>ensure(true),0);
 })();
