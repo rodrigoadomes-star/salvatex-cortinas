@@ -6,6 +6,16 @@
   let lastFrame=null;
   let retryTimer=0;
 
+  function normalizePreviewUrl(value){
+    try{
+      const u=new URL(value||'/',location.origin);
+      if(u.origin!==location.origin)return '/';
+      u.searchParams.set('radz-preview','1');
+      u.searchParams.set('_',Date.now());
+      return u.pathname+u.search+u.hash;
+    }catch{return '/?radz-preview=1&_='+Date.now()}
+  }
+
   function withBase(html){
     const base=`<base href="${location.origin}/">`;
     if(/<head[^>]*>/i.test(html)) return html.replace(/<head([^>]*)>/i,`<head$1>${base}`);
@@ -46,11 +56,14 @@
     bindFrame(frame);
     frame.dataset.radzSrcdocLoading='1';
     try{
-      const response=await fetch('/?radz-preview=1&_='+Date.now(),{credentials:'same-origin',cache:'no-store',headers:{accept:'text/html'}});
+      const requested=frame.dataset.previewUrl||'/';
+      const previewUrl=normalizePreviewUrl(requested);
+      const response=await fetch(previewUrl,{credentials:'same-origin',cache:'no-store',headers:{accept:'text/html'}});
       if(!response.ok) throw new Error(`Falha ao carregar a loja (${response.status}).`);
       frame.removeAttribute('src');
       frame.srcdoc=withBase(await response.text());
       frame.dataset.radzSrcdocReady='1';
+      frame.dataset.previewResolved=previewUrl;
     }catch(error){
       frame.dataset.radzSrcdocReady='';
       showPreviewError(frame,error?.message||'Não foi possível carregar o espelho da loja.');
@@ -69,14 +82,29 @@
     else guard(frame);
   }
 
+  window.RADZ_VISUAL_PREVIEW={
+    open(url){
+      const frame=document.getElementById('ve-frame');
+      if(!frame)return;
+      frame.dataset.previewUrl=url||'/';
+      frame.dataset.radzSrcdocReady='';
+      loadPreview(frame,true);
+    },
+    home(){this.open('/')},
+    reload(){
+      const frame=document.getElementById('ve-frame');
+      if(frame)frame.dataset.radzSrcdocReady='';
+      ensure(true);
+    },
+    current(){return document.getElementById('ve-frame')?.dataset.previewUrl||'/'}
+  };
+
   document.addEventListener('click',event=>{
     const reload=event.target.closest?.('#ve-reload');
     if(!reload) return;
     event.preventDefault();
     event.stopImmediatePropagation();
-    const frame=document.getElementById('ve-frame');
-    if(frame) frame.dataset.radzSrcdocReady='';
-    ensure(true);
+    window.RADZ_VISUAL_PREVIEW.reload();
   },true);
 
   const observer=new MutationObserver(mutations=>{
