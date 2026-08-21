@@ -1,5 +1,5 @@
 import { json, requireAdmin, clean, sanitizeHtml, slugify, logAdmin } from "../_auth.js";
-import { ensurePageNavigationSchema,normalizeNavGroup,normalizeExternalUrl,normalizePageType,legacyConfiguratorId } from '../../../api/_page-schema.js';
+import { ensurePageNavigationSchema,normalizeNavGroup,normalizeExternalUrl,normalizePageType,legacyConfiguratorId,repairLegacyGenericPages } from '../../../api/_page-schema.js';
 
 function normalizeProductIds(value){if(!Array.isArray(value))return[];return[...new Set(value.map(v=>clean(v,160)).filter(Boolean))].slice(0,100)}
 function normalizeMeasures(value){if(!Array.isArray(value))return[];return value.slice(0,30).map((m,index)=>({id:clean(m?.id,80)||`medida-${index+1}`,label:clean(m?.label,160),value:clean(m?.value,80),productIds:normalizeProductIds(m?.productIds)})).filter(m=>m.label)}
@@ -9,7 +9,7 @@ function requestedConfiguratorId(body){return clean(body.configuratorId||legacyC
 
 export async function onRequestGet(context){
   const a=await requireAdmin(context);if(!a.ok)return a.response;const storeId=a.storeId;
-  try{await ensurePageNavigationSchema(context.env.DB);const rows=await context.env.DB.prepare(`SELECT * FROM pages WHERE store_id=?1 ORDER BY nav_order ASC,updated_at DESC`).bind(storeId).all();return json({ok:true,pages:rows.results||[]})}
+  try{await ensurePageNavigationSchema(context.env.DB);await repairLegacyGenericPages(context.env.DB,storeId);const rows=await context.env.DB.prepare(`SELECT * FROM pages WHERE store_id=?1 ORDER BY nav_order ASC,updated_at DESC`).bind(storeId).all();return json({ok:true,pages:rows.results||[]})}
   catch(error){console.error('[pages list]',storeId,error);return json({ok:false,message:'Não foi possível carregar as páginas.'},500)}
 }
 
