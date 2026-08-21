@@ -1,4 +1,16 @@
 (()=>{
+  /*
+    A Salvatex é o protótipo legado e já possui um configurador próprio,
+    completo e validado. A camada tenant abaixo existe apenas para lojas
+    genéricas/multiempresa e NÃO pode reescrever estado, resumo ou opções
+    da Salvatex.
+  */
+  const host=String(location.hostname||'').toLowerCase();
+  if(host==='salvatex.radzhub.com.br'||host.startsWith('salvatex.')){
+    document.documentElement.dataset.tenantConfiguratorRuntime='legacy-salvatex';
+    return;
+  }
+
   const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
   const txt=v=>String(v??'').trim();
   const esc=v=>txt(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
