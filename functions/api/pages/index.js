@@ -1,6 +1,6 @@
 import { json } from "../_lib.js";
 import { requirePublicStore } from "../_tenant.js";
-import { normalizePageType,normalizeNavGroup,legacyConfiguratorId } from '../_page-schema.js';
+import { normalizePageType,normalizeNavGroup,legacyConfiguratorId,repairLegacyGenericPages } from '../_page-schema.js';
 function parseJSON(value,fallback){try{return value?JSON.parse(value):fallback}catch{return fallback}}
 function q(name){return `"${String(name).replaceAll('"','""')}"`}
 async function configuratorEnabled(db,storeId){try{const row=await db.prepare(`SELECT pf.enabled FROM platform_company_stores pcs JOIN platform_features pf ON pf.company_id=pcs.company_id AND pf.feature_key='configurator' WHERE pcs.store_id=?1 LIMIT 1`).bind(storeId).first();return Number(row?.enabled)===1}catch{return false}}
@@ -8,6 +8,7 @@ export async function onRequestGet(context){
   if(!context.env.DB)return json({ok:false,message:'Banco indisponível'},503);
   const tenant=await requirePublicStore(context,json);if(!tenant.ok)return tenant.response;const storeId=tenant.storeId;
   try{
+    await repairLegacyGenericPages(context.env.DB,storeId);
     const info=await context.env.DB.prepare('PRAGMA table_info(pages)').all(),columns=new Set((info.results||[]).map(row=>String(row.name||'')));
     if(!columns.has('id')||!columns.has('title')||!columns.has('slug'))return json({ok:false,message:'Estrutura de páginas incompleta'},500);
     const optional=(name,fallbackSql)=>columns.has(name)?q(name):`${fallbackSql} AS ${q(name)}`;
@@ -21,19 +22,7 @@ export async function onRequestGet(context){
       const configuratorId=String(row.configurator_id||legacyConfiguratorId(rawType)||'');
       return {row,pageType,configuratorId};
     }).filter(x=>allowConfigurator||x.pageType!=='configurador').map(({row,pageType,configuratorId})=>({
-      id:row.id,
-      title:row.title,
-      menuLabel:row.menu_label||row.title,
-      slug:row.slug,
-      pageType,
-      configuratorId,
-      heroImageUrl:row.hero_image_url||'',
-      navGroup:normalizeNavGroup(row.nav_group||'oculto'),
-      navOrder:Number(row.nav_order??100),
-      navParentId:row.nav_parent_id||'',
-      externalUrl:row.external_url||'',
-      measures:parseJSON(row.measures_json,[]).map(measure=>({id:String(measure?.id||''),label:String(measure?.label||''),value:String(measure?.value||'')})).filter(measure=>measure.label),
-      customMeasureUrl:row.custom_measure_url||''
+      id:row.id,title:row.title,menuLabel:row.menu_label||row.title,slug:row.slug,pageType,configuratorId,heroImageUrl:row.hero_image_url||'',navGroup:normalizeNavGroup(row.nav_group||'oculto'),navOrder:Number(row.nav_order??100),navParentId:row.nav_parent_id||'',externalUrl:row.external_url||'',measures:parseJSON(row.measures_json,[]).map(measure=>({id:String(measure?.id||''),label:String(measure?.label||''),value:String(measure?.value||'')})).filter(measure=>measure.label),customMeasureUrl:row.custom_measure_url||''
     }));
     return json({ok:true,pages},200,{'Cache-Control':'no-store'});
   }catch(error){console.error('public pages list error',error);return json({ok:false,message:'Não foi possível carregar as páginas'},500)}
