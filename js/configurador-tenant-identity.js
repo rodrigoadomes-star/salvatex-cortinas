@@ -5,24 +5,31 @@
   function pageHref(p){const t=String(p?.pageType||'');if(t==='configurador_wave')return '/configurador?id=wave';if(t==='configurador_prega_macho')return '/configurador?id=prega-macho';if(t==='configurador_ilhos')return '/configurador?id=cortina-varao';if(t==='configurador_persiana')return '/configurador-persiana?id=persiana';if(t==='link'&&p.externalUrl)return p.externalUrl;return `/pagina.html?slug=${encodeURIComponent(p.slug||'')}`}
   function brandName(config){return String(config.storeName||config.name||config.tradeName||location.hostname.split('.')[0]||'Loja').trim()}
   function applyBrand(config,layout){
-    const name=brandName(config), logoUrl=layout?.branding?.logo||config.logo||'';
+    const name=brandName(config),logoUrl=layout?.branding?.logo||config.logo||'';
     document.title=`${name} — Configurador`;
     document.querySelectorAll('.logo').forEach(logo=>{
-      if(logoUrl){logo.innerHTML=`<img src="${esc(logoUrl)}" alt="${esc(name)}" style="display:block;max-height:46px;max-width:200px;object-fit:contain">`;}
-      else{logo.innerHTML='';logo.append(document.createTextNode(name.toUpperCase()));const sub=document.createElement('small');sub.textContent='';logo.appendChild(sub)}
+      if(logoUrl)logo.innerHTML=`<img src="${esc(logoUrl)}" alt="${esc(name)}" style="display:block;max-height:44px;max-width:190px;object-fit:contain">`;
+      else logo.textContent=name.toUpperCase();
       logo.setAttribute('href','/');
     });
-    const footer=document.querySelector('footer .shell');if(footer)footer.textContent=`${name.toUpperCase()} · ${new Date().getFullYear()}`;
     const colors=layout?.branding?.colors||layout?.colors||{};
-    if(colors.primary)document.documentElement.style.setProperty('--layout-primary',colors.primary);
-    if(colors.accent)document.documentElement.style.setProperty('--layout-accent',colors.accent);
+    const primary=colors.primary||'#102a43',accent=colors.accent||'#c49a58';
+    document.documentElement.style.setProperty('--brand',primary);
+    document.documentElement.style.setProperty('--accent',accent);
+    document.documentElement.style.setProperty('--layout-primary',primary);
+    document.documentElement.style.setProperty('--layout-accent',accent);
+    const footer=document.querySelector('footer');
+    if(footer){
+      const text=layout?.footer?.text||config.footerText||`${name} · Loja online.`;
+      footer.innerHTML=`<div class="tenant-footer-grid"><div><div class="tenant-footer-brand">${esc(name.toUpperCase())}</div><div class="tenant-footer-text">${esc(text)}</div></div><div class="tenant-footer-tech">Tecnologia RADZ HUB</div></div>`;
+    }
   }
   function applyPages(data,layout){
     const nav=$('.navlinks');if(!nav)return;
     const pages=(data?.pages||[]).filter(p=>['principal','cortinas_sob_medida','persianas_sob_medida','pronta_entrega'].includes(p.navGroup)).sort((a,b)=>(a.navOrder||100)-(b.navOrder||100));
     const contactLabel=layout?.navigation?.contactLabel||layout?.header?.contactLabel||'Contato';
-    nav.innerHTML=pages.map(p=>`<a class="page-nav-link" href="${esc(pageHref(p))}">${esc(p.menuLabel||p.title)}</a>`).join('')+`<a href="/#contato">${esc(contactLabel)}</a><a href="/minha-conta.html">Minha conta</a>`;
-    nav.style.display='flex';nav.style.gap='22px';nav.style.alignItems='center';
+    const accountLabel=layout?.navigation?.accountLabel||'Minha conta';
+    nav.innerHTML=pages.map(p=>`<a class="page-nav-link" href="${esc(pageHref(p))}">${esc(p.menuLabel||p.title)}</a>`).join('')+`<a href="/#contato">${esc(contactLabel)}</a><a href="/minha-conta.html">${esc(accountLabel)}</a>`;
   }
   async function boot(){
     try{
