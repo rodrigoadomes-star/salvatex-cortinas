@@ -1,22 +1,22 @@
 :root{--brand:#102a43;--accent:#c49a58;--tenant-bg:#fbfaf8;--tenant-text:#162033;--tenant-muted:#67768a;--tenant-line:#e6e9ee;--tenant-card:#fff}
-body{background:var(--tenant-bg);color:var(--tenant-text)}
-.topbar.storefront-topbar{min-height:76px;background:#fff;border-bottom:1px solid var(--tenant-line);backdrop-filter:none;-webkit-backdrop-filter:none}
-.topbar.storefront-topbar .shell.nav{width:100%;max-width:none;height:76px;margin:0;padding:0 clamp(20px,6vw,96px);display:flex;align-items:center;justify-content:space-between;gap:28px}
-.topbar.storefront-topbar .logo{font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;font-size:22px;font-weight:900;letter-spacing:.08em;color:var(--tenant-text);line-height:1;min-width:max-content}
-.topbar.storefront-topbar .logo small{display:none}
-.topbar.storefront-topbar .navlinks{display:flex!important;align-items:center;justify-content:flex-end;gap:22px;flex:1;margin-left:auto}
-.topbar.storefront-topbar .navlinks>a,.topbar.storefront-topbar .navlinks button{font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;font-size:14px;font-weight:700;color:#344054;white-space:nowrap}
-.topbar.storefront-topbar .carrinho-link-topo{display:inline-flex;align-items:center;gap:7px;padding:10px 14px;border:1px solid var(--tenant-line);border-radius:999px;background:#fff;font-weight:700;color:#344054;white-space:nowrap}
-.configurator-page-shell.shell{width:100%;max-width:1380px;padding:0 clamp(20px,5vw,72px)}
-.home-configurator-intro{padding-top:44px;text-align:center}
-.home-configurator-intro .kicker{color:var(--accent)}
-.config-wrap{margin-top:30px}
-.config{border-color:var(--tenant-line);background:var(--tenant-card);box-shadow:0 24px 70px rgba(16,42,67,.08)}
-.card.selected,.card:hover{border-color:var(--accent)}
-.btn.primary,#comprar{background:var(--brand);border-color:var(--brand);color:#fff}
-.summary{background:#fff}
-.footer{margin-top:54px;padding:42px clamp(20px,9vw,150px);background:var(--brand)!important;color:#fff!important;border-top:0!important}
-.footer .shell{max-width:none;padding:0!important;margin:0!important;font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif}
-.tenant-footer-grid{display:flex;justify-content:space-between;gap:30px;align-items:flex-start;flex-wrap:wrap;width:100%}
-.tenant-footer-brand{font-weight:900;letter-spacing:.08em}.tenant-footer-text{opacity:.75;margin-top:5px}.tenant-footer-tech{opacity:.75}
-@media(max-width:900px){.topbar.storefront-topbar .shell.nav{height:auto;min-height:76px;padding:12px 20px;align-items:flex-start;flex-wrap:wrap}.topbar.storefront-topbar .navlinks{order:3;width:100%;overflow-x:auto;justify-content:flex-start;gap:14px}.configurator-page-shell.shell{padding:0 20px}.config{grid-template-columns:1fr}.summary{border-left:0;border-top:1px solid var(--tenant-line)}}
+html[data-generic-tenant-configurator="1"] body{background:var(--tenant-bg);color:var(--tenant-text)}
+html[data-generic-tenant-configurator="1"] .topbar.storefront-topbar{min-height:76px;background:#fff;border-bottom:1px solid var(--tenant-line);backdrop-filter:none;-webkit-backdrop-filter:none}
+html[data-generic-tenant-configurator="1"] .topbar.storefront-topbar .shell.nav{width:100%;max-width:none;height:76px;margin:0;padding:0 clamp(20px,6vw,96px);display:flex;align-items:center;justify-content:space-between;gap:28px}
+html[data-generic-tenant-configurator="1"] .topbar.storefront-topbar .logo{font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;font-size:22px;font-weight:900;letter-spacing:.08em;color:var(--tenant-text);line-height:1;min-width:max-content}
+html[data-generic-tenant-configurator="1"] .topbar.storefront-topbar .logo small{display:none}
+html[data-generic-tenant-configurator="1"] .topbar.storefront-topbar .navlinks{display:flex!important;align-items:center;justify-content:flex-end;gap:22px;flex:1;margin-left:auto}
+html[data-generic-tenant-configurator="1"] .topbar.storefront-topbar .navlinks>a,html[data-generic-tenant-configurator="1"] .topbar.storefront-topbar .navlinks button{font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;font-size:14px;font-weight:700;color:#344054;white-space:nowrap}
+html[data-generic-tenant-configurator="1"] .topbar.storefront-topbar .carrinho-link-topo{display:inline-flex;align-items:center;gap:7px;padding:10px 14px;border:1px solid var(--tenant-line);border-radius:999px;background:#fff;font-weight:700;color:#344054;white-space:nowrap}
+html[data-generic-tenant-configurator="1"] .configurator-page-shell.shell{width:100%;max-width:1380px;padding:0 clamp(20px,5vw,72px)}
+html[data-generic-tenant-configurator="1"] .home-configurator-intro{padding-top:44px;text-align:center}
+html[data-generic-tenant-configurator="1"] .home-configurator-intro .kicker{color:var(--accent)}
+html[data-generic-tenant-configurator="1"] .config-wrap{margin-top:30px}
+html[data-generic-tenant-configurator="1"] .config{border-color:var(--tenant-line);background:var(--tenant-card);box-shadow:0 24px 70px rgba(16,42,67,.08)}
+html[data-generic-tenant-configurator="1"] .card.selected,html[data-generic-tenant-configurator="1"] .card:hover{border-color:var(--accent)}
+html[data-generic-tenant-configurator="1"] .btn.primary,html[data-generic-tenant-configurator="1"] #comprar{background:var(--brand);border-color:var(--brand);color:#fff}
+html[data-generic-tenant-configurator="1"] .summary{background:#fff}
+html[data-generic-tenant-configurator="1"] .footer{margin-top:54px;padding:42px clamp(20px,9vw,150px);background:var(--brand)!important;color:#fff!important;border-top:0!important}
+html[data-generic-tenant-configurator="1"] .footer .shell{max-width:none;padding:0!important;margin:0!important;font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif}
+html[data-generic-tenant-configurator="1"] .tenant-footer-grid{display:flex;justify-content:space-between;gap:30px;align-items:flex-start;flex-wrap:wrap;width:100%}
+html[data-generic-tenant-configurator="1"] .tenant-footer-brand{font-weight:900;letter-spacing:.08em}html[data-generic-tenant-configurator="1"] .tenant-footer-text{opacity:.75;margin-top:5px}html[data-generic-tenant-configurator="1"] .tenant-footer-tech{opacity:.75}
+@media(max-width:900px){html[data-generic-tenant-configurator="1"] .topbar.storefront-topbar .shell.nav{height:auto;min-height:76px;padding:12px 20px;align-items:flex-start;flex-wrap:wrap}html[data-generic-tenant-configurator="1"] .topbar.storefront-topbar .navlinks{order:3;width:100%;overflow-x:auto;justify-content:flex-start;gap:14px}html[data-generic-tenant-configurator="1"] .configurator-page-shell.shell{padding:0 20px}html[data-generic-tenant-configurator="1"] .config{grid-template-columns:1fr}html[data-generic-tenant-configurator="1"] .summary{border-left:0;border-top:1px solid var(--tenant-line)}}
