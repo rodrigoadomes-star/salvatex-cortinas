@@ -12,7 +12,8 @@ export async function ensurePageNavigationSchema(db){
     ['nav_order','INTEGER NOT NULL DEFAULT 100'],
     ['menu_label',"TEXT NOT NULL DEFAULT ''"],
     ['external_url','TEXT'],
-    ['nav_parent_id','TEXT']
+    ['nav_parent_id','TEXT'],
+    ['configurator_id','TEXT']
   ];
   for(const [name,type] of additions){
     if(columns.has(name))continue;
@@ -24,8 +25,26 @@ export async function ensurePageNavigationSchema(db){
 export function normalizeNavGroup(value){
   const v=String(value||'oculto').trim();
   if(['principal','rodape','oculto'].includes(v))return v;
+  // Compatibilidade com páginas antigas da Salvatex. Nada é apagado;
+  // ao editar/salvar, elas passam a usar o grupo genérico principal.
   if(['cortinas_sob_medida','persianas_sob_medida','pronta_entrega'].includes(v))return 'principal';
   return 'oculto';
+}
+
+export function legacyConfiguratorId(pageType){
+  const type=String(pageType||'');
+  return ({
+    configurador_wave:'wave',
+    configurador_prega_macho:'prega-macho',
+    configurador_ilhos:'cortina-varao',
+    configurador_persiana:'persiana'
+  })[type]||'';
+}
+
+export function normalizePageType(value){
+  const type=String(value||'conteudo').trim();
+  if(type.startsWith('configurador_'))return 'configurador';
+  return ['conteudo','produtos','link','configurador'].includes(type)?type:'conteudo';
 }
 
 export function normalizeExternalUrl(value){
