@@ -15,70 +15,7 @@
   </style>
 </head>
 <body>
-<div id="admin-login" class="admin-login">
-  <form id="login-form" class="login-card">
-    <div class="login-brand">RADZ<small>HUB</small></div>
-    <h1>Painel administrativo</h1>
-    <p>Entre com o e-mail e a senha cadastrados para sua empresa.</p>
-    <label>E-mail<input id="admin-token-input" type="email" autocomplete="username" required></label>
-    <label>Senha<input id="admin-password-input" type="password" autocomplete="current-password" required></label>
-    <div class="login-help"><button type="button" id="forgot-password">Esqueci minha senha</button></div>
-    <button type="submit">Entrar no painel</button>
-    <div id="login-error" class="login-error"></div>
-    <div id="login-notice" class="login-notice"></div>
-  </form>
-</div>
-<div id="admin-app" class="admin-app" hidden>
-  <aside class="sidebar">
-    <a href="#dashboard" class="brand">RADZ<small>HUB</small></a>
-    <nav id="admin-nav">
-      <button data-view="dashboard" class="active"><span>⌂</span>Dashboard</button>
-      <button data-view="orders"><span>▣</span>Vendas <b id="nav-order-count" class="nav-badge">0</b></button>
-      <button data-view="products"><span>◇</span>Produtos</button>
-      <button data-view="categories"><span>□</span>Categorias</button>
-      <div class="admin-nav-group admin-nav-group-customers open"><button type="button" id="customers-nav-toggle" class="admin-nav-parent"><span>♙</span>Clientes <i>⌄</i></button><div class="admin-nav-children"><button data-view="customers">Lista de clientes</button><button data-view="messages">Mensagens <b id="nav-message-count" class="nav-badge">0</b></button></div></div>
-      <button data-view="pages"><span>▤</span>Páginas e menu</button>
-      <button data-view="layout"><span>✦</span>Layout do site</button>
-      <button data-view="media"><span>▧</span>Mídia</button>
-      <button data-view="coupons"><span>✂</span>Cupons</button>
-      <button type="button" class="analytics-nav-link" data-radz-panel="analytics"><span>◉</span>Visitas e conversão</button>
-      <button type="button" class="analytics-nav-link" data-radz-panel="marketing"><span>◎</span>Marketing e Analytics</button>
-      <button type="button" class="analytics-nav-link" data-radz-panel="meta"><span>◌</span>Meta Ads (Beta)</button>
-      <button data-view="reports"><span>▥</span>Relatórios</button>
-      <button data-view="configurators"><span>◫</span>Configuradores</button>
-      <button data-view="settings"><span>⚙</span>Configurações</button>
-      <button data-view="integrations"><span>⛓</span>Integrações</button>
-      <button data-view="billing"><span>R$</span>Plano e cobrança</button>
-      <button data-view="logs"><span>☷</span>Logs do Sistema</button>
-    </nav>
-    <a class="view-store" href="../index.html" target="_blank">Ver loja ↗</a>
-    <div class="sidebar-user"><div class="avatar">A</div><div><strong>Administrador</strong><small>Painel da empresa</small></div><button id="logout" title="Sair">↪</button></div>
-  </aside>
-  <main class="main"><header class="admin-header"><div class="header-left"><button id="menu-toggle" class="icon-btn">☰</button><div><h1 id="view-title">Dashboard</h1><span id="view-subtitle">Visão geral da sua loja</span></div></div><div class="header-actions"><a href="../index.html" target="_blank" class="outline-btn">Visitar loja ↗</a><button id="refresh-view" class="outline-btn">Atualizar ↻</button></div></header><div id="view-content" class="content"></div></main>
-</div>
-<div id="admin-modal" class="modal" hidden><div class="modal-backdrop" data-close-modal></div><div class="modal-card"><button class="modal-close" data-close-modal>×</button><div id="modal-content"></div></div></div>
-<div id="admin-toast" class="admin-toast"></div>
-<script src="../js/admin-layout-visual-fix.js?v=20260820-2"></script>
-<script src="../js/admin-layout-no-flash.js?v=20260820-1"></script>
-<script src="../js/admin-login-gate.js?v=20260819-1"></script>
-<script src="../js/admin.js?v=generic-commerce-20260818-1"></script>
-<script src="../js/admin-platform-sso.js?v=20260819-2"></script>
-<script src="../js/admin-auth.js?v=20260818-2"></script>
-<script src="../js/admin-features.js?v=20260819-1"></script>
-<script src="../js/admin-commerce-generic.js?v=20260818-1"></script>
-<script src="../js/admin-tenant-brand.js?v=20260819-freeze-fix-1"></script>
-<script src="../js/admin-layout-editor-v2.js?v=visual-editor-20260820-4"></script>
-<script src="../js/admin-layout-preview-srcdoc.js?v=20260820-4"></script>
-<script src="../js/admin-layout-salvatex-compat.js?v=20260820-1"></script>
-<script src="../js/admin-layout-legacy-data-bridge.js?v=20260820-1"></script>
-<script src="../js/admin-layout-extra-editables.js?v=20260820-1"></script>
-<script src="../js/admin-visual-site-pages.js?v=20260820-1"></script>
-<script src="../js/admin-configurator-tenant-editor.js?v=20260820-5"></script>
-<script src="../js/admin-whatsapp-config.js?v=20260819-singleton-2"></script>
-<script src="../js/admin-marketing-shell.js?v=20260818-3"></script>
-<script src="../js/admin-plan-upgrade.js?v=20260818-1"></script>
-<script src="../js/admin-configurator-media-dedupe.js?v=media-stable-20260817-1"></script>
-<script src="../js/admin-configurator-combination-stock.js?v=media-stable-20260817-1"></script>
-<script src="../js/admin-configurator-media-controls.js?v=media-stable-20260817-1"></script>
-</body>
-</html>
+<div id="admin-login" class="admin-login"><form id="login-form" class="login-card"><div class="login-brand">RADZ<small>HUB</small></div><h1>Painel administrativo</h1><p>Entre com o e-mail e a senha cadastrados para sua empresa.</p><label>E-mail<input id="admin-token-input" type="email" autocomplete="username" required></label><label>Senha<input id="admin-password-input" type="password" autocomplete="current-password" required></label><div class="login-help"><button type="button" id="forgot-password">Esqueci minha senha</button></div><button type="submit">Entrar no painel</button><div id="login-error" class="login-error"></div><div id="login-notice" class="login-notice"></div></form></div>
+<div id="admin-app" class="admin-app" hidden><aside class="sidebar"><a href="#dashboard" class="brand">RADZ<small>HUB</small></a><nav id="admin-nav"><button data-view="dashboard" class="active"><span>⌂</span>Dashboard</button><button data-view="orders"><span>▣</span>Vendas <b id="nav-order-count" class="nav-badge">0</b></button><button data-view="products"><span>◇</span>Produtos</button><button data-view="categories"><span>□</span>Categorias</button><div class="admin-nav-group admin-nav-group-customers open"><button type="button" id="customers-nav-toggle" class="admin-nav-parent"><span>♙</span>Clientes <i>⌄</i></button><div class="admin-nav-children"><button data-view="customers">Lista de clientes</button><button data-view="messages">Mensagens <b id="nav-message-count" class="nav-badge">0</b></button></div></div><button data-view="pages"><span>▤</span>Páginas e menu</button><button data-view="layout"><span>✦</span>Layout do site</button><button data-view="media"><span>▧</span>Mídia</button><button data-view="coupons"><span>✂</span>Cupons</button><button type="button" class="analytics-nav-link" data-radz-panel="analytics"><span>◉</span>Visitas e conversão</button><button type="button" class="analytics-nav-link" data-radz-panel="marketing"><span>◎</span>Marketing e Analytics</button><button type="button" class="analytics-nav-link" data-radz-panel="meta"><span>◌</span>Meta Ads (Beta)</button><button data-view="reports"><span>▥</span>Relatórios</button><button data-view="configurators"><span>◫</span>Configuradores</button><button data-view="settings"><span>⚙</span>Configurações</button><button data-view="integrations"><span>⛓</span>Integrações</button><button data-view="billing"><span>R$</span>Plano e cobrança</button><button data-view="logs"><span>☷</span>Logs do Sistema</button></nav><a class="view-store" href="../index.html" target="_blank">Ver loja ↗</a><div class="sidebar-user"><div class="avatar">A</div><div><strong>Administrador</strong><small>Painel da empresa</small></div><button id="logout" title="Sair">↪</button></div></aside><main class="main"><header class="admin-header"><div class="header-left"><button id="menu-toggle" class="icon-btn">☰</button><div><h1 id="view-title">Dashboard</h1><span id="view-subtitle">Visão geral da sua loja</span></div></div><div class="header-actions"><a href="../index.html" target="_blank" class="outline-btn">Visitar loja ↗</a><button id="refresh-view" class="outline-btn">Atualizar ↻</button></div></header><div id="view-content" class="content"></div></main></div>
+<div id="admin-modal" class="modal" hidden><div class="modal-backdrop" data-close-modal></div><div class="modal-card"><button class="modal-close" data-close-modal>×</button><div id="modal-content"></div></div></div><div id="admin-toast" class="admin-toast"></div>
+<script src="../js/admin-layout-visual-fix.js?v=20260820-2"></script><script src="../js/admin-layout-no-flash.js?v=20260820-1"></script><script src="../js/admin-login-gate.js?v=20260819-1"></script><script src="../js/admin.js?v=generic-commerce-20260818-1"></script><script src="../js/admin-configurator-dynamic-list.js?v=20260820-1"></script><script src="../js/admin-platform-sso.js?v=20260819-2"></script><script src="../js/admin-auth.js?v=20260818-2"></script><script src="../js/admin-features.js?v=20260819-1"></script><script src="../js/admin-commerce-generic.js?v=20260818-1"></script><script src="../js/admin-tenant-brand.js?v=20260819-freeze-fix-1"></script><script src="../js/admin-layout-editor-v2.js?v=visual-editor-20260820-4"></script><script src="../js/admin-layout-preview-srcdoc.js?v=20260820-4"></script><script src="../js/admin-layout-salvatex-compat.js?v=20260820-1"></script><script src="../js/admin-layout-legacy-data-bridge.js?v=20260820-1"></script><script src="../js/admin-layout-extra-editables.js?v=20260820-1"></script><script src="../js/admin-visual-site-pages.js?v=20260820-1"></script><script src="../js/admin-configurator-tenant-editor.js?v=20260820-6"></script><script src="../js/admin-whatsapp-config.js?v=20260819-singleton-2"></script><script src="../js/admin-marketing-shell.js?v=20260818-3"></script><script src="../js/admin-plan-upgrade.js?v=20260818-1"></script><script src="../js/admin-configurator-media-dedupe.js?v=media-stable-20260817-1"></script><script src="../js/admin-configurator-combination-stock.js?v=media-stable-20260817-1"></script><script src="../js/admin-configurator-media-controls.js?v=media-stable-20260817-1"></script></body></html>
