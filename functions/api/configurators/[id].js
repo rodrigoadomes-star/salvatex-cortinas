@@ -1,74 +1,13 @@
 import { json } from "../_lib.js";
 import { requirePublicStore } from "../_tenant.js";
 
-const IDS=new Set(["wave","prega-macho","cortina-varao","persiana"]);
-// v4 garante que qualquer configuração antiga criada durante a fase Salvatex
-// seja descartada em tenants comuns. A Salvatex preserva seus dados legados.
+const BUILT_INS=new Set(["wave","prega-macho","cortina-varao","persiana"]);
+const validId=id=>/^[a-z0-9][a-z0-9-]{1,47}$/.test(id);
 const TENANT_CONFIG_VERSION=4;
-
-function defaultLabels(id){
-  return {
-    kicker:"CONFIGURADOR",
-    pageTitle:id==='persiana'?"Configure sua persiana sob medida":"Configure seu produto sob medida",
-    pageDescription:"Informe as medidas e escolha as opções disponíveis.",
-    formTitle:"Configure seu produto",
-    formSubtitle:"Escolha as características abaixo para calcular seu produto.",
-    step1:"Produto",step2:"Material",step3:"Opção",step4:"Acabamento",step5:"Resumo",
-    widthLabel:"Largura",heightLabel:"Altura",modelLabel:"Modelo",fabricLabel:"Material",
-    liningLabel:"Opção",colorLabel:"Cor",trackLabel:"Acabamento",summaryTitle:"Resumo",
-    addToCartLabel:"Adicionar ao carrinho"
-  };
-}
-
-function defaults(id){
-  const isBlind=id==='persiana';
-  const names={wave:['Cortina Wave','Wave'], 'prega-macho':['Cortina Prega Macho','Prega Macho'], 'cortina-varao':['Cortina de Ilhós','Ilhós'], persiana:['Persiana sob medida','Persiana']};
-  const [nome,modelo]=names[id];
-  return {
-    _tenantConfigVersion:TENANT_CONFIG_VERSION,
-    id,nome,ativo:false,modelo,tipo:isBlind?'persiana':'cortina',descricao:'',
-    modoCalculo:isBlind?'area':'metro_tecido',labels:defaultLabels(id),
-    // Apenas estrutura técnica neutra. Nunca contém catálogo, preço, imagem ou material de outra empresa.
-    medidas:{
-      larguraMinima:.5,larguraMaxima:isBlind?5:12,alturaMinima:.5,alturaEntradaMaxima:isBlind?4:5,
-      calculoMaximo:isBlind?3.5:3.2,inicioAcrescimo:isBlind?999:2.8,acrescimoPercentual:isBlind?0:25,
-      acimaMaximo:{modo:'consulta',texto:'Medida fora do limite automático. Solicite orçamento personalizado.',textoBotao:'Solicitar orçamento',permitirCarrinho:false}
-    },
-    barra:{faixas:[],acimaInicio:20},
-    franzimentos:isBlind?[]:[{valor:2,rotulo:'2x'},{valor:2.5,rotulo:'2,5x'},{valor:3,rotulo:'3x'}],
-    tecidos:{},trilhos:{},midia:[],estoqueCombinacoes:{},
-    persiana:{areaMinima:.6,acionamentos:[],ladosComando:['Direito','Esquerdo'],voltagens:['110V','220V','Bivolt']}
-  };
-}
-
+function defaultLabels(id){return{kicker:"CONFIGURADOR",pageTitle:id==='persiana'?"Configure sua persiana sob medida":"Configure seu produto sob medida",pageDescription:"Informe as medidas e escolha as opções disponíveis.",formTitle:"Configure seu produto",formSubtitle:"Escolha as características abaixo para calcular seu produto.",step1:"Produto",step2:"Material",step3:"Opção",step4:"Acabamento",step5:"Resumo",widthLabel:"Largura",heightLabel:"Altura",modelLabel:"Modelo",fabricLabel:"Material",liningLabel:"Opção",colorLabel:"Cor",trackLabel:"Acabamento",secondaryProductLabel:"Produto secundário",summaryTitle:"Resumo",addToCartLabel:"Adicionar ao carrinho"};}
+function defaults(id){const isBlind=id==='persiana',custom=!BUILT_INS.has(id);const names={wave:['Cortina Wave','Wave'],'prega-macho':['Cortina Prega Macho','Prega Macho'],'cortina-varao':['Cortina de Ilhós','Ilhós'],persiana:['Persiana sob medida','Persiana']};const pair=names[id]||['Novo configurador','Produto'];return{_tenantConfigVersion:TENANT_CONFIG_VERSION,id,nome:custom?'Novo configurador':pair[0],ativo:false,modelo:custom?'Produto':pair[1],tipo:isBlind?'persiana':'cortina',descricao:'',modoCalculo:isBlind?'area':'metro_tecido',labels:defaultLabels(id),medidas:{larguraMinima:.5,larguraMaxima:isBlind?5:12,alturaMinima:.5,alturaEntradaMaxima:isBlind?4:5,calculoMaximo:isBlind?3.5:3.2,inicioAcrescimo:isBlind?999:2.8,acrescimoPercentual:isBlind?0:25,acimaMaximo:{modo:'consulta',texto:'Medida fora do limite automático. Solicite orçamento personalizado.',textoBotao:'Solicitar orçamento',permitirCarrinho:false}},barra:{faixas:[],acimaInicio:20},franzimentos:isBlind?[]:[{valor:2,rotulo:'2x'},{valor:2.5,rotulo:'2,5x'},{valor:3,rotulo:'3x'}],tecidos:{},trilhos:{},midia:[],estoqueCombinacoes:{},persiana:{areaMinima:.6,acionamentos:[],ladosComando:['Direito','Esquerdo'],voltagens:['110V','220V','Bivolt']}}}
 function merge(a,b){if(!b||typeof b!=='object'||Array.isArray(b))return a;for(const[k,v]of Object.entries(b)){if(v&&typeof v==='object'&&!Array.isArray(v))a[k]=merge(a[k]&&typeof a[k]==='object'&&!Array.isArray(a[k])?a[k]:{},v);else a[k]=v}return a}
 function isSalvatex(store){return String(store?.slug||'').toLowerCase()==='salvatex'}
 function canUseSavedConfig(saved,store){return isSalvatex(store)||Number(saved?._tenantConfigVersion||0)>=TENANT_CONFIG_VERSION}
 async function configuratorEnabled(db,storeId){const row=await db.prepare(`SELECT f.enabled FROM platform_company_stores pcs JOIN platform_features f ON f.company_id=pcs.company_id AND f.feature_key='configurator' WHERE pcs.store_id=?1 LIMIT 1`).bind(storeId).first();return Number(row?.enabled)===1}
-
-export async function onRequestGet(context){
-  const id=String(context.params.id||'').toLowerCase();
-  if(!IDS.has(id))return json({ok:false,message:'Configurador não encontrado.'},404);
-  if(!context.env.DB)return json({ok:false,message:'Banco indisponível.'},503);
-  const tenant=await requirePublicStore(context,json);if(!tenant.ok)return tenant.response;
-  if(!await configuratorEnabled(context.env.DB,tenant.storeId))return json({ok:false,code:'FEATURE_NOT_ENABLED',message:'Configurador não disponível para esta loja.'},404);
-  try{
-    const key='configurator_'+id.replaceAll('-','_');
-    const row=await context.env.DB.prepare(`SELECT value_json,updated_at FROM store_configs WHERE store_id=?1 AND config_key=?2`).bind(tenant.storeId,key).first();
-    let cfg=defaults(id),source='default',updatedAt=null;
-    if(row?.value_json){
-      const saved=JSON.parse(row.value_json);
-      if(canUseSavedConfig(saved,tenant.store)){
-        cfg=merge(cfg,saved);
-        // Campos comerciais sempre são substituídos pelos valores explicitamente salvos deste store.
-        cfg.tecidos=saved.tecidos&&typeof saved.tecidos==='object'?saved.tecidos:{};
-        cfg.trilhos=saved.trilhos&&typeof saved.trilhos==='object'?saved.trilhos:{};
-        cfg.estoqueCombinacoes=saved.estoqueCombinacoes&&typeof saved.estoqueCombinacoes==='object'?saved.estoqueCombinacoes:{};
-        cfg.midia=Array.isArray(saved.midia)?saved.midia:[];
-        cfg.franzimentos=Array.isArray(saved.franzimentos)?saved.franzimentos:cfg.franzimentos;
-        cfg._tenantConfigVersion=TENANT_CONFIG_VERSION;source='d1';updatedAt=row.updated_at||null;
-      }else source='tenant-v4-reset';
-    }
-    return json({ok:true,configurator:cfg,wave:id==='wave'?cfg:undefined,source,updatedAt},200,{'Cache-Control':'no-store'});
-  }catch(error){console.error(error);return json({ok:false,message:'Erro ao carregar configurador.'},500)}
-}
+export async function onRequestGet(context){const id=String(context.params.id||'').toLowerCase();if(!validId(id))return json({ok:false,message:'Configurador não encontrado.'},404);if(!context.env.DB)return json({ok:false,message:'Banco indisponível.'},503);const tenant=await requirePublicStore(context,json);if(!tenant.ok)return tenant.response;if(!await configuratorEnabled(context.env.DB,tenant.storeId))return json({ok:false,code:'FEATURE_NOT_ENABLED',message:'Configurador não disponível para esta loja.'},404);try{const key='configurator_'+id.replaceAll('-','_');const row=await context.env.DB.prepare(`SELECT value_json,updated_at FROM store_configs WHERE store_id=?1 AND config_key=?2`).bind(tenant.storeId,key).first();if(!row?.value_json&&!BUILT_INS.has(id))return json({ok:false,message:'Configurador não encontrado.'},404);let cfg=defaults(id),source='default',updatedAt=null;if(row?.value_json){const saved=JSON.parse(row.value_json);if(canUseSavedConfig(saved,tenant.store)){cfg=merge(cfg,saved);cfg.tecidos=saved.tecidos&&typeof saved.tecidos==='object'?saved.tecidos:{};cfg.trilhos=saved.trilhos&&typeof saved.trilhos==='object'?saved.trilhos:{};cfg.estoqueCombinacoes=saved.estoqueCombinacoes&&typeof saved.estoqueCombinacoes==='object'?saved.estoqueCombinacoes:{};cfg.midia=Array.isArray(saved.midia)?saved.midia:[];cfg.franzimentos=Array.isArray(saved.franzimentos)?saved.franzimentos:cfg.franzimentos;cfg._tenantConfigVersion=TENANT_CONFIG_VERSION;source='d1';updatedAt=row.updated_at||null}else source='tenant-v4-reset'}return json({ok:true,configurator:cfg,wave:id==='wave'?cfg:undefined,source,updatedAt},200,{'Cache-Control':'no-store'});}catch(error){console.error(error);return json({ok:false,message:'Erro ao carregar configurador.'},500)}}
