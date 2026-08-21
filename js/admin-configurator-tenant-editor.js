@@ -2,6 +2,14 @@
   if(window.__RADZ_CONFIGURATOR_TENANT_EDITOR__)return;
   window.__RADZ_CONFIGURATOR_TENANT_EDITOR__=true;
 
+  const style=document.createElement('style');
+  style.id='radz-configurator-no-legacy-flash';
+  style.textContent=`
+    #cfg-form:not([data-radz-secondary-ready="1"]) .cfg-option-nav,
+    #cfg-form:not([data-radz-secondary-ready="1"]) .cfg-option-pages{visibility:hidden}
+  `;
+  document.head.appendChild(style);
+
   const IDS=['wave','prega-macho','cortina-varao','persiana'];
   const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const csrf=()=>window.ADMIN?.csrf||sessionStorage.getItem('salvatexAdminCsrf')||'';
@@ -31,8 +39,11 @@
     const root=document.getElementById('cfg-form');if(!root)return;
     const value=String(currentSecondaryLabel||'Produto secundário').trim()||'Produto secundário';
     const tab=root.querySelector('.cfg-option-tab[data-option-tab="trilhos-varoes"] span');if(tab)tab.textContent=value;
-    const page=root.querySelector('.cfg-option-page[data-option-page="trilhos-varoes"] h2');if(page)page.textContent=value;
+    const pageRoot=root.querySelector('.cfg-option-page[data-option-page="trilhos-varoes"]');
+    const page=pageRoot?.querySelector('h2');if(page)page.textContent=value;
+    const help=pageRoot?.querySelector('.panel-head p');if(help)help.textContent='Cadastre e gerencie os itens complementares disponíveis neste configurador.';
     const section=root.querySelector('#cfg-trilhos-section .panel-head h2');if(section)section.textContent='Cadastro de '+value.toLowerCase();
+    root.dataset.radzSecondaryReady='1';
   }
 
   async function loadSiteUi(){
@@ -64,7 +75,6 @@
     const id=activeId();
     if(form.querySelector(`[data-radz-config-labels="${CSS.escape(id)}"]`)||loadingLabels.has(id))return;
     loadingLabels.add(id);
-    // Marca o formulário antes do await: impede corridas do MutationObserver criarem várias seções.
     form.dataset.radzLabelsLoading=id;
     try{
       form.querySelectorAll('[data-radz-config-labels]').forEach(x=>x.remove());
@@ -82,9 +92,9 @@
     }catch{}finally{loadingLabels.delete(id);if(form.dataset.radzLabelsLoading===id)delete form.dataset.radzLabelsLoading;}
   }
 
-  function mount(){if(location.hash!=='#configurators')return;loadSiteUi().then(()=>{mountCompanyUi();applyProductsTitle();});bindLiveName();mountLabels();hydrateSwitcherNames();applySecondaryLabel();}
-  let timer=0;const obs=new MutationObserver(()=>{clearTimeout(timer);timer=setTimeout(mount,80)});obs.observe(document.documentElement,{childList:true,subtree:true});
-  window.addEventListener('hashchange',()=>setTimeout(mount,80));
-  document.addEventListener('click',e=>{if(e.target.closest?.('.configurator-switch,.cfg-option-tab'))setTimeout(()=>{mount();applySecondaryLabel();},120);});
-  setTimeout(mount,120);
+  function mount(){if(location.hash!=='#configurators')return;loadSiteUi().then(()=>{mountCompanyUi();applyProductsTitle();});bindLiveName();applySecondaryLabel();mountLabels();hydrateSwitcherNames();}
+  let timer=0;const obs=new MutationObserver(()=>{clearTimeout(timer);timer=setTimeout(mount,40)});obs.observe(document.documentElement,{childList:true,subtree:true});
+  window.addEventListener('hashchange',()=>setTimeout(mount,40));
+  document.addEventListener('click',e=>{if(e.target.closest?.('.configurator-switch,.cfg-option-tab'))setTimeout(()=>{mount();applySecondaryLabel();},50);});
+  setTimeout(mount,40);
 })();
