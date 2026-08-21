@@ -11,23 +11,38 @@
   function activeForros(t){return Object.keys(window.CONFIG?.configuradorTecidos?.[t]?.forros||{}).filter(Boolean)}
   function card(name,desc,selected=false){return`<div class="card${selected?' selected':''}" data-value="${esc(name)}"><strong>${esc(name)}</strong>${desc?`<span>${esc(desc)}</span>`:''}</div>`}
   function setState(key,value){if(window.state&&typeof window.state==='object')window.state[key]=value}
-  function setSummaryVisible(show){const summary=$('.summary');if(!summary)return;const parts=$$('.summary > *');parts.forEach(el=>el.style.display=show?'':'none');let empty=$('#tenant-summary-empty');if(!show){if(!empty){empty=document.createElement('div');empty.id='tenant-summary-empty';empty.className='empty';empty.textContent='Cadastre materiais e opções no painel para visualizar este configurador.';summary.appendChild(empty)}empty.style.display=''}else if(empty)empty.style.display='none'}
+  function clearStaleState(){['modelo','tecido','cor','forro'].forEach(k=>setState(k,''));setState('trilho','Não')}
+  function showEmptySummary(){
+    const summary=$('.summary');if(!summary)return;
+    summary.innerHTML='<div id="tenant-summary-empty" class="empty" style="margin:24px">Nenhum produto disponível neste configurador no momento.</div>';
+  }
   function render(){
     const c=window.CONFIG||{},cfg=c.configurador||{},tissues=c.configuradorTecidos||{};
     const modelBox=$('#modelos'),tissueBox=$('#tecidos-choice'),colorBox=$('#cores-choice'),liningBox=$('#forros'),track=$('#trilho-select');
     const tissueNames=Object.entries(tissues).filter(([,t])=>t&&t.ativo!==false).map(([n])=>n);
+    const noProducts=!tissueNames.length;
+    if(noProducts){
+      clearStaleState();
+      [modelBox,tissueBox,colorBox,liningBox].forEach(el=>{if(el){el.innerHTML='';hideBlock(el)}});
+      const know=$('#conhecer-cor');if(know)know.style.display='none';
+      const next=$('.next');if(next)next.style.display='none';
+      const buy=$('#comprar');if(buy)buy.style.display='none';
+      const wa=$('#whatsapp');if(wa)wa.style.display='none';
+      const builder=$('.builder');if(builder){builder.classList.add('configurator-empty');let empty=$('#tenant-config-empty');if(!empty){empty=document.createElement('div');empty.id='tenant-config-empty';empty.className='empty';empty.textContent='Nenhum produto disponível neste configurador no momento.';builder.appendChild(empty)}empty.style.display=''}
+      showEmptySummary();
+      document.documentElement.dataset.tenantConfiguratorRuntime='1';
+      return;
+    }
     const model=txt(cfg.modelo||cfg.nome);
-    if(modelBox){if(model&&tissueNames.length){modelBox.innerHTML=card(model,txt(cfg.descricao)||'Modelo configurado no Painel Admin.',true);showBlock(modelBox);setState('modelo',model)}else{modelBox.innerHTML='';hideBlock(modelBox);setState('modelo','')}}
-    if(tissueBox){if(tissueNames.length){const selected=tissueNames.includes(window.state?.tecido)?window.state.tecido:(firstActiveTissue()||tissueNames[0]);tissueBox.innerHTML=tissueNames.map(n=>card(n,txt(tissues[n]?.descricao),n===selected)).join('');showBlock(tissueBox);setState('tecido',selected)}else{tissueBox.innerHTML='';hideBlock(tissueBox);setState('tecido','')}}
+    if(modelBox){if(model){modelBox.innerHTML=card(model,txt(cfg.descricao)||'Modelo configurado no Painel Admin.',true);showBlock(modelBox);setState('modelo',model)}else{modelBox.innerHTML='';hideBlock(modelBox);setState('modelo','')}}
+    if(tissueBox){const selected=tissueNames.includes(window.state?.tecido)?window.state.tecido:(firstActiveTissue()||tissueNames[0]);tissueBox.innerHTML=tissueNames.map(n=>card(n,txt(tissues[n]?.descricao),n===selected)).join('');showBlock(tissueBox);setState('tecido',selected)}
     const selectedTissue=window.state?.tecido||firstActiveTissue(),colors=activeColors(selectedTissue);
     if(colorBox){if(colors.length){const selected=colors.includes(window.state?.cor)?window.state.cor:colors[0];colorBox.innerHTML=colors.map(n=>card(n,'',n===selected)).join('');showBlock(colorBox);setState('cor',selected)}else{colorBox.innerHTML='';hideBlock(colorBox);setState('cor','')}}
     const know=$('#conhecer-cor');if(know)know.style.display=colors.length?'':'none';
     const linings=activeForros(selectedTissue);
     if(liningBox){if(linings.length){const selected=linings.includes(window.state?.forro)?window.state.forro:linings[0],desc=tissues[selectedTissue]?.forroDescricoes||{};liningBox.innerHTML=linings.map(n=>card(n,txt(desc[n]),n===selected)).join('');showBlock(liningBox);setState('forro',selected)}else{liningBox.innerHTML='';hideBlock(liningBox);setState('forro','')}}
     if(track){const entries=Object.entries(c.instalacao||{});track.innerHTML='<option value="" disabled selected>Selecione...</option><option value="Não">Não quero incluir acabamento</option>'+entries.map(([n])=>`<option value="${esc(n)}">${esc(n)}</option>`).join('');const wrap=track.closest('.trilho-select-wrapper'),desc=wrap?.previousElementSibling,title=desc?.previousElementSibling;if(entries.length){if(wrap)wrap.style.display='';if(desc?.classList.contains('trilho-descricao'))desc.style.display='';if(title?.classList.contains('choice-title'))title.style.display=''}else{if(wrap)wrap.style.display='none';if(desc?.classList.contains('trilho-descricao'))desc.style.display='none';if(title?.classList.contains('choice-title'))title.style.display='none';setState('trilho','Não')}}
-    const noProducts=!tissueNames.length,builder=$('.builder');if(builder)builder.classList.toggle('configurator-empty',noProducts);
-    let empty=$('#tenant-config-empty');if(noProducts&&!empty&&builder){empty=document.createElement('div');empty.id='tenant-config-empty';empty.className='empty';empty.textContent='Nenhum produto disponível neste configurador no momento.';builder.appendChild(empty)}if(empty)empty.style.display=noProducts?'':'none';
-    const next=$('.next'),buy=$('#comprar'),wa=$('#whatsapp');if(next)next.style.display=noProducts?'none':'';if(buy)buy.style.display=noProducts?'none':'';if(wa)wa.style.display=noProducts?'none':'';setSummaryVisible(!noProducts);
+    const builder=$('.builder');if(builder){builder.classList.remove('configurator-empty');const empty=$('#tenant-config-empty');if(empty)empty.style.display='none'}
     document.documentElement.dataset.tenantConfiguratorRuntime='1'
   }
   async function applyTenantIdentity(){
@@ -42,7 +57,7 @@
     }catch(e){console.error('[RADZ tenant identity]',e)}
   }
   function identity(){const layout=window.SALVATEX_LAYOUT;if(!layout)return;const media=$('.summary > h2');if(media&&layout.configuratorLabels?.mediaTitle)media.textContent=layout.configuratorLabels.mediaTitle}
-  function run(){render();identity();applyTenantIdentity();setTimeout(()=>{try{document.getElementById('recalcular')?.click()}catch{}},0)}
+  function run(){render();identity();applyTenantIdentity();if(Object.keys(window.CONFIG?.configuradorTecidos||{}).length)setTimeout(()=>{try{document.getElementById('recalcular')?.click()}catch{}},0)}
   Promise.resolve(window.CONFIG_READY).then(run).catch(run);
   window.addEventListener('salvatex:layout-ready',()=>{identity();render();applyTenantIdentity()});
   document.addEventListener('click',e=>{const card=e.target.closest('#tecidos-choice .card');if(!card)return;setTimeout(render,0)})
