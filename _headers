@@ -45,3 +45,9 @@
 
 /api/*
   Cache-Control: no-store
+
+/js/config.js
+  Cache-Control: no-store, no-cache, must-revalidate, max-age=0
+
+/js/pagina.js
+  Cache-Control: no-store, no-cache, must-revalidate, max-age=0
