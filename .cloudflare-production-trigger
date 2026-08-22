@@ -1,3 +1,3 @@
 RADZ HUB production deployment trigger — 2026-08-22
 Production branch: radz-unified-production
-Force index.html and configurator storefront pages to load the latest tenant-aware nav-publico.js and home-publico.js so Decor Sob Medida resolves to configurador.html?id=lona instead of pagina.html?slug=sob-medida: 2026-08-22T16:40-03:00
+Resolve generic Sob Medida pages to the single custom active tenant configurator when the saved page linkage is stale; Decor Sob Medida must open configurador.html?id=lona and home must load the new nav runtime: 2026-08-22T17:03-03:00
