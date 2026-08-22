@@ -1,3 +1,3 @@
 RADZ HUB production deployment trigger — 2026-08-22
 Production branch: radz-unified-production
-Force canonical storefront pages (Produtos, Sob Medida, Pronta Entrega) to render as product vitrines even if legacy page_type/configurator bindings are stale; list products automatically without touching configurator fabrics, linings, media, prices or rules: 2026-08-22T12:10-03:00
+Restore page-to-configurator routing by configurator_id, keep product pages separate from configurators, and restore desktop hover mega-menu for child pages/configurators without changing configurator products, fabrics, linings, media, prices or rules: 2026-08-22T12:35-03:00
