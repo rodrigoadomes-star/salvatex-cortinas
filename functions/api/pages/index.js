@@ -16,14 +16,7 @@ export async function onRequestGet(context){
     const where=[],binds=[];if(columns.has('store_id')){where.push(`${q('store_id')}=?1`);binds.push(storeId)}if(columns.has('active'))where.push(`${q('active')}=1`);
     const order=columns.has('nav_order')?`${q('nav_order')} ASC, ${q('title')} ASC`:`${q('title')} ASC`,sql=`SELECT ${selected.join(',')} FROM pages${where.length?` WHERE ${where.join(' AND ')}`:''} ORDER BY ${order}`;
     let stmt=context.env.DB.prepare(sql);if(binds.length)stmt=stmt.bind(...binds);const result=await stmt.all(),allowConfigurator=await configuratorEnabled(context.env.DB,storeId);
-    const pages=(result.results||[]).map(row=>{
-      const rawType=String(row.page_type||'conteudo');
-      const pageType=normalizePageType(rawType);
-      const configuratorId=String(row.configurator_id||legacyConfiguratorId(rawType)||'');
-      return {row,pageType,configuratorId};
-    }).filter(x=>allowConfigurator||x.pageType!=='configurador').map(({row,pageType,configuratorId})=>({
-      id:row.id,title:row.title,menuLabel:row.menu_label||row.title,slug:row.slug,pageType,configuratorId,heroImageUrl:row.hero_image_url||'',navGroup:normalizeNavGroup(row.nav_group||'oculto'),navOrder:Number(row.nav_order??100),navParentId:row.nav_parent_id||'',externalUrl:row.external_url||'',measures:parseJSON(row.measures_json,[]).map(measure=>({id:String(measure?.id||''),label:String(measure?.label||''),value:String(measure?.value||'')})).filter(measure=>measure.label),customMeasureUrl:row.custom_measure_url||''
-    }));
+    const pages=(result.results||[]).map(row=>{const rawType=String(row.page_type||'conteudo');const configuratorId=String(row.configurator_id||legacyConfiguratorId(rawType)||'');const pageType=configuratorId?'configurador':normalizePageType(rawType);return{row,pageType,configuratorId}}).filter(x=>allowConfigurator||x.pageType!=='configurador').map(({row,pageType,configuratorId})=>({id:row.id,title:row.title,menuLabel:row.menu_label||row.title,slug:row.slug,pageType,configuratorId,heroImageUrl:row.hero_image_url||'',navGroup:normalizeNavGroup(row.nav_group||'oculto'),navOrder:Number(row.nav_order??100),navParentId:row.nav_parent_id||'',externalUrl:row.external_url||'',measures:parseJSON(row.measures_json,[]).map(measure=>({id:String(measure?.id||''),label:String(measure?.label||''),value:String(measure?.value||'')})).filter(measure=>measure.label),customMeasureUrl:row.custom_measure_url||''}));
     return json({ok:true,pages},200,{'Cache-Control':'no-store'});
   }catch(error){console.error('public pages list error',error);return json({ok:false,message:'Não foi possível carregar as páginas'},500)}
 }
