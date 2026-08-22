@@ -752,94 +752,47 @@
 
 
       <!-- ===================================================
-           RESUMO DO PRODUTO
+           RESUMO CONFIGURAÇÃO
            =================================================== -->
 
       <div class="item">
-
-        <b>Modelo</b>
-
-        <span id="sum-modelo">
-          Wave
-        </span>
-
+        <b>Modelo:</b>
+        <span id="sum-modelo">—</span>
       </div>
 
-
       <div class="item">
-
-        <b>Tecido</b>
-
-        <span id="sum-tecido">
-          Gaze de Linho
-        </span>
-
+        <b>Tecido:</b>
+        <span id="sum-tecido">—</span>
       </div>
 
-
       <div class="item">
-
-        <b>Cor</b>
-
-        <span id="sum-cor">
-          Branco
-        </span>
-
+        <b>Cor:</b>
+        <span id="sum-cor">—</span>
       </div>
 
-
       <div class="item">
-
-        <b>Forro</b>
-
-        <span id="sum-forro">
-          Forro leve
-        </span>
-
+        <b>Forro:</b>
+        <span id="sum-forro">—</span>
       </div>
 
-
       <div class="item">
-
-        <b>Consumo de Tecido</b>
-
-        <span id="sum-medidas">
-          4,00 × 2,70 m
-        </span>
-
+        <b>Medidas:</b>
+        <span id="sum-medidas">—</span>
       </div>
 
-
       <div class="item">
-
-        <b>Franzimento</b>
-
-        <span id="sum-franz">
-          2x
-        </span>
-
+        <b>Franzimento:</b>
+        <span id="sum-franz">—</span>
       </div>
 
-
       <div class="item">
-
-        <b>Trilho / Varão</b>
-
-        <span id="sum-trilho">
-          Selecione uma opção
-        </span>
-
+        <b>Trilho / Varão:</b>
+        <span id="sum-trilho">—</span>
       </div>
 
-
       <div class="item">
-
-        <b>Barra</b>
-
-        <span id="sum-barra">
-          15 cm
-        </span>
-
+        <b>Barra:</b>
+        <span id="sum-barra">—</span>
       </div>
 
 
@@ -1099,64 +1052,34 @@
   </div>
 
 
-  <div class="fabric-grid">
-
-
-    <div class="fabric">
-
-      <label>
-        Gaze de Linho
-        <br>
-        Branco
-      </label>
-
-    </div>
-
-
-    <div class="fabric">
-
-      <label>
-        Gaze de Linho
-        <br>
-        Natural
-      </label>
-
-    </div>
-
-
-    <div class="fabric">
-
-      <label>
-        Linho Damasco
-        <br>
-        Off White
-      </label>
-
-    </div>
-
-
-    <div class="fabric">
-
-      <label>
-        Linho Damasco
-        <br>
-        Bege
-      </label>
-
-    </div>
-
-
-  </div>
+  <div
+    class="fabric-grid"
+    id="tecidos-grid"
+  ></div>
 
 
 </section>
 
 
+<!-- =========================================================
+     CONTEÚDO ADICIONAL
+     ========================================================= -->
+
+<section id="duvidas" class="faq">
+  <div class="kicker">Dúvidas frequentes</div>
+  <h3>Informações importantes</h3>
+  <div class="faq-grid">
+    <div><strong>Como funciona a medição?</strong><p>Informe as medidas solicitadas no configurador. Se necessário, nossa equipe confirma as medidas antes da produção.</p></div>
+    <div><strong>Qual o prazo?</strong><p>O prazo depende do produto e da região de entrega. Consulte no atendimento.</p></div>
+    <div><strong>Tem instalação?</strong><p>Quando disponível para sua região, a instalação pode ser contratada junto ao pedido.</p></div>
+  </div>
+</section>
+
 </main>
 
 
 <!-- =========================================================
-     MODAL — CONHECER TECIDO
+     MODAIS
      ========================================================= -->
 
 <div
@@ -1164,80 +1087,29 @@
   id="modal-cor"
   aria-hidden="true"
 >
-
-
-  <div
-    class="modal-cor-fundo"
-    id="modal-cor-fundo"
-  ></div>
-
-
+  <div class="modal-cor-fundo" id="modal-cor-fundo"></div>
   <div class="modal-cor-conteudo">
-
-
-    <button
-      type="button"
-      class="modal-cor-fechar"
-      id="modal-cor-fechar"
-      aria-label="Fechar galeria"
-    >
-      ×
-    </button>
-
-
+    <button type="button" class="modal-cor-fechar" id="modal-cor-fechar">×</button>
     <div class="modal-cor-cabecalho">
-
-      <span
-        class="modal-cor-tecido"
-        id="modal-cor-tecido"
-      >
-        Gaze de Linho
-      </span>
-
-
-      <h2 id="modal-cor-titulo">
-        Branco
-      </h2>
-
+      <span class="modal-cor-tecido" id="modal-cor-tecido"></span>
+      <h2 id="modal-cor-titulo"></h2>
     </div>
-
-
-    <div
-      class="modal-cor-galeria"
-      id="modal-cor-galeria"
-    ></div>
-
-
+    <div class="modal-cor-galeria" id="modal-cor-galeria"></div>
   </div>
-
 </div>
-
-
-<!-- =========================================================
-     MODAL — ZOOM
-     ========================================================= -->
 
 <div
   class="zoom-foto"
   id="zoom-foto"
   aria-hidden="true"
 >
-
-
-  <div
-    class="zoom-foto-fundo"
-    id="zoom-foto-fundo"
-  ></div>
-
-
+  <div class="zoom-foto-fundo" id="zoom-foto-fundo"></div>
   <div class="zoom-foto-conteudo">
-
-
     <button
       type="button"
       class="zoom-foto-fechar"
       id="zoom-foto-fechar"
-      aria-label="Fechar imagem ampliada"
+      aria-label="Fechar"
     >
       ×
     </button>
@@ -1339,8 +1211,8 @@
 <script src="js/app.js?v=midia-cores-r2-4"></script>
 
 
-<script src="js/nav-publico.js?v=mobile-20260815-2"></script>
-<script src="js/home-publico.js?v=tipos-pagina-1"></script>
+<script src="js/nav-publico.js?v=tenant-config-links-20260822-3"></script>
+<script src="js/home-publico.js?v=tenant-config-links-20260822-3"></script>
 <script src="js/marketing.js?v=final-20260814-1"></script>
 <script src="js/customer-account.js?v=final-20260814-1"></script>
 <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" async defer></script>
