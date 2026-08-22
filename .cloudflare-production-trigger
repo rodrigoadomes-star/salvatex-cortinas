@@ -1,3 +1,3 @@
 RADZ HUB production deployment trigger — 2026-08-22
 Production branch: radz-unified-production
-Fix public visibility of generic product pages and configurator-linked pages, add runtime configurator matching by page slug/title, and bust stale public page asset cache without changing configurator fabrics, linings, media, prices or rules: 2026-08-22T13:24-03:00
+Fix custom configurator IDs such as Lona, force product hub pages to render live catalog products, add client-side fallback configurator resolution by slug/title, and disable stale cache for tenant page/config scripts without changing configurator fabrics, linings, media, prices or rules: 2026-08-22T13:29-03:00
