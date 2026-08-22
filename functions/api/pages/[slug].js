@@ -4,10 +4,11 @@ import { normalizePageType,legacyConfiguratorId } from '../_page-schema.js';
 function parseJSON(value,fallback){try{return value?JSON.parse(value):fallback}catch{return fallback}}
 function productPublic(row){return{id:row.id,categoryId:row.category_id,categoryName:row.category_name||"",categorySlug:row.category_slug||"",name:row.name,slug:row.slug,sku:row.sku||"",productType:row.product_type,saleType:row.sale_type,configurator:row.configurator||"",description:row.description||"",basePriceCents:Number(row.base_price_cents||0),comparePriceCents:row.compare_price_cents==null?null:Number(row.compare_price_cents),stock:row.stock==null?null:Number(row.stock),trackStock:Boolean(row.track_stock),featured:Boolean(row.featured),imageUrl:row.image_url||"",images:parseJSON(row.images_json,[]),options:parseJSON(row.options_json,{}),metadata:parseJSON(row.metadata_json,{})}}
 async function configuratorEnabled(db,storeId){try{const row=await db.prepare(`SELECT pf.enabled FROM platform_company_stores pcs JOIN platform_features pf ON pf.company_id=pcs.company_id AND pf.feature_key='configurator' WHERE pcs.store_id=?1 LIMIT 1`).bind(storeId).first();return Number(row?.enabled)===1}catch{return false}}
+function isProductHub(page){const slug=String(page?.slug||'').trim().toLowerCase(),title=String(page?.title||'').trim().toLowerCase();return['produtos','products','catalogo','catalog'].includes(slug)||['produtos','products','catálogo','catalogo'].includes(title)}
 async function automaticProducts(db,storeId,page){
   const slug=String(page.slug||'').toLowerCase(),title=String(page.title||'').toLowerCase();
   const common=`SELECT p.*,c.name category_name,c.slug category_slug FROM products p LEFT JOIN categories c ON c.id=p.category_id AND c.store_id=p.store_id WHERE p.store_id=?1 AND p.active=1`;
-  if(['produtos','products','catalogo','catalog'].includes(slug)||['produtos','products','catálogo','catalogo'].includes(title)){const r=await db.prepare(`${common} ORDER BY p.featured DESC,p.name ASC LIMIT 100`).bind(storeId).all();return (r.results||[]).map(productPublic)}
+  if(isProductHub(page)){const r=await db.prepare(`${common} ORDER BY p.featured DESC,p.name ASC LIMIT 100`).bind(storeId).all();return (r.results||[]).map(productPublic)}
   const byCategory=await db.prepare(`${common} AND (LOWER(c.slug)=?2 OR LOWER(c.name)=?3) ORDER BY p.featured DESC,p.name ASC LIMIT 100`).bind(storeId,slug,title).all();return (byCategory.results||[]).map(productPublic)
 }
 export async function onRequestGet(context){
@@ -17,13 +18,15 @@ export async function onRequestGet(context){
     const page=await context.env.DB.prepare(`SELECT * FROM pages WHERE store_id=?1 AND slug=?2 AND active=1 LIMIT 1`).bind(storeId,slug).first();if(!page)return json({ok:false,message:"Página não encontrada"},404);
     const rawType=String(page.page_type||'conteudo');
     const boundConfigurator=String(page.configurator_id||legacyConfiguratorId(rawType)||'');
-    const pageType=boundConfigurator?'configurador':normalizePageType(rawType);
+    const productHub=!boundConfigurator&&isProductHub(page);
+    const pageType=boundConfigurator?'configurador':(productHub?'produtos':normalizePageType(rawType));
     const configuratorId=pageType==='configurador'?boundConfigurator:'';
     if(pageType==='configurador'&&!await configuratorEnabled(context.env.DB,storeId))return json({ok:false,code:'FEATURE_NOT_ENABLED',message:'Este recurso não está disponível nesta loja.'},404);
     const measuresRaw=parseJSON(page.measures_json,[]),pageIds=parseJSON(page.product_ids_json,[]).filter(Boolean),measureIds=Array.isArray(measuresRaw)?measuresRaw.flatMap(m=>Array.isArray(m?.productIds)?m.productIds:[]).filter(Boolean):[],ids=[...new Set([...pageIds,...measureIds].map(String))].slice(0,100);let products=[];
     if(pageType==='produtos'){
-      if(ids.length){const placeholders=ids.map((_,i)=>`?${i+2}`).join(',');const result=await context.env.DB.prepare(`SELECT p.*,c.name category_name,c.slug category_slug FROM products p LEFT JOIN categories c ON c.id=p.category_id AND c.store_id=p.store_id WHERE p.store_id=?1 AND p.active=1 AND p.id IN (${placeholders})`).bind(storeId,...ids).all();const byId=new Map((result.results||[]).map(x=>[String(x.id),x]));products=ids.map(id=>byId.get(String(id))).filter(Boolean).map(productPublic)}
+      if(ids.length&&!productHub){const placeholders=ids.map((_,i)=>`?${i+2}`).join(',');const result=await context.env.DB.prepare(`SELECT p.*,c.name category_name,c.slug category_slug FROM products p LEFT JOIN categories c ON c.id=p.category_id AND c.store_id=p.store_id WHERE p.store_id=?1 AND p.active=1 AND p.id IN (${placeholders})`).bind(storeId,...ids).all();const byId=new Map((result.results||[]).map(x=>[String(x.id),x]));products=ids.map(id=>byId.get(String(id))).filter(Boolean).map(productPublic)}
       else products=await automaticProducts(context.env.DB,storeId,page);
+      if(productHub&&products.length===0){const result=await context.env.DB.prepare(`SELECT p.*,c.name category_name,c.slug category_slug FROM products p LEFT JOIN categories c ON c.id=p.category_id AND c.store_id=p.store_id WHERE p.store_id=?1 AND p.active=1 ORDER BY p.featured DESC,p.name ASC LIMIT 100`).bind(storeId).all();products=(result.results||[]).map(productPublic)}
     }
     const measures=(Array.isArray(measuresRaw)?measuresRaw:[]).map(m=>({id:String(m?.id||''),label:String(m?.label||''),value:String(m?.value||''),productIds:Array.isArray(m?.productIds)?m.productIds.map(String):[]})).filter(m=>m.label);
     return json({ok:true,page:{id:page.id,title:page.title,menuLabel:page.menu_label||page.title,slug:page.slug,pageType,configuratorId,contentHtml:page.content_html||'',seoTitle:page.seo_title||'',seoDescription:page.seo_description||'',heroImageUrl:page.hero_image_url||'',measures,customMeasureUrl:page.custom_measure_url||'',externalUrl:page.external_url||''},products});
