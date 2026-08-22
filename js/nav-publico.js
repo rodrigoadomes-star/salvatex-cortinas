@@ -15,18 +15,14 @@
     button.setAttribute('aria-controls',links.id);links.addEventListener('click',event=>{if(event.target.closest('a')&&!event.target.closest('.nav-mega-arrow'))closeMobileMenu(nav)})
   }
   const esc=s=>String(s??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
-  function isProductHub(p){const slug=String(p.slug||'').toLowerCase();return slug==='produtos'||slug==='products'}
+  const slugify=v=>String(v||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'');
+  function isProductHub(p){const slug=slugify(p.slug);return slug==='produtos'||slug==='products'||slug==='catalogo'||slug==='catalog'}
   function pageUrl(p){
     if(p.pageType==='link'&&p.externalUrl)return p.externalUrl;
-    const cfg=String(p.configuratorId||'');
+    const cfg=String(p.configuratorId||'').trim();
     if(cfg&&!isProductHub(p)){
       if(cfg==='persiana')return 'configurador-persiana.html?id=persiana';
       return 'configurador.html?id='+encodeURIComponent(cfg);
-    }
-    if(p.pageType==='configurador'){
-      const id=String(p.configuratorId||'');
-      if(id==='persiana')return 'configurador-persiana.html?id=persiana';
-      return 'configurador.html?id='+encodeURIComponent(id);
     }
     return 'pagina.html?slug='+encodeURIComponent(p.slug);
   }
@@ -36,6 +32,15 @@
     return `<div class="nav-mega-item"><a class="nav-mega-trigger" href="${esc(pageUrl(parent))}">${esc(itemLabel(parent))} <span>⌄</span></a><div class="mega-menu mega-menu-generic"><div class="mega-main mega-main-full"><div class="mega-card-grid">${children.map(child=>`<a class="mega-product-card" href="${esc(pageUrl(child))}"><div class="mega-product-image">${child.heroImageUrl?`<img src="${esc(child.heroImageUrl)}" alt="${esc(child.title)}" loading="lazy">`:'<span>•</span>'}</div><div><strong>${esc(itemLabel(child))}</strong><small>${esc(child.title||'')}</small></div></a>`).join('')}</div></div></div></div>`;
   }
   function notify(pages,error=false){window.dispatchEvent(new CustomEvent('salvatex:navigation-ready',{detail:{pages:Array.isArray(pages)?pages:[],error:Boolean(error)}}));window.dispatchEvent(new CustomEvent('radz:navigation-ready',{detail:{pages:Array.isArray(pages)?pages:[],error:Boolean(error)}}))}
+  function resolveConfiguratorLinks(pages,configurators){
+    const cfgs=Array.isArray(configurators)?configurators:[];
+    return (Array.isArray(pages)?pages:[]).map(page=>{
+      if(isProductHub(page)||page.pageType==='link'||page.configuratorId)return page;
+      const keys=new Set([page.slug,page.title,page.menuLabel].map(slugify).filter(Boolean));
+      const match=cfgs.find(c=>[c.id,c.nome].map(slugify).some(k=>keys.has(k)));
+      return match?{...page,pageType:'configurador',configuratorId:match.id}:page;
+    });
+  }
   function build(pages){
     ensureMobileStyles();ensureDesktopMegaStyles();
     const visible=(Array.isArray(pages)?pages:[]).filter(p=>p.navGroup==='principal').sort((a,b)=>(a.navOrder||100)-(b.navOrder||100)||String(a.title||'').localeCompare(String(b.title||'')));
@@ -50,7 +55,19 @@
     });
     notify(pages,false);
   }
-  async function load(){try{const r=await fetch('/api/pages',{cache:'no-store'}),d=await r.json().catch(()=>({}));if(!r.ok||!d.ok)throw new Error(d.message||'Falha ao carregar páginas');build(Array.isArray(d.pages)?d.pages:[])}catch(err){console.warn('Navegação dinâmica indisponível:',err);notify([],true)}}
+  async function load(){
+    try{
+      const [pagesRes,cfgRes]=await Promise.all([
+        fetch('/api/pages?ts='+Date.now(),{cache:'no-store'}),
+        fetch('/api/configurators?ts='+Date.now(),{cache:'no-store'})
+      ]);
+      const pagesData=await pagesRes.json().catch(()=>({}));
+      const cfgData=await cfgRes.json().catch(()=>({}));
+      if(!pagesRes.ok||!pagesData.ok)throw new Error(pagesData.message||'Falha ao carregar páginas');
+      const pages=resolveConfiguratorLinks(Array.isArray(pagesData.pages)?pagesData.pages:[],cfgRes.ok&&cfgData.ok?cfgData.configurators:[]);
+      build(pages);
+    }catch(err){console.warn('Navegação dinâmica indisponível:',err);notify([],true)}
+  }
   document.addEventListener('click',e=>{if(!e.target.closest('.nav-mega-item'))document.querySelectorAll('.nav-mega-item.open').forEach(x=>x.classList.remove('open'));if(!e.target.closest('.storefront-topbar,.topbar'))document.querySelectorAll('.nav.mobile-menu-open').forEach(closeMobileMenu)});
   document.addEventListener('keydown',event=>{if(event.key==='Escape')document.querySelectorAll('.nav.mobile-menu-open').forEach(closeMobileMenu)});
   window.addEventListener('resize',()=>{if(window.innerWidth>900)document.querySelectorAll('.nav.mobile-menu-open').forEach(closeMobileMenu)});
