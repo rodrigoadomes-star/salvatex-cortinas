@@ -1,3 +1,3 @@
-RADZ HUB production deployment trigger — 2026-08-21
+RADZ HUB production deployment trigger — 2026-08-22
 Production branch: radz-unified-production
-Repair legacy page types so product pages become storefronts and blank custom-made pages bind to an active configurator without changing configurator fabrics, linings, media or pricing: 2026-08-21T15:32-03:00
+Simplify page and menu editor: destination first, contextual fields only, menu settings separated, technical fields moved to advanced settings. Configurator products, fabrics, linings, media, prices and calculation rules remain untouched: 2026-08-22T11:40-03:00
