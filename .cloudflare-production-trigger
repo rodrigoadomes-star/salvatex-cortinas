@@ -1,3 +1,3 @@
 RADZ HUB production deployment trigger — 2026-08-22
 Production branch: radz-unified-production
-Force canonical product/catalog pages to load live tenant catalog before legacy page metadata, resolve any active configurator directly by slug/name before loading legacy page content, and refresh custom configurator runtime cache: 2026-08-22T15:45-03:00
+Fix public navigation so legacy generic pages such as slug=lona resolve directly to the matching active tenant configurator instead of pagina.html; keep product hub pages unchanged: 2026-08-22T15:55-03:00
