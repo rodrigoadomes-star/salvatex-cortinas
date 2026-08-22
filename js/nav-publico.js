@@ -16,7 +16,9 @@
   }
   const esc=s=>String(s??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
   const slugify=v=>String(v||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'');
+  const LEGACY_CONFIG_IDS=new Set(['wave','prega-macho','cortina-varao','persiana']);
   function isProductHub(p){const slug=slugify(p.slug);return slug==='produtos'||slug==='products'||slug==='catalogo'||slug==='catalog'}
+  function isGenericCustomConfiguratorPage(p){const keys=[p?.slug,p?.title,p?.menuLabel].map(slugify);return keys.some(k=>['sob-medida','sobmedida','personalizado','personalizados','customizado','customizados'].includes(k))}
   function pageUrl(p){
     if(p.pageType==='link'&&p.externalUrl)return p.externalUrl;
     const cfg=String(p.configuratorId||'').trim();
@@ -33,11 +35,13 @@
   }
   function notify(pages,error=false){window.dispatchEvent(new CustomEvent('salvatex:navigation-ready',{detail:{pages:Array.isArray(pages)?pages:[],error:Boolean(error)}}));window.dispatchEvent(new CustomEvent('radz:navigation-ready',{detail:{pages:Array.isArray(pages)?pages:[],error:Boolean(error)}}))}
   function resolveConfiguratorLinks(pages,configurators){
-    const cfgs=Array.isArray(configurators)?configurators:[];
+    const cfgs=Array.isArray(configurators)?configurators.filter(c=>c&&c.ativo!==false):[];
+    const customCfgs=cfgs.filter(c=>!LEGACY_CONFIG_IDS.has(slugify(c.id)));
     return (Array.isArray(pages)?pages:[]).map(page=>{
       if(isProductHub(page)||page.pageType==='link'||page.configuratorId)return page;
       const keys=new Set([page.slug,page.title,page.menuLabel].map(slugify).filter(Boolean));
-      const match=cfgs.find(c=>[c.id,c.nome].map(slugify).some(k=>keys.has(k)));
+      let match=cfgs.find(c=>[c.id,c.nome].map(slugify).some(k=>keys.has(k)));
+      if(!match&&isGenericCustomConfiguratorPage(page)&&customCfgs.length===1)match=customCfgs[0];
       return match?{...page,pageType:'configurador',configuratorId:match.id}:page;
     });
   }
@@ -57,9 +61,10 @@
   }
   async function load(){
     try{
+      const stamp=Date.now();
       const [pagesRes,cfgRes]=await Promise.all([
-        fetch('/api/pages?ts='+Date.now(),{cache:'no-store'}),
-        fetch('/api/configurators?ts='+Date.now(),{cache:'no-store'})
+        fetch('/api/pages?ts='+stamp,{cache:'no-store'}),
+        fetch('/api/configurators?ts='+stamp,{cache:'no-store'})
       ]);
       const pagesData=await pagesRes.json().catch(()=>({}));
       const cfgData=await cfgRes.json().catch(()=>({}));
