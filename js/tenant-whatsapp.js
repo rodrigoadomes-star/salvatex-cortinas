@@ -13,7 +13,7 @@
     const name=text(config.storeName||config.name||location.hostname.split('.')[0]||'Loja'),logoUrl=layout?.branding?.logo||config.logo||'';
     document.querySelectorAll('.storefront-topbar .logo').forEach(logo=>{logo.href='/';if(logoUrl)logo.innerHTML=`<img src="${esc(logoUrl)}" alt="${esc(name)}">`;else{logo.innerHTML='';logo.textContent=name.toUpperCase();}});
     const navLayout=layout?.navigation||config.navigation||{},pages=Array.isArray(pagesData?.pages)?pagesData.pages:[],main=pages.filter(p=>['principal','cortinas_sob_medida','persianas_sob_medida','pronta_entrega'].includes(p.navGroup||p.nav_group)).sort((a,b)=>Number(a.navOrder||a.nav_order||100)-Number(b.navOrder||b.nav_order||100));
-    document.querySelectorAll('.storefront-topbar .navlinks').forEach(nav=>{const menu=main.map(p=>`<a class="page-nav-link" href="${esc(pageHref(p))}">${esc(p.menuLabel||p.menu_label||p.title||'Página')}</a>`).join('');nav.innerHTML=menu+`<a href="/#contato">${esc(navLayout.contactLabel||'Contato')}</a><a href="/minha-conta.html">${esc(navLayout.accountLabel||'Minha conta')}</a>`;});
+    window.RADZ_RELOAD_NAV?.();
     document.querySelectorAll('.carrinho-link-topo').forEach(a=>{a.href='/carrinho.html';const x=a.querySelector('.carrinho-texto');if(x)x.textContent=navLayout.cartLabel||'Carrinho';});
   }
   function reapplyChrome(){if(tenantState)setTimeout(()=>applyTenantChrome(tenantState.layout,tenantState.config,tenantState.pagesData),0)}
