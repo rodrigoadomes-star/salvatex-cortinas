@@ -1,6 +1,7 @@
 import { json } from "../_lib.js";
 import { requirePublicStore } from "../_tenant.js";
 import { normalizePageType,normalizeNavGroup,legacyConfiguratorId,repairLegacyGenericPages } from '../_page-schema.js';
+import { configuratorsByPage,normalizeConfiguratorItems } from '../_page-configurators.js';
 function parseJSON(value,fallback){try{return value?JSON.parse(value):fallback}catch{return fallback}}
 function q(name){return `"${String(name).replaceAll('"','""')}"`}
 async function configuratorEnabled(db,storeId){try{const row=await db.prepare(`SELECT pf.enabled FROM platform_company_stores pcs JOIN platform_features pf ON pf.company_id=pcs.company_id AND pf.feature_key='configurator' WHERE pcs.store_id=?1 LIMIT 1`).bind(storeId).first();return Number(row?.enabled)===1}catch{return false}}
@@ -15,8 +16,9 @@ export async function onRequestGet(context){
     const selected=[q('id'),q('title'),q('slug'),optional('page_type',"'conteudo'"),optional('hero_image_url',"''"),optional('measures_json',"'[]'"),optional('custom_measure_url',"''"),optional('nav_group',"'oculto'"),optional('nav_order','100'),optional('menu_label',"''"),optional('external_url',"''"),optional('nav_parent_id','NULL'),optional('configurator_id','NULL'),optional('active','1')];
     const where=[],binds=[];if(columns.has('store_id')){where.push(`${q('store_id')}=?1`);binds.push(storeId)}if(columns.has('active'))where.push(`${q('active')}=1`);
     const order=columns.has('nav_order')?`${q('nav_order')} ASC, ${q('title')} ASC`:`${q('title')} ASC`,sql=`SELECT ${selected.join(',')} FROM pages${where.length?` WHERE ${where.join(' AND ')}`:''} ORDER BY ${order}`;
-    let stmt=context.env.DB.prepare(sql);if(binds.length)stmt=stmt.bind(...binds);const result=await stmt.all(),allowConfigurator=await configuratorEnabled(context.env.DB,storeId);
-    const pages=(result.results||[]).map(row=>{const raw=String(row.page_type||'conteudo'),cfg=String(row.configurator_id||legacyConfiguratorId(raw)||'').trim(),type=cfg?'configurador':normalizePageType(raw);return{row,type,cfg}}).filter(x=>allowConfigurator||x.type!=='configurador').map(({row,type,cfg})=>({id:row.id,title:row.title,menuLabel:row.menu_label||row.title,slug:row.slug,pageType:type,configuratorId:cfg,heroImageUrl:row.hero_image_url||'',navGroup:normalizeNavGroup(row.nav_group||'oculto'),navOrder:Number(row.nav_order??100),navParentId:row.nav_parent_id||'',externalUrl:row.external_url||'',measures:parseJSON(row.measures_json,[]),customMeasureUrl:row.custom_measure_url||''}));
+    let stmt=context.env.DB.prepare(sql);if(binds.length)stmt=stmt.bind(...binds);const result=await stmt.all(),allowConfigurator=await configuratorEnabled(context.env.DB,storeId),rows=result.results||[],byPage=allowConfigurator?await configuratorsByPage(context.env.DB,storeId,rows.map(row=>row.id),{activeOnly:true}):new Map();
+    const pages=rows.map(row=>{const raw=String(row.page_type||'conteudo'),cfg=String(row.configurator_id||legacyConfiguratorId(raw)||'').trim(),items=normalizeConfiguratorItems(byPage.get(String(row.id))||[],cfg,row.title),type=items.length?'configurador':normalizePageType(raw);return{row,type,cfg:items[0]?.configuratorId||cfg,items}}).filter(x=>allowConfigurator||x.type!=='configurador').map(({row,type,cfg,items})=>({id:row.id,title:row.title,menuLabel:row.menu_label||row.title,slug:row.slug,pageType:type,configuratorId:cfg,configurators:items,heroImageUrl:row.hero_image_url||'',navGroup:normalizeNavGroup(row.nav_group||'oculto'),navOrder:Number(row.nav_order??100),navParentId:row.nav_parent_id||'',externalUrl:row.external_url||'',measures:parseJSON(row.measures_json,[]),customMeasureUrl:row.custom_measure_url||''}));
     return json({ok:true,pages},200,{'Cache-Control':'no-store'});
   }catch(error){console.error('public pages list error',error);return json({ok:false,message:'Não foi possível carregar as páginas'},500)}
 }
+

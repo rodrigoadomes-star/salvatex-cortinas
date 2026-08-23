@@ -29,7 +29,7 @@
     };
   }
 
-  if(typeof renderPages==='function'&&typeof pageForm==='function'){
+  if(typeof renderPages==='function'&&typeof pageForm==='function'&&!window.RADZ_MULTI_CONFIGURATOR_PAGES){
     renderPages=async function(){
       const [d,p]=await Promise.all([api('pages'),api('catalog/products')]);ADMIN.cache.pageProducts=p.products||[];const c=document.getElementById('view-content');
       const typeName=x=>x==='produtos'?'Vitrine de produtos':x==='link'?'Link':x&&x.startsWith('configurador_')?'Configurador':'Conteúdo';
@@ -55,3 +55,4 @@
     };
   }
 })();
+

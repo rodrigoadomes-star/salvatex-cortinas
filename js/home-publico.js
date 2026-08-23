@@ -3,9 +3,11 @@
   function url(p){
     if(p.pageType==='link'&&p.externalUrl)return p.externalUrl;
     if(p.pageType==='configurador'){
-      const id=String(p.configuratorId||'');
-      if(id==='persiana')return '/configurador-persiana?id=persiana';
-      return '/configurador?id='+encodeURIComponent(id);
+      const items=Array.isArray(p.configurators)?p.configurators.filter(item=>item&&item.active!==false&&item.configuratorId):[];
+      if(items.length!==1)return '/pagina.html?slug='+encodeURIComponent(p.slug||'');
+      const id=String(items[0].configuratorId||p.configuratorId||'');
+      if(id==='persiana')return '/configurador-persiana.html?id=persiana';
+      return '/configurador.html?id='+encodeURIComponent(id);
     }
     return '/pagina?slug='+encodeURIComponent(p.slug);
   }
@@ -26,3 +28,4 @@
   window.addEventListener('salvatex:navigation-ready',e=>{if(!window.RADZ_RELOAD_NAV)render(e.detail?.pages||[],{error:Boolean(e.detail?.error)})});
   setTimeout(()=>{const grid=document.getElementById('home-collections-grid');if(grid&&/Carregando opções/i.test(grid.textContent||''))render([],{error:true})},5000);
 })();
+

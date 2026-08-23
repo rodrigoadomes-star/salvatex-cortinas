@@ -3,7 +3,7 @@ const escProduto = s => String(s??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&
 let produtoAtual=null;
 
 function atualizarContadorProduto(){const el=document.getElementById('contador-carrinho');if(!el)return;try{const c=JSON.parse(localStorage.getItem('salvatexCarrinho')||'[]');const q=Array.isArray(c)?c.reduce((s,i)=>s+Number(i.quantidade||1),0):0;el.textContent=q;el.style.display=q?'flex':'none'}catch{el.style.display='none'}}
-function rotaConfigurador(p){const map={wave:'index.html#configurador',ilhos:'index.html#configurador',prega_macho:'index.html#configurador',persiana:'index.html#configurador'};return map[p.configurator]||'index.html#configurador'}
+function rotaConfigurador(p){const id=String(p?.configurator||'').trim().toLowerCase().replaceAll('_','-');if(!id)return '/';return id==='persiana'?`/configurador-persiana.html?id=${encodeURIComponent(id)}`:`/configurador.html?id=${encodeURIComponent(id)}`}
 
 function adicionarProntaEntrega(){
   const p=produtoAtual;
@@ -58,3 +58,4 @@ async function carregarProduto(){
 }
 
 document.addEventListener('DOMContentLoaded',()=>{atualizarContadorProduto();carregarProduto()});
+
