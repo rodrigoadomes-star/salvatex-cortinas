@@ -6,7 +6,7 @@
   const $=(s,r=document)=>r.querySelector(s);
   const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   async function j(url){const r=await fetch(url,{cache:'no-store',credentials:'same-origin'});const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error('Falha '+r.status);return d}
-  function pageHref(p){const t=String(p?.pageType||'');if(t==='configurador_wave')return '/configurador?id=wave';if(t==='configurador_prega_macho')return '/configurador?id=prega-macho';if(t==='configurador_ilhos')return '/configurador?id=cortina-varao';if(t==='configurador_persiana')return '/configurador-persiana?id=persiana';if(t==='link'&&p.externalUrl)return p.externalUrl;return `/pagina.html?slug=${encodeURIComponent(p.slug||'')}`}
+  function pageHref(p){if(p?.pageType==='link'&&p.externalUrl)return p.externalUrl;if(p?.pageType==='configurador'){const items=Array.isArray(p.configurators)?p.configurators.filter(x=>x&&x.active!==false&&x.configuratorId):[];const id=items.length===1?items[0].configuratorId:p.configuratorId;if(items.length<=1&&id)return id==='persiana'?'/configurador-persiana.html?id=persiana':'/configurador.html?id='+encodeURIComponent(id)}return `/pagina.html?slug=${encodeURIComponent(p?.slug||'')}`}
   function brandName(config){return String(config.storeName||config.name||config.tradeName||location.hostname.split('.')[0]||'Loja').trim()}
   function applyBrand(config,layout){
     const name=brandName(config),logoUrl=layout?.branding?.logo||config.logo||'';

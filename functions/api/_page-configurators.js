@@ -35,8 +35,8 @@ export async function validateStoreConfigurators(db,storeId,items){
   if(!items.length)return true;
   const keys=items.map(item=>'configurator_'+item.configuratorId.replaceAll('-','_'));
   const placeholders=keys.map((_,index)=>`?${index+2}`).join(',');
-  const rows=await db.prepare(`SELECT config_key FROM store_configs WHERE store_id=?1 AND config_key IN (${placeholders})`).bind(storeId,...keys).all();
-  const found=new Set((rows.results||[]).map(row=>String(row.config_key)));
+  const rows=await db.prepare(`SELECT config_key,value_json FROM store_configs WHERE store_id=?1 AND config_key IN (${placeholders})`).bind(storeId,...keys).all();
+  const found=new Set((rows.results||[]).filter(row=>{try{return JSON.parse(row.value_json||'{}')._deleted!==true}catch{return false}}).map(row=>String(row.config_key)));
   return keys.every(key=>found.has(key));
 }
 
