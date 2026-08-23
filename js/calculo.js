@@ -72,18 +72,29 @@ function calcularOrcamento(dados) {
   // DADOS BÁSICOS
   // ==========================================================
 
-  const largura =
-    Math.max(
-      0.5,
-      Number(dados.largura) || 0
-    );
+  const largura = Number(dados.largura);
 
 
-  const altura =
-    Math.max(
-      0.5,
-      Number(dados.altura) || 0
-    );
+  const altura = Number(dados.altura);
+
+  const larguraMinima = Number(CONFIG.configurador?.medidas?.larguraMinima ?? 0.5);
+  const larguraMaxima = Number(CONFIG.configurador?.medidas?.larguraMaxima ?? 12);
+  const alturaMinima = Number(CONFIG.configurador?.medidas?.alturaMinima ?? 0.5);
+
+  if (
+    !Number.isFinite(largura) ||
+    !Number.isFinite(altura) ||
+    largura < larguraMinima ||
+    largura > larguraMaxima ||
+    altura < alturaMinima ||
+    altura > Number(CONFIG.altura.alturaEntradaMaxima || 5)
+  ) {
+    return {
+      erro: true,
+      sobConsulta: false,
+      mensagem: `Informe medidas válidas: largura entre ${larguraMinima.toFixed(2).replace('.', ',')} m e ${larguraMaxima.toFixed(2).replace('.', ',')} m, e altura entre ${alturaMinima.toFixed(2).replace('.', ',')} m e ${Number(CONFIG.altura.alturaEntradaMaxima || 5).toFixed(2).replace('.', ',')} m.`
+    };
+  }
 
 
   const franzimento =

@@ -2,6 +2,7 @@ import {json,cents,safeJson,cleanText,validCpf,createOrderNumber,normalizeOrder}
 import {readSession} from "../_customer-auth.js";
 import {bodyWithin,requireTurnstile,sameOrigin} from "../_security.js";
 import {requirePublicStore} from "../_tenant.js";
+import {validateCurtainItems} from "../../_curtain-pricing.js";
 
 async function validateCatalogItems(db,storeId,items){
   const ids=[];
@@ -33,7 +34,7 @@ export async function onRequestPost(context){
   const tenant=await requirePublicStore(context,json);if(!tenant.ok)return tenant.response;const storeId=tenant.storeId;
   let payload;try{payload=await context.request.json()}catch{return json({ok:false,message:"JSON inválido."},400)}
   const turnstile=await requireTurnstile(context,payload.turnstileToken);if(!turnstile.ok)return turnstile.response;
-  let order;try{order=normalizeOrder(payload);await validateCatalogItems(context.env.DB,storeId,order.items)}catch(error){return json({ok:false,message:error.message||"Pedido inválido."},400)}
+  let order;try{order=normalizeOrder(payload);await validateCatalogItems(context.env.DB,storeId,order.items);await validateCurtainItems(context.env.DB,storeId,order.items)}catch(error){return json({ok:false,message:error.message||"Pedido inválido."},400)}
   const db=context.env.DB,now=new Date().toISOString(),session=await readSession(context);
   try{
     const existing=await db.prepare(`SELECT id,order_number,status,created_at,customer_email FROM orders WHERE client_reference=?1 AND store_id=?2 LIMIT 1`).bind(order.clientReference,storeId).first();

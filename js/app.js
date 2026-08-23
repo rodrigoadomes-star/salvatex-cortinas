@@ -3769,7 +3769,7 @@ function adicionarAoCarrinho() {
           "sob_medida",
 
         configurador:
-          "cortina",
+          String(CONFIG.configurador?.id || "wave"),
 
         sku:
           "CORTINA-" +
@@ -3826,7 +3826,7 @@ function adicionarAoCarrinho() {
 
           {
             rotulo:
-              "Forro",
+              CONFIG.labels?.liningLabel || "Opção",
 
             valor:
               dados.forro
@@ -3981,7 +3981,7 @@ function adicionarAoCarrinho() {
             "sob_medida",
 
           configurador:
-            "complemento_cortina",
+            String(CONFIG.configurador?.id || "wave"),
 
           sku:
             "TRILHO-" +
@@ -4789,7 +4789,14 @@ function montarOpcoesConfiguradorWave() {
 
   const altura = document.getElementById("altura");
   if (altura) {
+    altura.min = String(CONFIG.configurador?.medidas?.alturaMinima ?? 0.5);
     altura.max = String(CONFIG.altura.alturaEntradaMaxima || Math.max(5, CONFIG.altura.calculoMaximo || 3.2));
+  }
+
+  const largura = document.getElementById("largura");
+  if (largura) {
+    largura.min = String(CONFIG.configurador?.medidas?.larguraMinima ?? 0.5);
+    largura.max = String(CONFIG.configurador?.medidas?.larguraMaxima ?? 12);
   }
 
   const ajudaAltura = document.querySelector('label[for="altura"]')?.closest('.field')?.querySelector('.field-help');
@@ -4819,6 +4826,12 @@ async function iniciarAplicacaoSalvatex() {
 
     }
 
+  }
+
+  if (String(CONFIG.configurador?.tipo || "cortina") !== "cortina") {
+    const root = document.getElementById("configurador");
+    if (root) root.innerHTML = '<div class="empty-state"><h2>Configurador em preparação</h2><p>Este tipo de produto ainda não está disponível para configuração automática.</p></div>';
+    return;
   }
 
 
