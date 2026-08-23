@@ -250,3 +250,18 @@ VALUES
 INSERT OR IGNORE INTO store_configs (store_id, config_key, value_json, updated_at)
 VALUES ('salvatex','site_config',
 '{"whatsapp":"5544998793160","parcelas":10,"freteGratisMinimo":500,"producao":"5 a 10 dias úteis","entrega":"6 a 12 dias úteis após o envio","altura":{"calculoMaximo":3.2,"inicioAcrescimo":2.8,"acrescimoApos280":0.25},"barra":{"faixasSemAcrescimo":[{"ate":2.6,"tamanho":20},{"ate":2.7,"tamanho":15},{"ate":2.75,"tamanho":10},{"ate":2.8,"tamanho":5}],"acimaDe280":20},"instalacao":{"Varão Wave Deslizante - Aço Escovado":{"valorMetro":116,"minimo":116},"Varão Wave Deslizante - Branco":{"valorMetro":116,"minimo":116},"Varão Wave Deslizante - Cromado":{"valorMetro":95,"minimo":95},"Varão Wave Deslizante - Preto":{"valorMetro":116,"minimo":116},"Trilho Suíço - Branco":{"valorMetro":74,"minimo":85},"Varão Wave Deslizante Duplo - Cromado":{"valorMetro":163,"minimo":163},"Trilho Suíço Duplo - Branco":{"valorMetro":110,"minimo":110}},"cores":{"Gaze de Linho":["Branco","Bege","Cinza","Off White","Natural"],"Linho Damasco":["Natural","Branco","Bege","Off White","Grafite"]},"precos":{"Gaze de Linho":{"Sem forro":121,"Forro leve":142,"Forro Peletizado 50%":163,"Blackout 80%":173,"Blackout 100%":189},"Linho Damasco":{"Sem forro":158,"Forro leve":179,"Forro Peletizado 50%":221,"Blackout 80%":226,"Blackout 100%":247}}}', datetime('now'));
+CREATE TABLE IF NOT EXISTS page_configurators (
+  page_id TEXT NOT NULL,
+  store_id TEXT NOT NULL,
+  configurator_id TEXT NOT NULL,
+  menu_label TEXT NOT NULL DEFAULT '',
+  sort_order INTEGER NOT NULL DEFAULT 100,
+  active INTEGER NOT NULL DEFAULT 1,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  PRIMARY KEY(page_id, configurator_id),
+  FOREIGN KEY(page_id) REFERENCES pages(id) ON DELETE CASCADE,
+  FOREIGN KEY(store_id) REFERENCES stores(id) ON DELETE CASCADE
+);
+CREATE INDEX IF NOT EXISTS idx_page_configurators_store_page ON page_configurators(store_id,page_id,sort_order);
+
