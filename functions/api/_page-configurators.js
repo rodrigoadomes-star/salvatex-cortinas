@@ -24,10 +24,10 @@ export function normalizeConfiguratorItems(value,fallbackId='',fallbackLabel='')
     const raw=source[index]||{},id=String(raw.configuratorId||raw.id||'').trim().toLowerCase();
     if(!VALID_ID.test(id)||seen.has(id))continue;
     seen.add(id);
-    items.push({configuratorId:id,menuLabel:String(raw.menuLabel||raw.label||'').trim().slice(0,120),sortOrder:Number.isFinite(Number(raw.sortOrder))?Math.round(Number(raw.sortOrder)):((index+1)*10),active:raw.active===false?false:true});
+    items.push({configuratorId:id,menuLabel:String(raw.menuLabel||raw.label||'').trim().slice(0,120),sortOrder:Number.isFinite(Number(raw.sortOrder))?Math.round(Number(raw.sortOrder)):((index+1)*10),active:raw.active===false?false:true,imageUrl:String(raw.imageUrl||'').trim().slice(0,1000)});
   }
   const legacy=String(fallbackId||'').trim().toLowerCase();
-  if(!items.length&&VALID_ID.test(legacy))items.push({configuratorId:legacy,menuLabel:String(fallbackLabel||'').trim().slice(0,120),sortOrder:10,active:true});
+  if(!items.length&&VALID_ID.test(legacy))items.push({configuratorId:legacy,menuLabel:String(fallbackLabel||'').trim().slice(0,120),sortOrder:10,active:true,imageUrl:''});
   return items;
 }
 
@@ -52,8 +52,16 @@ export async function configuratorsByPage(db,storeId,pageIds,{activeOnly=false}=
   await ensurePageConfiguratorSchema(db);
   const ids=[...new Set(pageIds.map(String))].slice(0,200),placeholders=ids.map((_,index)=>`?${index+2}`).join(',');
   const rows=await db.prepare(`SELECT page_id,configurator_id,menu_label,sort_order,active FROM page_configurators WHERE store_id=?1 AND page_id IN (${placeholders})${activeOnly?' AND active=1':''} ORDER BY page_id,sort_order,menu_label,configurator_id`).bind(storeId,...ids).all();
+  const resultRows=rows.results||[],configuratorIds=[...new Set(resultRows.map(row=>String(row.configurator_id)).filter(id=>VALID_ID.test(id)))],images=new Map();
+  if(configuratorIds.length){
+    const keys=configuratorIds.map(id=>'configurator_'+id.replaceAll('-','_')),keyPlaceholders=keys.map((_,index)=>`?${index+2}`).join(',');
+    const configs=await db.prepare(`SELECT config_key,value_json FROM store_configs WHERE store_id=?1 AND config_key IN (${keyPlaceholders})`).bind(storeId,...keys).all();
+    for(const row of configs.results||[]){try{const cfg=JSON.parse(row.value_json||'{}'),id=String(cfg.id||row.config_key.replace('configurator_','').replaceAll('_','-')),media=Array.isArray(cfg.midia)?cfg.midia:[],entry=media.find(item=>item&&item.ativo!==false&&(item.capa||item.imagem||item.imageUrl||(Array.isArray(item.imagens)&&item.imagens.length)));if(entry){const url=String(entry.capa||entry.imagem||entry.imageUrl||entry.imagens?.[0]||'').trim();if(url)images.set(id,url.slice(0,1000))}}catch{}}
+    const missing=configuratorIds.filter(id=>!images.has(id));
+    if(missing.length){const productPlaceholders=missing.map((_,index)=>`?${index+2}`).join(','),products=await db.prepare(`SELECT configurator,image_url FROM products WHERE store_id=?1 AND active=1 AND configurator IN (${productPlaceholders}) AND image_url IS NOT NULL AND image_url<>'' ORDER BY featured DESC,updated_at DESC`).bind(storeId,...missing).all();for(const row of products.results||[]){const id=String(row.configurator||''),url=String(row.image_url||'').trim();if(url&&!images.has(id))images.set(id,url.slice(0,1000))}}
+  }
   const map=new Map();
-  for(const row of rows.results||[]){const list=map.get(String(row.page_id))||[];list.push({configuratorId:String(row.configurator_id),menuLabel:String(row.menu_label||row.configurator_id),sortOrder:Number(row.sort_order||100),active:Number(row.active)===1});map.set(String(row.page_id),list)}
+  for(const row of resultRows){const id=String(row.configurator_id),list=map.get(String(row.page_id))||[];list.push({configuratorId:id,menuLabel:String(row.menu_label||id),sortOrder:Number(row.sort_order||100),active:Number(row.active)===1,imageUrl:images.get(id)||''});map.set(String(row.page_id),list)}
   return map;
 }
 
