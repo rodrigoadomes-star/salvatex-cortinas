@@ -1,5 +1,9 @@
 (function(){
 
+  const currentHost=String(location.hostname||'').toLowerCase();
+  const isGenericTenant=currentHost.endsWith('.radzhub.com.br')&&currentHost!=='salvatex.radzhub.com.br'&&currentHost!=='radzhub.com.br'&&currentHost!=='www.radzhub.com.br';
+  if(isGenericTenant)return;
+
   const DEFAULTS={
     header:{
       logoText:"SALVATEX",

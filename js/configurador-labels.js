@@ -12,7 +12,7 @@
     text(document.querySelector('label[for="largura"]'),l.widthLabel);
     text(document.querySelector('label[for="altura"]'),l.heightLabel);
     const choiceTitles=[...document.querySelectorAll('.choice-title')];
-    const values=[l.modelLabel,l.fabricLabel,l.liningLabel,l.colorLabel,l.trackLabel];
+    const values=[l.modelLabel,l.fabricLabel,l.colorLabel,l.liningLabel,l.trackLabel];
     values.forEach((v,i)=>text(choiceTitles[i],v));
     const summary=document.querySelector('.pricebox small,.summary .summary-title,[data-summary-title]');
     text(summary,l.summaryTitle);

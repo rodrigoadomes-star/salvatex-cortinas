@@ -64,7 +64,7 @@ window.CONFIG_READY = (async () => {
 
 if (!document.querySelector("script[data-radz-configurator-labels]")) {
   const script = document.createElement("script");
-  script.src = "/js/configurador-labels.js?v=20260820-1";
+  script.src = "/js/configurador-labels.js?v=identity-stable-20260823-1";
   script.dataset.radzConfiguratorLabels = "1";
   document.head.appendChild(script);
 }

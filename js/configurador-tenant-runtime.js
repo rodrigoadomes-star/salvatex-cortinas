@@ -69,8 +69,8 @@
     }catch(e){console.error('[RADZ tenant identity]',e)}
   }
   function identity(){const layout=window.SALVATEX_LAYOUT;if(!layout)return;const media=$('.summary > h2');if(media&&layout.configuratorLabels?.mediaTitle)media.textContent=layout.configuratorLabels.mediaTitle}
-  function run(){render();identity();applyTenantIdentity();if(Object.keys(window.CONFIG?.configuradorTecidos||{}).length)setTimeout(()=>{try{document.getElementById('recalcular')?.click()}catch{}},0)}
+  function run(){render();identity();if(Object.keys(window.CONFIG?.configuradorTecidos||{}).length)setTimeout(()=>{try{document.getElementById('recalcular')?.click()}catch{}},0)}
   Promise.resolve(window.CONFIG_READY).then(run).catch(run);
-  window.addEventListener('salvatex:layout-ready',()=>{identity();render();applyTenantIdentity()});
+  window.addEventListener('salvatex:layout-ready',()=>{identity();render()});
   document.addEventListener('click',e=>{const card=e.target.closest('#tecidos-choice .card');if(!card)return;setTimeout(render,0)})
 })();
