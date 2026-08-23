@@ -1,3 +1,3 @@
 RADZ HUB production deployment trigger — 2026-08-23
 Production branch: radz-unified-production
-Align Decor page behavior with Salvatex: repair custom configurator links per tenant, persist configurator destinations reliably, keep product pages generic and tenant-safe, and preserve existing configurator data: 2026-08-23T10:05-03:00
+Replace layered page/menu behavior with deterministic tenant page destinations: explicit page type, explicit configurator_id, explicit product links; remove public name-based guessing; keep existing configurator fabrics, linings, media, prices and rules untouched: 2026-08-23T11:54-03:00
