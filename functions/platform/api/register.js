@@ -85,9 +85,12 @@ export async function onRequestPost(context) {
     context.env.DB.prepare(`INSERT INTO platform_sessions (id,user_id,company_id,token_hash,expires_at,created_at,last_seen_at) VALUES (?1,?2,?3,?4,?5,?6,?6)`).bind(sessionId, userId, companyId, tokenHash, expires, now),
     context.env.DB.prepare(`INSERT INTO platform_legal_acceptances (id,company_id,user_id,terms_version,privacy_version,accepted_at,ip_hash,user_agent,source) VALUES (?1,?2,?3,?4,?5,?6,?7,?8,'signup')`).bind(acceptanceId, companyId, userId, TERMS_VERSION, PRIVACY_VERSION, now, ipHash, userAgent)
   ];
-  for (const feature of ["catalog", "orders", "customers", "site_builder", "platform_subdomain"]) statements.push(context.env.DB.prepare(`INSERT INTO platform_features (company_id,feature_key,enabled,settings_json,updated_at) VALUES (?1,?2,1,'{}',?3)`).bind(companyId, feature, now));
+  // The free plan starts with the full store builder, including configurable products.
+  // RADZ can later disable this feature per company/plan without changing store data.
+  for (const feature of ["catalog", "orders", "customers", "site_builder", "platform_subdomain", "configurator"]) statements.push(context.env.DB.prepare(`INSERT INTO platform_features (company_id,feature_key,enabled,settings_json,updated_at) VALUES (?1,?2,1,'{}',?3)`).bind(companyId, feature, now));
   try { await context.env.DB.batch(statements); }
   catch (error) { const code = dbErrorCode(error); console.error("[RADZ register batch]", requestId, code, String(error?.message || error)); return json({ ok: false, code, message: code === "REGISTER_CONFLICT" ? "Algum dado deste cadastro acabou de ser utilizado por outra conta. Revise e tente novamente." : `Não foi possível gravar o cadastro no banco de dados. Referência: ${requestId}.` }, code === "REGISTER_CONFLICT" ? 409 : 503); }
   try { await audit(context.env, context.request, "company.registered", companyId, userId, { plan: "free", termsVersion: TERMS_VERSION, privacyVersion: PRIVACY_VERSION, requestId }); } catch (error) { console.error("[RADZ register audit]", requestId, String(error?.message || error)); }
   return json({ ok: true, company: { id: companyId, name: tradeName, slug, hostname, status }, redirect: `https://${hostname}/admin/` }, 201, { "set-cookie": sessionCookie(sessionToken, 28800, context.request) });
 }
+
