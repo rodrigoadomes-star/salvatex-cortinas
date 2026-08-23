@@ -45,6 +45,8 @@ function assertSelection(config, data) {
   if (fabric.coresAtivas && fabric.coresAtivas[color] === false) throw new Error("A cor selecionada está temporariamente indisponível.");
   const basePrice = number(fabric.forros?.[optionName]);
   if (!Number.isFinite(basePrice) || basePrice < 0) throw new Error("A opção selecionada não possui preço válido.");
+  const stockKey = `${fabricName}|||${color}|||${optionName}`;
+  if (config.estoqueCombinacoes && config.estoqueCombinacoes[stockKey] === false) throw new Error("Esta combinação de tecido, cor e opção está temporariamente indisponível.");
 
   let curtain = width * gather * basePrice;
   if (height > number(measures.inicioAcrescimo ?? 999)) curtain *= 1 + number(measures.acrescimoPercentual ?? 0) / 100;
