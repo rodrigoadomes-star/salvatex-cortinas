@@ -13,7 +13,7 @@
       if(conf){
         const field=conf.closest('.form-field');
         if(!feature('configurator',false)){if(field)field.remove();}
-        else{conf.innerHTML=`<option value="">Nenhum</option><option value="wave">Cortina Wave</option><option value="ilhos">Cortina Ilhós</option><option value="prega_macho">Prega Macho</option><option value="persiana">Persiana</option>`;conf.value=p?.configurator||'';}
+        else{conf.innerHTML=`<option value="">Nenhum</option><option value="wave">Cortina Wave</option><option value="cortina-varao">Cortina de Ilhós</option><option value="prega-macho">Prega Macho</option><option value="persiana">Persiana</option>`;conf.value=String(p?.configurator||'').replaceAll('_','-').replace(/^ilhos$/,'cortina-varao');}
       }
       const price=f.elements.basePrice?.closest('.form-field');
       if(price&&!f.elements.comparePrice){const wrap=document.createElement('div');wrap.className='form-field';wrap.innerHTML=`<label>Preço anterior / comparação (R$)</label><input name="comparePrice" type="number" min="0" step="0.01" value="${Number(p?.compare_price_cents||0)/100||''}" placeholder="Opcional">`;price.insertAdjacentElement('afterend',wrap)}
@@ -32,7 +32,7 @@
   if(typeof renderPages==='function'&&typeof pageForm==='function'&&!window.RADZ_MULTI_CONFIGURATOR_PAGES){
     renderPages=async function(){
       const [d,p]=await Promise.all([api('pages'),api('catalog/products')]);ADMIN.cache.pageProducts=p.products||[];const c=document.getElementById('view-content');
-      const typeName=x=>x==='produtos'?'Vitrine de produtos':x==='link'?'Link':x&&x.startsWith('configurador_')?'Configurador':'Conteúdo';
+      const typeName=x=>x==='produtos'?'Vitrine de produtos':x==='link'?'Link':x==='configurador'||x&&x.startsWith('configurador_')?'Configurador':'Conteúdo';
       const menuName=x=>x==='principal'?'Menu principal':x==='rodape'?'Rodapé':x==='oculto'?'Oculta':(['cortinas_sob_medida','persianas_sob_medida','pronta_entrega'].includes(x)?'Menu principal':'Oculta');
       c.innerHTML=`<div class="page-toolbar"><div><div class="orders-help">Crie páginas, vitrines e links. O nome, posição e destino do menu são definidos por você.</div></div><button id="new-page" class="primary-btn">+ Nova página / item de menu</button></div><section class="panel"><div class="table-wrap"><table class="admin-table"><thead><tr><th>Página / menu</th><th>Tipo</th><th>URL</th><th>Menu</th><th>Ordem</th><th>Status</th><th></th></tr></thead><tbody>${(d.pages||[]).map(x=>{const href=x.page_type==='link'?(x.external_url||'#'):`../pagina.html?slug=${encodeURIComponent(x.slug)}`;return `<tr data-page='${encodeURIComponent(JSON.stringify(x))}'><td><b>${esc(x.menu_label||x.title)}</b><br><small>${esc(x.title)}</small></td><td>${typeName(x.page_type)}</td><td><a href="${esc(href)}" target="_blank" rel="noopener">${x.page_type==='link'?esc(x.external_url||'—'):'/'+esc(x.slug)} ↗</a></td><td>${menuName(x.nav_group)}</td><td>${Number(x.nav_order||100)}</td><td>${x.active?'Publicada':'Rascunho'}</td><td><button class="ghost-btn edit-page">Editar</button></td></tr>`}).join('')||'<tr><td colspan="7" class="empty">Nenhuma página criada.</td></tr>'}</tbody></table></div></section>`;
       document.getElementById('new-page').onclick=()=>pageForm({},ADMIN.cache.pageProducts);document.querySelectorAll('.edit-page').forEach(b=>b.onclick=()=>pageForm(JSON.parse(decodeURIComponent(b.closest('tr').dataset.page)),ADMIN.cache.pageProducts));

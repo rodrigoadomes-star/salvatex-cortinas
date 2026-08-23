@@ -4580,6 +4580,8 @@ function aplicarIdentidadeConfigurador() {
       "wave"
     );
 
+  const configuradorDeCortina=["wave","prega-macho","cortina-varao"].includes(id);
+
   let modelo=
     String(
       cfg.modelo ||
@@ -4692,26 +4694,23 @@ function aplicarIdentidadeConfigurador() {
 
   if(pageKicker){
     pageKicker.textContent=
-      "CONFIGURADOR " +
-      modelo.toUpperCase();
+      configuradorDeCortina
+        ? "CONFIGURADOR " + modelo.toUpperCase()
+        : "CONFIGURADOR";
   }
 
   if(pageTitle){
-    pageTitle.textContent=
-      "Configure sua " +
-      (
-        id==="cortina-varao"
-          ? "cortina de ilhós"
-          : "cortina " +
-            modelo.toLowerCase()
-      ) +
-      " sob medida";
+    pageTitle.textContent=configuradorDeCortina
+      ? "Configure sua " + (id==="cortina-varao" ? "cortina de ilhós" : "cortina " + modelo.toLowerCase()) + " sob medida"
+      : "Configure " + String(cfg.nome||modelo||"seu produto");
   }
 
   if(pageDescription){
     pageDescription.textContent=
       cfg.descricao ||
-      "Escolha medidas, tecido, forro, cor e acabamento para montar sua cortina.";
+      (configuradorDeCortina
+        ? "Escolha medidas, tecido, opção, cor e acabamento para montar sua cortina."
+        : "Escolha as medidas, materiais e opções disponíveis para montar seu produto.");
   }
 
 
@@ -4721,8 +4720,7 @@ function aplicarIdentidadeConfigurador() {
     );
 
   if(sectionTitle){
-    sectionTitle.textContent=
-      "Configure sua cortina";
+    sectionTitle.textContent=configuradorDeCortina ? "Configure sua cortina" : "Configure seu produto";
   }
 
 

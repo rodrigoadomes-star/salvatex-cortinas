@@ -18,7 +18,7 @@ async function activeConfiguratorIndex(db,storeId){
     const rows=await db.prepare(`SELECT config_key,value_json FROM store_configs WHERE store_id=?1 AND config_key LIKE 'configurator_%'`).bind(storeId).all();
     for(const row of rows.results||[]){
       try{
-        const cfg=JSON.parse(row.value_json||'{}');if(cfg.ativo===false)continue;
+        const cfg=JSON.parse(row.value_json||'{}');if(cfg._deleted===true||cfg.ativo===false)continue;
         const id=String(cfg.id||row.config_key.replace('configurator_','').replaceAll('_','-')).trim();if(!id)continue;
         const item={id,nome:String(cfg.nome||'').trim()};
         [id,item.nome].map(key).filter(Boolean).forEach(k=>{if(!byKey.has(k))byKey.set(k,id)});
