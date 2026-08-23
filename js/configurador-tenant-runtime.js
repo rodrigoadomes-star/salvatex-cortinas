@@ -63,7 +63,7 @@
       const name=txt(config.storeName||config.name||config.tradeName||location.hostname.split('.')[0]||'Loja'),logoUrl=layout?.branding?.logo||config.logo||'';
       document.title=`${name} — Configurador`;
       document.querySelectorAll('.logo').forEach(logo=>{logo.href='/';if(logoUrl)logo.innerHTML=`<img src="${esc(logoUrl)}" alt="${esc(name)}" style="display:block;max-height:46px;max-width:200px;object-fit:contain">`;else{logo.innerHTML='';logo.append(document.createTextNode(name.toUpperCase()));const small=document.createElement('small');small.textContent='';logo.appendChild(small)}});
-      const nav=$('.navlinks');if(nav){const list=(pages.pages||[]).filter(p=>['principal','cortinas_sob_medida','persianas_sob_medida','pronta_entrega'].includes(p.navGroup)).sort((a,b)=>(a.navOrder||100)-(b.navOrder||100));const contact=layout?.navigation?.contactLabel||layout?.header?.contactLabel||'Contato';nav.innerHTML=list.map(p=>`<a class="page-nav-link" href="${esc(pageHref(p))}">${esc(p.menuLabel||p.title)}</a>`).join('')+`<a href="/#contato">${esc(contact)}</a><a href="/minha-conta.html">Minha conta</a>`;nav.style.display='flex';nav.style.gap='22px';nav.style.alignItems='center'}
+      window.RADZ_RELOAD_NAV?.();
       const footer=$('footer .shell');if(footer)footer.textContent=`${name.toUpperCase()} · ${new Date().getFullYear()}`;
       const colors=layout?.branding?.colors||layout?.colors||{};if(colors.primary)document.documentElement.style.setProperty('--layout-primary',colors.primary);if(colors.accent)document.documentElement.style.setProperty('--layout-accent',colors.accent)
     }catch(e){console.error('[RADZ tenant identity]',e)}
