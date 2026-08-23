@@ -18,6 +18,6 @@
     const footer=document.querySelector('footer');if(footer){const text=layout?.footer?.text||config.footerText||`${name} · Loja online.`;footer.innerHTML=`<div class="tenant-footer-grid"><div><div class="tenant-footer-brand">${esc(name.toUpperCase())}</div><div class="tenant-footer-text">${esc(text)}</div></div><div class="tenant-footer-tech">Tecnologia RADZ HUB</div></div>`;}
   }
   function applyPages(){window.RADZ_RELOAD_NAV?.()}
-  async function boot(){try{const [sc,ly,pages]=await Promise.all([j('/api/store-config'),j('/api/layout'),j('/api/pages')]);applyBrand(sc.config||{},ly.layout||{});applyPages(pages,ly.layout||{});}catch(e){console.error('[RADZ configurator identity]',e)}}
+  async function boot(){try{const [sc,ly,pages]=await Promise.all([j('/api/store-config'),j('/api/layout'),j('/api/pages')]);applyBrand(sc.config||{},ly.layout||{});applyPages(pages,ly.layout||{});}catch(e){console.error('[RADZ configurator identity]',e)}finally{document.documentElement.classList.remove('configurator-booting')}}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();window.addEventListener('salvatex:layout-ready',()=>setTimeout(boot,0));
 })();

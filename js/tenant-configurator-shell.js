@@ -3,6 +3,5 @@
 // que uma falha de rede mantenha a página oculta indefinidamente.
 (() => {
   const reveal = () => document.documentElement.classList.remove('configurator-booting');
-  Promise.resolve(window.CONFIG_READY).then(reveal).catch(reveal);
-  setTimeout(reveal, 1800);
+  setTimeout(reveal, 2500);
 })();
